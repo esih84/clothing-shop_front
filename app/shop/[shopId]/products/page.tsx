@@ -201,7 +201,7 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      <h1 className="text-2xl font-serif font-medium tracking-wide text-center sm:text-left mb-4">Products</h1>
+      
 
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full sm:max-w-xs">
