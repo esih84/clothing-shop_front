@@ -14,11 +14,11 @@ interface SwipeableCartItemProps {
   price: number
   quantity: number
   imageUrl: string
-  color?: string | null
-  size?: string | null
+  size: string
+  color?: string
 }
 
-export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, size }: SwipeableCartItemProps) {
+export function SwipeableCartItem({ id, name, price, quantity, imageUrl, size, color }: SwipeableCartItemProps) {
   const dispatch = useAppDispatch()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -27,7 +27,7 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
   }
 
   const confirmRemove = () => {
-    dispatch(removeFromCart(id))
+    dispatch(removeFromCart({ id, size, color }))
     setShowDeleteConfirm(false)
   }
 
@@ -36,12 +36,12 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
   }
 
   const incrementQuantity = () => {
-    dispatch(updateQuantity({ id, quantity: quantity + 1 }))
+    dispatch(updateQuantity({ id, size, color, quantity: quantity + 1 }))
   }
 
   const decrementQuantity = () => {
     if (quantity > 1) {
-      dispatch(updateQuantity({ id, quantity: quantity - 1 }))
+      dispatch(updateQuantity({ id, size, color, quantity: quantity - 1 }))
     }
   }
 
@@ -77,42 +77,45 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
         }}
       >
         <SwiperSlide>
-          <div className="bg-white rounded-xl p-3 shadow-sm">
-            <div className="flex gap-3">
-              <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex gap-4">
+              <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
                 <Image src={imageUrl || "/placeholder.svg"} alt={name} fill className="object-cover" />
               </div>
               <div className="flex-1">
-                <h3 className="font-medium text-sm">{name}</h3>
+                <h3 className="font-medium text-sm md:text-base">{name}</h3>
                 {(color || size) && (
                   <div className="flex items-center gap-2 mt-1">
                     {color && (
                       <div className="flex items-center gap-1">
                         <div className={`w-3 h-3 rounded-full ${getColorClass(color)}`}></div>
-                        <span className="text-xs text-gray-500">Color</span>
+                        <span className="text-xs text-gray-500">{color}</span>
                       </div>
                     )}
                     {color && size && <span className="text-xs text-gray-500">|</span>}
                     {size && (
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-500">Size = {size}</span>
+                        <span className="text-xs text-gray-500">Size: {size}</span>
                       </div>
                     )}
                   </div>
                 )}
-                <div className="flex justify-between items-center mt-2">
-                  <span className="font-bold">${price.toFixed(2)}</span>
-                  <div className="flex items-center border rounded-lg">
+                <div className="flex justify-between items-center mt-3">
+                  <span className="font-bold text-base md:text-lg">${price.toFixed(2)}</span>
+                  <div className="flex items-center border rounded-full overflow-hidden">
                     <button
                       onClick={decrementQuantity}
-                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200"
+                      className="px-3 py-1 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
                       disabled={quantity <= 1}
                     >
-                      <Minus className="w-3 h-3" />
+                      <Minus className="w-3 h-3 md:w-4 md:h-4" />
                     </button>
-                    <span className="px-3 text-sm">{quantity}</span>
-                    <button onClick={incrementQuantity} className="px-2 py-1 bg-gray-100 hover:bg-gray-200">
-                      <Plus className="w-3 h-3" />
+                    <span className="px-3 md:px-4 text-sm md:text-base">{quantity}</span>
+                    <button
+                      onClick={incrementQuantity}
+                      className="px-3 py-1 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      <Plus className="w-3 h-3 md:w-4 md:h-4" />
                     </button>
                   </div>
                 </div>
@@ -128,11 +131,11 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
       </Swiper>
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-md overflow-hidden">
-            <div className="p-4">
-              <h3 className="text-lg font-bold text-center mb-4">Remove From Cart?</h3>
-              <div className="bg-gray-100 rounded-xl p-3 mb-4">
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-center mb-4">Remove From Cart?</h3>
+              <div className="bg-gray-50 rounded-xl p-4 mb-6">
                 <div className="flex gap-3">
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <Image src={imageUrl || "/placeholder.svg"} alt={name} fill className="object-cover" />
@@ -144,28 +147,20 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
                         {color && (
                           <div className="flex items-center gap-1">
                             <div className={`w-3 h-3 rounded-full ${getColorClass(color)}`}></div>
-                            <span className="text-xs text-gray-500">Color</span>
+                            <span className="text-xs text-gray-500">{color}</span>
                           </div>
                         )}
                         {color && size && <span className="text-xs text-gray-500">|</span>}
                         {size && (
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500">Size = {size}</span>
+                            <span className="text-xs text-gray-500">Size: {size}</span>
                           </div>
                         )}
                       </div>
                     )}
                     <div className="flex justify-between items-center mt-2">
                       <span className="font-bold">${price.toFixed(2)}</span>
-                      <div className="flex items-center border rounded-lg">
-                        <button className="px-2 py-1 bg-gray-200" disabled>
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="px-3 text-sm">{quantity}</span>
-                        <button className="px-2 py-1 bg-gray-200" disabled>
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
+                      <span className="text-sm text-gray-500">Qty: {quantity}</span>
                     </div>
                   </div>
                 </div>
