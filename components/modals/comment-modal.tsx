@@ -38,36 +38,34 @@ export function CommentModal({ isOpen, onClose, onSubmit, allowRating = false }:
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+      <div className="bg-white rounded-lg max-w-md w-full p-6">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold">Add Comment</h2>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-            <X className="w-6 h-6" />
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Add Comment</h3>
+          <button onClick={handleClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Rating */}
           {allowRating && (
-            <div className="mb-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-              <div className="flex gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
+              <div className="flex items-center space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
                   <button
-                    key={i}
+                    key={star}
                     type="button"
-                    onClick={() => setRating(i + 1)}
-                    onMouseEnter={() => setHoveredRating(i + 1)}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoveredRating(star)}
                     onMouseLeave={() => setHoveredRating(0)}
                     className="p-1 hover:scale-110 transition-transform"
                   >
                     <Star
                       className={`w-6 h-6 ${
-                        i < (hoveredRating || rating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "fill-gray-200 text-gray-200"
+                        star <= (hoveredRating || rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                       }`}
                     />
                   </button>
@@ -77,7 +75,7 @@ export function CommentModal({ isOpen, onClose, onSubmit, allowRating = false }:
           )}
 
           {/* Comment */}
-          <div className="mb-6">
+          <div>
             <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
               Comment
             </label>
@@ -85,19 +83,19 @@ export function CommentModal({ isOpen, onClose, onSubmit, allowRating = false }:
               id="comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your thoughts..."
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              placeholder="Write your comment here..."
               required
             />
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 justify-end">
+          <div className="flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
             >
               Cancel
             </button>

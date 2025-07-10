@@ -11,7 +11,7 @@ import { useTransition } from "react"
 interface ProductCardProps {
   id: string
   title: string
-  price?: number
+  price: number
   imageUrl: string
   rating?: number
   reviews?: number
@@ -21,7 +21,7 @@ interface ProductCardProps {
 export function ProductCard({
   id,
   title,
-  price = 0,
+  price,
   imageUrl,
   rating = 4.5,
   reviews = 5000,
