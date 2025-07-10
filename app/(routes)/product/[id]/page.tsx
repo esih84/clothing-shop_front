@@ -1,11 +1,12 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { getProduct } from "@/lib/actions"
 import { ProductDetails } from "@/components/product-details"
 import { CommentSection, type Comment } from "@/components/comment-section"
-import { notFound } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card"
+import type { Product } from "@/lib/actions"
 
 // Mock comments data
 const productComments: Comment[] = [
@@ -61,11 +62,72 @@ const productComments: Comment[] = [
   },
 ]
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await getProduct(params.id)
+export default function ProductPage({ params }: { params: { id: string } }) {
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
-  if (!product) {
-    notFound()
+  useEffect(() => {
+    async function fetchProduct() {
+      try {
+        setLoading(true)
+        setError(false)
+        const productData = await getProduct(params.id)
+
+        if (!productData) {
+          setError(true)
+          return
+        }
+
+        setProduct(productData)
+      } catch (err) {
+        console.error("Error fetching product:", err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProduct()
+  }, [params.id])
+
+  if (loading) {
+    return (
+      <div className="pb-24 max-w-6xl mx-auto">
+        <div className="pt-16 px-4">
+          <div className="max-w-2xl mx-auto">
+            {/* Loading skeleton */}
+            <div className="mb-6">
+              <div className="aspect-square bg-gray-200 rounded-lg animate-pulse"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <div className="pb-24 max-w-6xl mx-auto">
+        <div className="pt-16 px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+            <p className="text-gray-600 mb-4">The product you're looking for doesn't exist or has been removed.</p>
+            <button
+              onClick={() => window.history.back()}
+              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -140,34 +202,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
             </TabsContent>
           </Tabs>
         </Card>
-      </div>
-
-      {/* Fixed Add to Cart button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 z-50 md:hidden">
-        <div className="flex gap-2">
-          <button
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium flex items-center justify-center"
-            onClick={() => document.getElementById("add-to-cart-btn")?.click()}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
-            >
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-            Add to Cart
-          </button>
-        </div>
       </div>
     </div>
   )

@@ -187,7 +187,7 @@ const products: Product[] = [
     images: ["/placeholder.svg?height=500&width=400&text=Levis", "/placeholder.svg?height=500&width=400&text=Image+2"],
     sizes: ["28", "30", "32", "34", "36"],
   },
-    {
+  {
     id: "1",
     title: "Pull & Bear Men's Fall Urban Collection",
     price: 26.15,
@@ -375,7 +375,7 @@ const categories: Category[] = [
   { id: "shirts", name: "Shirts" },
   { id: "accessories", name: "Accessories" },
   { id: "hats", name: "Hats" },
-    { id: "jackets", name: "Jacket" },
+  { id: "jackets", name: "Jacket" },
   { id: "jumpers", name: "Jumpers" },
   { id: "shoes", name: "Shoes" },
   { id: "jeans", name: "Jeans" },
