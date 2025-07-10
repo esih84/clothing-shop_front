@@ -1,4 +1,4 @@
-import { ProductCard } from "@/components/product-card"
+import { ProductCard } from "@/components/product-card";
 
 // Mock product data
 const products = [
@@ -56,15 +56,17 @@ const products = [
     reviews: 6123,
     sales: 8500,
   },
-]
+];
 
 export default async function ProductsSection() {
   // Simulate async data fetching
-  await new Promise((resolve) => setTimeout(resolve, 100))
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
   return (
     <div className="px-4 py-6 mx-auto">
-      <h2 className="text-xl md:text-2xl md:font-lg font-bold mb-4 md:mb-6">Featured Products</h2>
+      <h2 className="text-xl md:text-2xl md:font-lg font-bold mb-4 md:mb-6">
+        Featured Products
+      </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {products.map((product) => (
           <ProductCard
@@ -80,5 +82,5 @@ export default async function ProductsSection() {
         ))}
       </div>
     </div>
-  )
+  );
 }

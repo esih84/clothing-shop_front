@@ -1,35 +1,39 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Plus, Search, Filter, Edit, Trash2 } from "lucide-react"
-import Image from "next/image"
-import { createColumnHelper } from "@tanstack/react-table"
-import { DataTable } from "@/components/ui/data-table"
-import { DeleteConfirmationModal } from "@/components/modals/delete-confirmation-modal"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { createColumnHelper } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
+import { DeleteConfirmationModal } from "@/components/modals/delete-confirmation-modal";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Product {
-  id: string
-  name: string
-  price: number
-  stock: number
-  category: string
-  description: string
-  imageUrl: string
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  category: string;
+  description: string;
+  imageUrl: string;
 }
 
 export default function ProductsPage() {
-  const params = useParams()
-  const router = useRouter()
-  const shopId = params.shopId as string
-  const [searchQuery, setSearchQuery] = useState("")
-  const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; productId: string; name: string }>({
+  const params = useParams();
+  const router = useRouter();
+  const shopId = params.shopId as string;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deleteModalData, setDeleteModalData] = useState<{
+    isOpen: boolean;
+    productId: string;
+    name: string;
+  }>({
     isOpen: false,
     productId: "",
     name: "",
-  })
-  const [isDeleting, setIsDeleting] = useState(false)
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Mock product data
   const products: Product[] = [
@@ -69,38 +73,38 @@ export default function ProductsPage() {
       description: "Genuine leather belt with classic buckle design.",
       imageUrl: "/placeholder.svg?height=80&width=80",
     },
-  ]
+  ];
 
   const handleEditClick = (productId: string) => {
-    router.push(`/shop/${shopId}/products/edit/${productId}`)
-  }
+    router.push(`/shop/${shopId}/products/edit/${productId}`);
+  };
 
   const handleDeleteClick = (productId: string, name: string) => {
     setDeleteModalData({
       isOpen: true,
       productId,
       name,
-    })
-  }
+    });
+  };
 
   const handleDeleteConfirm = async () => {
-    setIsDeleting(true)
+    setIsDeleting(true);
     // In a real app, this would call an API to delete the product
-    await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
-    setIsDeleting(false)
-    setDeleteModalData({ isOpen: false, productId: "", name: "" })
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+    setIsDeleting(false);
+    setDeleteModalData({ isOpen: false, productId: "", name: "" });
     // Refresh the page or update the state
-    window.location.reload()
-  }
+    window.location.reload();
+  };
 
   // Column definition for TanStack Table
-  const columnHelper = createColumnHelper<Product>()
+  const columnHelper = createColumnHelper<Product>();
 
   const columns = [
     columnHelper.accessor("name", {
       header: "Product",
       cell: (info) => {
-        const product = info.row.original
+        const product = info.row.original;
         return (
           <div className="flex items-center">
             <Image
@@ -115,12 +119,14 @@ export default function ProductsPage() {
               <p className="text-xs text-gray-500">{product.category}</p>
             </div>
           </div>
-        )
+        );
       },
     }),
     columnHelper.accessor("price", {
       header: "Price",
-      cell: (info) => <span className="font-medium">${info.getValue().toFixed(2)}</span>,
+      cell: (info) => (
+        <span className="font-medium">${info.getValue().toFixed(2)}</span>
+      ),
     }),
     columnHelper.accessor("stock", {
       header: "Stock",
@@ -130,7 +136,7 @@ export default function ProductsPage() {
       id: "actions",
       header: "Actions",
       cell: (info) => {
-        const product = info.row.original
+        const product = info.row.original;
         return (
           <div className="flex space-x-2">
             <button
@@ -146,10 +152,10 @@ export default function ProductsPage() {
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
-        )
+        );
       },
     }),
-  ]
+  ];
 
   // Mobile product list view
   const MobileProductList = () => (
@@ -158,7 +164,7 @@ export default function ProductsPage() {
         .filter(
           (product) =>
             product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.category.toLowerCase().includes(searchQuery.toLowerCase()),
+            product.category.toLowerCase().includes(searchQuery.toLowerCase())
         )
         .map((product) => (
           <Card key={product.id} className="overflow-hidden animate-fadeIn">
@@ -178,15 +184,22 @@ export default function ProductsPage() {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-bold">${product.price.toFixed(2)}</p>
-                    <p className="text-xs text-gray-500">Stock: {product.stock}</p>
+                    <p className="text-xs text-gray-500">
+                      Stock: {product.stock}
+                    </p>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="p-1.5 bg-gray-100 rounded-full" onClick={() => handleEditClick(product.id)}>
+                    <button
+                      className="p-1.5 bg-gray-100 rounded-full"
+                      onClick={() => handleEditClick(product.id)}
+                    >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       className="p-1.5 bg-gray-100 rounded-full"
-                      onClick={() => handleDeleteClick(product.id, product.name)}
+                      onClick={() =>
+                        handleDeleteClick(product.id, product.name)
+                      }
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -197,12 +210,10 @@ export default function ProductsPage() {
           </Card>
         ))}
     </div>
-  )
+  );
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      
-
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -235,7 +246,12 @@ export default function ProductsPage() {
       <div className="hidden sm:block">
         <Card className="border border-gray-100 shadow-md overflow-hidden">
           <CardContent className="p-0">
-            <DataTable columns={columns} data={products} searchKey="name" searchValue={searchQuery} />
+            <DataTable
+              columns={columns}
+              data={products}
+              searchKey="name"
+              searchValue={searchQuery}
+            />
           </CardContent>
         </Card>
       </div>
@@ -243,7 +259,9 @@ export default function ProductsPage() {
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={deleteModalData.isOpen}
-        onClose={() => setDeleteModalData({ ...deleteModalData, isOpen: false })}
+        onClose={() =>
+          setDeleteModalData({ ...deleteModalData, isOpen: false })
+        }
         onConfirm={handleDeleteConfirm}
         title="Delete Product"
         message="Are you sure you want to delete the product"
@@ -251,5 +269,5 @@ export default function ProductsPage() {
         isDeleting={isDeleting}
       />
     </div>
-  )
+  );
 }
