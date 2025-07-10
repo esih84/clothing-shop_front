@@ -18,10 +18,7 @@ export default function ShopLayout({
             
             
           </Link>
-          <h1 className="font-serif text-2xl font-medium">Shop Dashboard</h1>
-        </div>
-
-        <div className="flex items-center gap-6">
+          <h1 className="font-serif text-2xl font-medium">Shop Dashboard</h>
           <Link href={`/shop/${params.shopId}`} className="text-black hover:text-gray-700 transition-colors">
             Dashboard
           </Link>
@@ -46,11 +43,9 @@ export default function ShopLayout({
           <ChevronLeft className="w-5 h-5 mr-1" />
           <span>Back</span>
         </Link>
-        <h1 className="font-serif text-xl font-medium mx-auto">Shop Dashboard</h1>
-      </div>
+        <h1 className="font-serif text-xl font-  </div>
 
-      {/* Main Content */}
+ tent */}
       <div className="flex-1 p-4 md:p-6">{children}</div>
     </div>
   )
-}

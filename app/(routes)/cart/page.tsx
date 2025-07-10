@@ -22,13 +22,13 @@ export default function CartPage() {
     return null
   }
 
-  const handleUpdateQuantity = (id: string, size: string, color: string | undefined, newQuantity: number) => {
+  const handleUpdateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return
-    dispatch(updateQuantity({ id, size, color, quantity: newQuantity }))
+    dispatch(updateQuantity({ id, quantity: newQuantity }))
   }
 
-  const handleRemoveItem = (id: string, size: string, color: string | undefined) => {
-    dispatch(removeFromCart({ id, size, color }))
+  const handleRemoveItem = (id: string) => {
+    dispatch(removeFromCart({ id }))
     setRemoveModalOpen(false)
   }
 
@@ -44,8 +44,7 @@ export default function CartPage() {
 
   return (
     <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
-      {/* Header */}
-      
+
 
       {cartItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
@@ -58,7 +57,7 @@ export default function CartPage() {
           </p>
           <Link
             href="/"
-            className="bg-black text-white px-6 py-3 rounded-full font-medium inline-block text-base md:text-lg hover:bg-gray-800 transition-colors"
+            className="bg-black text-white px-6 py-3 rounded-full font-medium inline-block text-base md:text-lg"
           >
             Start Shopping
           </Link>
@@ -66,10 +65,9 @@ export default function CartPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
-            <h1 className="text-2xl md:text-3xl font-bold mb-6">Shopping Cart</h1>
             {cartItems.map((item) => (
               <div
-                key={`${item.id}-${item.size}-${item.color || "default"}`}
+                key={item.id}
                 className="cart-item bg-white rounded-xl p-4 md:p-6 flex items-center gap-4 shadow-sm border border-gray-100"
               >
                 <div className="cart-item-image w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 bg-gray-100 rounded-xl flex-shrink-0 overflow-hidden">
@@ -84,10 +82,7 @@ export default function CartPage() {
                 <div className="flex-1">
                   <div className="flex justify-between">
                     <h3 className="font-medium text-base md:text-lg lg:text-xl">{item.name}</h3>
-                    <button
-                      onClick={() => openRemoveModal(item)}
-                      className="text-gray-400 hover:text-red-500 transition-colors"
-                    >
+                    <button onClick={() => openRemoveModal(item)} className="text-gray-400">
                       <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
                   </div>
@@ -99,16 +94,15 @@ export default function CartPage() {
                     <p className="font-bold text-base md:text-lg lg:text-xl">${item.price.toFixed(2)}</p>
                     <div className="flex items-center border rounded-full overflow-hidden">
                       <button
-                        onClick={() => handleUpdateQuantity(item.id, item.size, item.color, item.quantity - 1)}
-                        className="px-3 py-1 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
-                        disabled={item.quantity <= 1}
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                        className="px-3 py-1 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200"
                       >
                         <Minus className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
                       <span className="px-3 md:px-4 text-base md:text-lg">{item.quantity}</span>
                       <button
-                        onClick={() => handleUpdateQuantity(item.id, item.size, item.color, item.quantity + 1)}
-                        className="px-3 py-1 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200 transition-colors"
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                        className="px-3 py-1 md:px-4 md:py-2 bg-gray-100 hover:bg-gray-200"
                       >
                         <Plus className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
@@ -128,7 +122,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between text-base md:text-lg">
                 <span className="text-gray-600">Shipping</span>
-                <span className="font-medium text-green-600">Free</span>
+                <span className="font-medium">$0.00</span>
               </div>
               <div className="flex justify-between text-base md:text-lg">
                 <span className="text-gray-600">Tax</span>
@@ -141,7 +135,7 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
-            <button className="w-full bg-black text-white py-3 md:py-4 rounded-full font-medium text-base md:text-lg flex items-center justify-center hover:bg-gray-800 transition-colors">
+            <button className="w-full bg-black text-white py-3 md:py-4 rounded-full font-medium text-base md:text-lg flex items-center justify-center">
               Checkout
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -190,13 +184,13 @@ export default function CartPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => setRemoveModalOpen(false)}
-                className="flex-1 py-3 md:py-4 bg-gray-200 rounded-full font-medium text-base md:text-lg hover:bg-gray-300 transition-colors"
+                className="flex-1 py-3 md:py-4 bg-gray-200 rounded-full font-medium text-base md:text-lg"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleRemoveItem(itemToRemove.id, itemToRemove.size, itemToRemove.color)}
-                className="flex-1 py-3 md:py-4 bg-black text-white rounded-full font-medium text-base md:text-lg hover:bg-gray-800 transition-colors"
+                onClick={() => handleRemoveItem(itemToRemove.id)}
+                className="flex-1 py-3 md:py-4 bg-black text-white rounded-full font-medium text-base md:text-lg"
               >
                 Yes, Remove
               </button>

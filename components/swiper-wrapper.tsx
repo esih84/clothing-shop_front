@@ -3,9 +3,17 @@
 import { Swiper, SwiperSlide } from "swiper/react"
 import { Navigation } from "swiper/modules"
 import { OfferCard } from "@/components/offer-card"
-import type { Product } from "@/lib/actions"
 import "swiper/css"
 import "swiper/css/navigation"
+
+interface Product {
+  id: string
+  title: string
+  price: number
+  originalPrice?: number
+  discount?: number
+  images: string[]
+}
 
 interface SwiperWrapperProps {
   products: Product[]
@@ -33,7 +41,6 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
             originalPrice={product.originalPrice || product.price}
             discount={product.discount || 0}
             imageUrl={product.images[0]}
-            rating={product.rating}
           />
         </SwiperSlide>
       ))}
