@@ -1,34 +1,42 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Heart, Minus, Plus, Star, ShoppingBag, Trash2 } from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks"
-import { addToCart, updateQuantity, removeFromCart } from "@/lib/store/cartSlice"
-import { toggleWishlist } from "@/lib/store/wishlistSlice"
-import { useRouter } from "next/navigation"
-import { useTransition } from "react"
-import { ImageSlider } from "@/components/image-slider"
-import type { Product } from "@/lib/actions"
+import { useState } from "react";
+import { Heart, Minus, Plus, Star, ShoppingBag, Trash2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import {
+  addToCart,
+  updateQuantity,
+  removeFromCart,
+} from "@/lib/store/cartSlice";
+import { toggleWishlist } from "@/lib/store/wishlistSlice";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { ImageSlider } from "@/components/image-slider";
+import type { Product } from "@/lib/actions";
 
 interface ProductDetailsProps {
-  product: Product
+  product: Product;
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
-  const [quantity, setQuantity] = useState(1)
-  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null)
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "M")
-  const dispatch = useAppDispatch()
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [quantity, setQuantity] = useState(1);
+  const [selectedColor, setSelectedColor] = useState(
+    product.colors?.[0] || null
+  );
+  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "M");
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  const wishlistItems = useAppSelector((state) => state.wishlist.items)
-  const cartItems = useAppSelector((state) => state.cart.items)
-  const isInWishlist = wishlistItems.some((item) => item.id === product.id)
+  const wishlistItems = useAppSelector((state) => state.wishlist.items);
+  const cartItems = useAppSelector((state) => state.cart.items);
+  const isInWishlist = wishlistItems.some((item) => item.id === product.id);
 
   // Check if this product with the selected size is in the cart
-  const cartItem = cartItems.find((item) => item.id === product.id && item.size === selectedSize)
-  const isInCart = !!cartItem
+  const cartItem = cartItems.find(
+    (item) => item.id === product.id && item.size === selectedSize
+  );
+  const isInCart = !!cartItem;
 
   const handleToggleWishlist = () => {
     dispatch(
@@ -39,9 +47,9 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         imageUrl: product.images[0],
         brand: product.brand.name,
         location: product.store.name,
-      }),
-    )
-  }
+      })
+    );
+  };
 
   const handleAddToCart = () => {
     dispatch(
@@ -52,29 +60,33 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         price: product.price,
         quantity: quantity,
         imageUrl: product.images[0],
-      }),
-    )
-  }
+      })
+    );
+  };
 
   const incrementQuantity = () => {
     if (isInCart && cartItem) {
-      dispatch(updateQuantity({ id: cartItem.id, quantity: cartItem.quantity + 1 }))
+      dispatch(
+        updateQuantity({ id: cartItem.id, quantity: cartItem.quantity + 1 })
+      );
     } else {
-      setQuantity((prev) => prev + 1)
+      setQuantity((prev) => prev + 1);
     }
-  }
+  };
 
   const decrementQuantity = () => {
     if (isInCart && cartItem) {
       if (cartItem.quantity === 1) {
-        dispatch(removeFromCart({ id: cartItem.id }))
+        dispatch(removeFromCart({ id: cartItem.id }));
       } else {
-        dispatch(updateQuantity({ id: cartItem.id, quantity: cartItem.quantity - 1 }))
+        dispatch(
+          updateQuantity({ id: cartItem.id, quantity: cartItem.quantity - 1 })
+        );
       }
     } else if (quantity > 1) {
-      setQuantity((prev) => prev - 1)
+      setQuantity((prev) => prev - 1);
     }
-  }
+  };
 
   // Map color names to tailwind classes
   const getColorClass = (color: string) => {
@@ -90,25 +102,35 @@ export function ProductDetails({ product }: ProductDetailsProps) {
       red: "bg-red-600",
       pink: "bg-pink-500",
       purple: "bg-purple-600",
-    }
-    return colorMap[color.toLowerCase()] || "bg-gray-200"
-  }
+    };
+    return colorMap[color.toLowerCase()] || "bg-gray-200";
+  };
 
   // Mock colors if not provided
-  const colors = product.colors || ["black", "blue", "brown", "gray"]
+  const colors = product.colors || ["black", "blue", "brown", "gray"];
 
   return (
-    <div className="pt-16 px-4 pb-24">
+    <div className="pt-4 px-4 pb-24">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <ImageSlider images={product.images} alt={product.title} thumbs={true} />
+          <ImageSlider
+            images={product.images}
+            alt={product.title}
+            thumbs={true}
+          />
         </div>
 
         <div className="space-y-4">
           <div className="flex justify-between items-start">
-            <h1 className="text-2xl md:text-3xl font-bold font-playfair">{product.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-playfair">
+              {product.title}
+            </h1>
             <button onClick={handleToggleWishlist} className="p-1">
-              <Heart className={`w-6 h-6 md:w-7 md:h-7 ${isInWishlist ? "fill-red-500 text-red-500" : ""}`} />
+              <Heart
+                className={`w-6 h-6 md:w-7 md:h-7 ${
+                  isInWishlist ? "fill-red-500 text-red-500" : ""
+                }`}
+              />
             </button>
           </div>
 
@@ -118,12 +140,16 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 <Star
                   key={i}
                   className={`w-4 h-4 md:w-5 md:h-5 ${
-                    i <= Math.round(product.rating) ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"
+                    i <= Math.round(product.rating)
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "fill-gray-200 text-gray-200"
                   }`}
                 />
               ))}
             </div>
-            <span className="text-sm md:text-base font-medium">{product.rating}</span>
+            <span className="text-sm md:text-base font-medium">
+              {product.rating}
+            </span>
             <span className="text-sm md:text-base text-gray-500">
               ({product.reviews?.toLocaleString() || "6,382"} reviews)
             </span>
@@ -134,7 +160,9 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
           <div>
             <h2 className="font-medium text-lg md:text-xl mb-2">Description</h2>
-            <p className="text-gray-600 text-sm md:text-base">{product.description}</p>
+            <p className="text-gray-600 text-sm md:text-base">
+              {product.description}
+            </p>
           </div>
 
           <div>
@@ -143,8 +171,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               {colors.map((color) => (
                 <button
                   key={color}
-                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full ${getColorClass(color)} ${
-                    selectedColor === color ? "ring-2 ring-offset-2 ring-black" : ""
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded-full ${getColorClass(
+                    color
+                  )} ${
+                    selectedColor === color
+                      ? "ring-2 ring-offset-2 ring-black"
+                      : ""
                   }`}
                   onClick={() => setSelectedColor(color)}
                   aria-label={`Select ${color} color`}
@@ -178,7 +210,11 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <div>
               <p className="text-sm md:text-base text-gray-500">Total price</p>
               <p className="text-2xl md:text-3xl font-bold font-playfair">
-                ${(product.price * (isInCart ? cartItem?.quantity || 1 : quantity)).toFixed(2)}
+                $
+                {(
+                  product.price *
+                  (isInCart ? cartItem?.quantity || 1 : quantity)
+                ).toFixed(2)}
               </p>
             </div>
           </div>
@@ -267,7 +303,9 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     <Minus className="w-5 h-5 text-gray-700" />
                   )}
                 </button>
-                <span className="px-6 py-3 text-lg font-bold bg-white">{cartItem?.quantity || 0}</span>
+                <span className="px-6 py-3 text-lg font-bold bg-white">
+                  {cartItem?.quantity || 0}
+                </span>
                 <button
                   onClick={incrementQuantity}
                   className="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-r-lg transition-colors"
@@ -277,7 +315,9 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-500">Total</p>
-                <p className="text-xl font-bold">${(product.price * (cartItem?.quantity || 0)).toFixed(2)}</p>
+                <p className="text-xl font-bold">
+                  ${(product.price * (cartItem?.quantity || 0)).toFixed(2)}
+                </p>
               </div>
             </div>
           ) : (
@@ -293,5 +333,5 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { SwiperSlider } from "@/components/swiper-slider"
+import { SwiperSlider } from "@/components/swiper-slider";
 
 interface ImageSliderProps {
-  images: string[]
-  alt: string
-  thumbs?: boolean
+  images: string[];
+  alt: string;
+  thumbs?: boolean;
 }
 
 export function ImageSlider({ images, alt, thumbs = false }: ImageSliderProps) {
@@ -16,7 +16,7 @@ export function ImageSlider({ images, alt, thumbs = false }: ImageSliderProps) {
       thumbs={thumbs}
       navigation={true}
       pagination={true}
-      className="rounded-b-3xl overflow-hidden"
+      className=" overflow-hidden"
     />
-  )
+  );
 }
