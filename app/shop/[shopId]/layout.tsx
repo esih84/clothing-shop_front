@@ -15,8 +15,8 @@ export default function ShopLayout({
       <div className="hidden md:flex items-center justify-between p-6 border-b">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center text-black hover:text-gray-700 transition-colors">
-            <ChevronLeft className="w-5 h-5 mr-1" />
-            <span>Back to Home</span>
+            
+            
           </Link>
           <h1 className="font-serif text-2xl font-medium">Shop Dashboard</h1>
         </div>

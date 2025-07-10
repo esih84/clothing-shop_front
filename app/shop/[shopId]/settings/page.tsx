@@ -63,7 +63,7 @@ export default function ShopSettingsPage() {
                       <label className="block text-sm text-gray-500 mb-1">Shop Name</label>
                       <input
                         type="text"
-                        value={shopData.name}
+                        defaultValue={shopData.name}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -71,7 +71,7 @@ export default function ShopSettingsPage() {
                       <label className="block text-sm text-gray-500 mb-1">Email Address</label>
                       <input
                         type="email"
-                        value={shopData.email}
+                        defaultValue={shopData.email}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -79,7 +79,7 @@ export default function ShopSettingsPage() {
                       <label className="block text-sm text-gray-500 mb-1">Phone Number</label>
                       <input
                         type="tel"
-                        value={shopData.phone}
+                        defaultValue={shopData.phone}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -177,7 +177,7 @@ export default function ShopSettingsPage() {
                         <p className="text-xs text-gray-500">Get notified when a customer places a new order</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked className="sr-only peer" />
+                        <input type="checkbox" defaultChecked className="sr-only peer" />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                       </label>
                     </div>
@@ -188,7 +188,7 @@ export default function ShopSettingsPage() {
                         <p className="text-xs text-gray-500">Get notified when a product receives a new review</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked className="sr-only peer" />
+                        <input type="checkbox" defaultChecked className="sr-only peer" />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                       </label>
                     </div>
@@ -215,7 +215,7 @@ export default function ShopSettingsPage() {
                         <p className="text-xs text-gray-500">Get push notifications for new orders</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" checked className="sr-only peer" />
+                        <input type="checkbox" defaultChecked className="sr-only peer" />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                       </label>
                     </div>
