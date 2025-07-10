@@ -1,12 +1,6 @@
-"use client"
-
 import Link from "next/link"
-import { Swiper, SwiperSlide } from "swiper/react"
-import { Navigation } from "swiper/modules"
-import { OfferCard } from "@/components/offer-card"
+import { SwiperWrapper } from "@/components/swiper-wrapper"
 import { getDiscountedProducts } from "@/lib/actions"
-import "swiper/css"
-import "swiper/css/navigation"
 
 export default async function OffersSection() {
   const discountedProducts = await getDiscountedProducts()
@@ -29,34 +23,7 @@ export default async function OffersSection() {
           <h1>offers</h1>
         </div>
 
-        <Swiper
-          modules={[Navigation]}
-          spaceBetween={12}
-          slidesPerView="auto"
-          navigation={{
-            nextEl: ".swiper-button-next",
-            prevEl: ".swiper-button-prev",
-          }}
-          className="offers-swiper pl-6 md:pl-[200px]"
-          wrapperClass="items-center"
-        >
-          {discountedProducts.map((product) => (
-            <SwiperSlide key={product.id} style={{ width: "auto" }}>
-              <OfferCard
-                id={product.id}
-                title={product.title}
-                price={product.price}
-                originalPrice={product.originalPrice || product.price}
-                discount={product.discount || 0}
-                imageUrl={product.images[0]}
-              />
-            </SwiperSlide>
-          ))}
-        </Swiper>
-
-
-
-
+        <SwiperWrapper products={discountedProducts} />
       </div>
     </div>
   )
