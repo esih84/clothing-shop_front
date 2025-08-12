@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, ShoppingBag, Minus, Plus, Trash2 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { removeFromCart, updateQuantity } from "@/lib/store/cartSlice";
+import { removeFromCart, updateQuantity } from "@/lib/store/slices/cartSlice";
 
 export default function CartPage() {
   const cartItems = useAppSelector((state) => state.cart.items);

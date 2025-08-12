@@ -1,49 +1,57 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import { Swiper, SwiperSlide } from "swiper/react"
-import { Minus, Plus, Trash2 } from "lucide-react"
-import { useAppDispatch } from "@/lib/store/hooks"
-import { removeFromCart, updateQuantity } from "@/lib/store/cartSlice"
-import "swiper/css"
+import { useState } from "react";
+import Image from "next/image";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Minus, Plus, Trash2 } from "lucide-react";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { removeFromCart, updateQuantity } from "@/lib/store/slices/cartSlice";
+import "swiper/css";
 
 interface SwipeableCartItemProps {
-  id: string
-  name: string
-  price: number
-  quantity: number
-  imageUrl: string
-  color?: string | null
-  size?: string | null
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl: string;
+  color?: string | null;
+  size?: string | null;
 }
 
-export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, size }: SwipeableCartItemProps) {
-  const dispatch = useAppDispatch()
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+export function SwipeableCartItem({
+  id,
+  name,
+  price,
+  quantity,
+  imageUrl,
+  color,
+  size,
+}: SwipeableCartItemProps) {
+  const dispatch = useAppDispatch();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleRemove = () => {
-    setShowDeleteConfirm(true)
-  }
+    setShowDeleteConfirm(true);
+  };
 
   const confirmRemove = () => {
-    dispatch(removeFromCart(id))
-    setShowDeleteConfirm(false)
-  }
+    dispatch(removeFromCart(id));
+    setShowDeleteConfirm(false);
+  };
 
   const cancelRemove = () => {
-    setShowDeleteConfirm(false)
-  }
+    setShowDeleteConfirm(false);
+  };
 
   const incrementQuantity = () => {
-    dispatch(updateQuantity({ id, quantity: quantity + 1 }))
-  }
+    dispatch(updateQuantity({ id, quantity: quantity + 1 }));
+  };
 
   const decrementQuantity = () => {
     if (quantity > 1) {
-      dispatch(updateQuantity({ id, quantity: quantity - 1 }))
+      dispatch(updateQuantity({ id, quantity: quantity - 1 }));
     }
-  }
+  };
 
   // Map color names to tailwind classes
   const getColorClass = (color: string) => {
@@ -59,9 +67,9 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
       red: "bg-red-600",
       pink: "bg-pink-500",
       purple: "bg-purple-600",
-    }
-    return colorMap[color.toLowerCase()] || "bg-gray-200"
-  }
+    };
+    return colorMap[color.toLowerCase()] || "bg-gray-200";
+  };
 
   return (
     <div className="relative mb-4">
@@ -72,7 +80,7 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
         initialSlide={0}
         onSlideChange={(swiper) => {
           if (swiper.activeIndex === 1) {
-            handleRemove()
+            handleRemove();
           }
         }}
       >
@@ -80,7 +88,12 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
           <div className="bg-white rounded-xl p-3 shadow-sm">
             <div className="flex gap-3">
               <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                <Image src={imageUrl || "/placeholder.svg"} alt={name} fill className="object-cover" />
+                <Image
+                  src={imageUrl || "/placeholder.svg"}
+                  alt={name}
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="flex-1">
                 <h3 className="font-medium text-sm">{name}</h3>
@@ -88,14 +101,22 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
                   <div className="flex items-center gap-2 mt-1">
                     {color && (
                       <div className="flex items-center gap-1">
-                        <div className={`w-3 h-3 rounded-full ${getColorClass(color)}`}></div>
+                        <div
+                          className={`w-3 h-3 rounded-full ${getColorClass(
+                            color
+                          )}`}
+                        ></div>
                         <span className="text-xs text-gray-500">Color</span>
                       </div>
                     )}
-                    {color && size && <span className="text-xs text-gray-500">|</span>}
+                    {color && size && (
+                      <span className="text-xs text-gray-500">|</span>
+                    )}
                     {size && (
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-500">Size = {size}</span>
+                        <span className="text-xs text-gray-500">
+                          Size = {size}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -111,7 +132,10 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
                       <Minus className="w-3 h-3" />
                     </button>
                     <span className="px-3 text-sm">{quantity}</span>
-                    <button onClick={incrementQuantity} className="px-2 py-1 bg-gray-100 hover:bg-gray-200">
+                    <button
+                      onClick={incrementQuantity}
+                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200"
+                    >
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
@@ -131,11 +155,18 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center p-4">
           <div className="bg-white rounded-xl w-full max-w-md overflow-hidden">
             <div className="p-4">
-              <h3 className="text-lg font-bold text-center mb-4">Remove From Cart?</h3>
+              <h3 className="text-lg font-bold text-center mb-4">
+                Remove From Cart?
+              </h3>
               <div className="bg-gray-100 rounded-xl p-3 mb-4">
                 <div className="flex gap-3">
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image src={imageUrl || "/placeholder.svg"} alt={name} fill className="object-cover" />
+                    <Image
+                      src={imageUrl || "/placeholder.svg"}
+                      alt={name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-sm">{name}</h3>
@@ -143,14 +174,22 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
                       <div className="flex items-center gap-2 mt-1">
                         {color && (
                           <div className="flex items-center gap-1">
-                            <div className={`w-3 h-3 rounded-full ${getColorClass(color)}`}></div>
+                            <div
+                              className={`w-3 h-3 rounded-full ${getColorClass(
+                                color
+                              )}`}
+                            ></div>
                             <span className="text-xs text-gray-500">Color</span>
                           </div>
                         )}
-                        {color && size && <span className="text-xs text-gray-500">|</span>}
+                        {color && size && (
+                          <span className="text-xs text-gray-500">|</span>
+                        )}
                         {size && (
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500">Size = {size}</span>
+                            <span className="text-xs text-gray-500">
+                              Size = {size}
+                            </span>
                           </div>
                         )}
                       </div>
@@ -189,5 +228,5 @@ export function SwipeableCartItem({ id, name, price, quantity, imageUrl, color, 
         </div>
       )}
     </div>
-  )
+  );
 }

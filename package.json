@@ -57,6 +57,7 @@
     "react-resizable-panels": "latest",
     "recharts": "latest",
     "redux": "latest",
+    "redux-persist": "^6.0.0",
     "sonner": "latest",
     "swiper": "latest",
     "tailwind-merge": "^2.5.5",
@@ -68,6 +69,7 @@
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/redux-persist": "^4.3.1",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

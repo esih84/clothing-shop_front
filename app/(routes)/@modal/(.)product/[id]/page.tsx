@@ -1,51 +1,51 @@
-"use client"
+"use client";
 
-import { getProduct } from "@/lib/actions"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import { Heart, Star, ShoppingBag, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks"
-import { addToCart } from "@/lib/store/cartSlice"
-import { toggleWishlist } from "@/lib/store/wishlistSlice"
+import { getProduct } from "@/lib/actions";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { Heart, Star, ShoppingBag, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { addToCart } from "@/lib/store/slices/cartSlice";
+import { toggleWishlist } from "@/lib/store/slices/wishlistSlice";
 
 export default function ProductModal({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [product, setProduct] = useState<any>(null)
-  const [selectedColor, setSelectedColor] = useState<string>("")
-  const [selectedSize, setSelectedSize] = useState<string>("")
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [isOpen, setIsOpen] = useState(true)
+  const router = useRouter();
+  const [product, setProduct] = useState<any>(null);
+  const [selectedColor, setSelectedColor] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isOpen, setIsOpen] = useState(true);
 
-  const dispatch = useAppDispatch()
-  const wishlistItems = useAppSelector((state) => state.wishlist.items)
-  const isInWishlist = wishlistItems.some((item) => item.id === params.id)
+  const dispatch = useAppDispatch();
+  const wishlistItems = useAppSelector((state) => state.wishlist.items);
+  const isInWishlist = wishlistItems.some((item) => item.id === params.id);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const productData = await getProduct(params.id)
-      setProduct(productData)
-      if (productData?.colors?.length > 0) {
-        setSelectedColor(productData.colors[0])
+      const productData = await getProduct(params.id);
+      setProduct(productData);
+      if (Array.isArray(productData?.colors) && productData.colors.length > 0) {
+        setSelectedColor(productData.colors[0]);
       }
-      if (productData?.sizes?.length > 0) {
-        setSelectedSize(productData.sizes[0])
+      if (Array.isArray(productData?.sizes) && productData.sizes.length > 0) {
+        setSelectedSize(productData.sizes[0]);
       }
-    }
-    fetchProduct()
-  }, [params.id])
+    };
+    fetchProduct();
+  }, [params.id]);
 
   const handleClose = () => {
-    setIsOpen(false)
-    router.back()
-  }
+    setIsOpen(false);
+    router.back();
+  };
 
   const handleViewDetails = () => {
-    router.push(`/product/${params.id}`)
-  }
+    window.location.reload();
+  };
 
   const handleAddToCart = () => {
     if (product) {
@@ -58,10 +58,10 @@ export default function ProductModal({ params }: { params: { id: string } }) {
           color: selectedColor,
           size: selectedSize,
           quantity: 1,
-        }),
-      )
+        })
+      );
     }
-  }
+  };
 
   const handleToggleWishlist = () => {
     if (product) {
@@ -73,10 +73,10 @@ export default function ProductModal({ params }: { params: { id: string } }) {
           imageUrl: product.imageUrl,
           brand: product.brand?.name || "Brand",
           location: "In Store",
-        }),
-      )
+        })
+      );
     }
-  }
+  };
 
   if (!product) {
     return (
@@ -87,10 +87,10 @@ export default function ProductModal({ params }: { params: { id: string } }) {
           </div>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
-  const images = product.images || [product.imageUrl]
+  const images: string[] = product.images || [product.imageUrl];
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -98,12 +98,12 @@ export default function ProductModal({ params }: { params: { id: string } }) {
         <div className="grid grid-cols-1 md:grid-cols-2 h-full">
           {/* Image Section */}
           <div className="relative bg-gray-50">
-            <button
+            {/* <button
               onClick={handleClose}
               className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors"
             >
               <X className="w-4 h-4" />
-            </button>
+            </button> */}
 
             <div className="relative h-96 md:h-full">
               <Image
@@ -133,13 +133,24 @@ export default function ProductModal({ params }: { params: { id: string } }) {
           <div className="p-6 flex flex-col">
             <div className="flex-1">
               {/* Header */}
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between my-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    {product.name}
+                  </h1>
                   <p className="text-sm text-gray-600">{product.brand?.name}</p>
                 </div>
-                <button onClick={handleToggleWishlist} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                  <Heart className={`w-5 h-5 ${isInWishlist ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
+                <button
+                  onClick={handleToggleWishlist}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <Heart
+                    className={`w-5 h-5 ${
+                      isInWishlist
+                        ? "fill-red-500 text-red-500"
+                        : "text-gray-400"
+                    }`}
+                  />
                 </button>
               </div>
 
@@ -154,16 +165,22 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 
               {/* Price */}
               <div className="mb-6">
-                <span className="text-3xl font-bold text-gray-900">${product.price}</span>
+                <span className="text-3xl font-bold text-gray-900">
+                  ${product.price}
+                </span>
                 {product.originalPrice && (
-                  <span className="ml-2 text-lg text-gray-500 line-through">${product.originalPrice}</span>
+                  <span className="ml-2 text-lg text-gray-500 line-through">
+                    ${product.originalPrice}
+                  </span>
                 )}
               </div>
 
               {/* Colors */}
               {product.colors && product.colors.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Color</h3>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">
+                    Color
+                  </h3>
                   <div className="flex gap-2">
                     {product.colors.map((color: string) => (
                       <button
@@ -185,7 +202,9 @@ export default function ProductModal({ params }: { params: { id: string } }) {
               {/* Sizes */}
               {product.sizes && product.sizes.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">Size</h3>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">
+                    Size
+                  </h3>
                   <div className="grid grid-cols-4 gap-2">
                     {product.sizes.map((size: string) => (
                       <button
@@ -206,7 +225,10 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 
               {/* Stock Status */}
               <div className="mb-6">
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800"
+                >
                   In Stock
                 </Badge>
               </div>
@@ -214,12 +236,21 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 
             {/* Actions */}
             <div className="space-y-3">
-              <Button onClick={handleAddToCart} className="w-full bg-black text-white hover:bg-gray-800 py-3" size="lg">
+              <Button
+                onClick={handleAddToCart}
+                className="w-full bg-black text-white hover:bg-gray-800 py-3"
+                size="lg"
+              >
                 <ShoppingBag className="w-4 h-4 mr-2" />
                 Add to Cart
               </Button>
 
-              <Button onClick={handleViewDetails} variant="outline" className="w-full py-3 bg-transparent" size="lg">
+              <Button
+                onClick={handleViewDetails}
+                variant="outline"
+                className="w-full py-3 bg-transparent"
+                size="lg"
+              >
                 View Full Details
               </Button>
             </div>
@@ -227,5 +258,5 @@ export default function ProductModal({ params }: { params: { id: string } }) {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

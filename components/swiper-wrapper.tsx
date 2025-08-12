@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { Swiper, SwiperSlide } from "swiper/react"
-import { Navigation } from "swiper/modules"
-import { OfferCard } from "@/components/offer-card"
-import "swiper/css"
-import "swiper/css/navigation"
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import { OfferCard } from "@/components/offer-card";
+import "swiper/css";
+import "swiper/css/navigation";
 
 interface Product {
-  id: string
-  title: string
-  price: number
-  originalPrice?: number
-  discount?: number
-  images: string[]
+  id: string;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  images: string[];
 }
 
 interface SwiperWrapperProps {
-  products: Product[]
+  products: Product[];
 }
 
 export function SwiperWrapper({ products }: SwiperWrapperProps) {
@@ -24,6 +24,7 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
     <Swiper
       modules={[Navigation]}
       spaceBetween={12}
+      loop={true}
       slidesPerView="auto"
       navigation={{
         nextEl: ".swiper-button-next",
@@ -45,5 +46,5 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
         </SwiperSlide>
       ))}
     </Swiper>
-  )
+  );
 }
