@@ -529,6 +529,52 @@ const stores: Store[] = [
     categories: ["Designer", "Premium", "Seasonal"],
   },
 ];
+export interface Blog {
+  id: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  comments: number;
+  imageUrl: string;
+  readTime: string;
+  category: string;
+}
+[];
+const blogs: Blog[] = [
+  {
+    id: "1",
+    title: "Summer Fashion Trends 2025",
+    excerpt:
+      "Discover the hottest fashion trends for the upcoming summer season.",
+    date: "Apr 28, 2025",
+    comments: 12,
+    imageUrl: "/placeholder.svg?height=120&width=120",
+    readTime: "2",
+    category: "Sustainability",
+  },
+  {
+    id: "2",
+    title: "How to Style Minimalist Outfits",
+    excerpt:
+      "Learn the art of creating stylish minimalist outfits with fewer pieces.",
+    date: "Apr 20, 2025",
+    comments: 8,
+    imageUrl: "/placeholder.svg?height=120&width=120",
+    readTime: "4",
+    category: "Fashion Trends",
+  },
+  {
+    id: "3",
+    title: "Sustainable Fashion: A Guide",
+    excerpt:
+      "Everything you need to know about sustainable and ethical fashion choices.",
+    date: "Apr 15, 2025",
+    comments: 15,
+    imageUrl: "/placeholder.svg?height=120&width=120",
+    readTime: "10",
+    category: "Fashion Trends",
+  },
+];
 
 // Server actions
 export async function getProduct(id: string): Promise<Product | null> {
@@ -588,4 +634,11 @@ export async function getStoreProducts(storeId: string): Promise<Product[]> {
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   return products.filter((product) => product.store.id === storeId);
+}
+
+export async function getBlogs(): Promise<Blog[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  return blogs;
 }

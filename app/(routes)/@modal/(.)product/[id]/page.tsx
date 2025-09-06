@@ -1,7 +1,7 @@
 "use client";
 
-import { getProduct } from "@/lib/actions";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { getProduct, Product } from "@/lib/actions";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -14,7 +14,7 @@ import { toggleWishlist } from "@/lib/store/slices/wishlistSlice";
 
 export default function ProductModal({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -52,9 +52,9 @@ export default function ProductModal({ params }: { params: { id: string } }) {
       dispatch(
         addToCart({
           id: product.id,
-          name: product.name,
+          name: product.title,
           price: product.price,
-          imageUrl: product.imageUrl,
+          imageUrl: product.images[0],
           color: selectedColor,
           size: selectedSize,
           quantity: 1,
@@ -68,9 +68,9 @@ export default function ProductModal({ params }: { params: { id: string } }) {
       dispatch(
         toggleWishlist({
           id: product.id,
-          name: product.name,
+          name: product.title,
           price: product.price,
-          imageUrl: product.imageUrl,
+          imageUrl: product.images[0],
           brand: product.brand?.name || "Brand",
           location: "In Store",
         })
@@ -90,7 +90,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
     );
   }
 
-  const images: string[] = product.images || [product.imageUrl];
+  const images: string[] = product.images;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -108,7 +108,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
             <div className="relative h-96 md:h-full">
               <Image
                 src={images[currentImageIndex] || "/placeholder.svg"}
-                alt={product.name}
+                alt={product.title}
                 fill
                 className="object-cover"
               />
@@ -135,9 +135,9 @@ export default function ProductModal({ params }: { params: { id: string } }) {
               {/* Header */}
               <div className="flex items-start justify-between my-4">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                    {product.name}
-                  </h1>
+                  <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">
+                    {product.title}
+                  </DialogTitle>
                   <p className="text-sm text-gray-600">{product.brand?.name}</p>
                 </div>
                 <button
