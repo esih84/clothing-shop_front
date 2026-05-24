@@ -14,9 +14,7 @@ export default async function OffersSection() {
         <div className="flex items-center gap-2">
           <div className="w-1 h-5 bg-[#670626]" />
           <h3 className="text-base font-bold tracking-wide">پیشنهادات ویژه</h3>
-          <span className="text-[10px] bg-[#670626] text-white px-2 py-0.5 font-medium">
-            {discountedProducts.length} تخفیف
-          </span>
+
         </div>
         <Link
           href="/offers"

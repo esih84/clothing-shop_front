@@ -51,23 +51,22 @@ export function CategorySelector({ categories }: CategorySelectorProps) {
 
       {/* Framed card row — fills full width, staggered vertical alignment */}
       <div className="mx-3 sm:mx-4 border ">
-        <div className="flex gap-3 h-64 sm:h-56  md:h-64">
+        <div className="grid grid-cols-2 sm:flex sm:gap-3 h-auto">
           {display.map((category, index) => {
-            // odd index → name above the image (image pushed to bottom)
-            const nameOnTop = index % 2 === 1
-
+            const nameOnTop = index % 2 === 1;
             return (
               <Link
                 key={category.id}
                 href={`/category/${category.id}`}
                 className={[
-                  "flex-1 flex flex-col group border-x",
+                  "flex flex-col group border-x sm:flex-1",
                   index === 4 ? "hidden sm:flex" : "",
+                  "min-w-0"
                 ].join(" ")}
               >
                 {/* Name zone — top (centered in available space) */}
                 {nameOnTop && (
-                  <div className="flex-1 flex items-center justify-center border-b p-2">
+                  <div className="flex-1 flex items-center justify-center border-t md:border-t-0 border-b p-2">
                     <p className="text-[11px] sm:text-xs font-semibold text-primary text-center leading-tight">
                       {category.name}
                     </p>
@@ -75,7 +74,6 @@ export function CategorySelector({ categories }: CategorySelectorProps) {
                 )}
 
                 {/* Image card */}
-
                 <div
                   className={`relative aspect-[3/4] w-full max-w-[90%] m-2 mx-auto overflow-hidden border border-[#E3A7C4] group-hover:border-[#670626]/40 transition-colors bg-gradient-to-b ${
                     cardGradients[index % cardGradients.length]
@@ -94,14 +92,14 @@ export function CategorySelector({ categories }: CategorySelectorProps) {
 
                 {/* Name zone — bottom (centered in available space) */}
                 {!nameOnTop && (
-                  <div className="flex-1 flex items-center justify-center border-t p-2">
+                  <div className="flex-1 flex items-center justify-center border-t border-b md:border-b-0  p-2">
                     <p className="text-[11px] sm:text-xs font-semibold text-primary text-center leading-tight">
                       {category.name}
                     </p>
                   </div>
                 )}
               </Link>
-            )
+            );
           })}
         </div>
       </div>
