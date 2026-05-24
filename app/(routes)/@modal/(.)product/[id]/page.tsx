@@ -81,9 +81,9 @@ export default function ProductModal({ params }: { params: { id: string } }) {
   if (!product) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-          <div className="flex items-center justify-center h-96">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          <div className="flex items-center justify-center h-64 md:h-96">
+            <div className="animate-spin h-8 w-8 border-b-2 border-[#670626]"></div>
           </div>
         </DialogContent>
       </Dialog>
@@ -94,18 +94,12 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 h-full">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+        <div className="flex flex-col md:grid md:grid-cols-2 max-h-[90vh] overflow-y-auto md:overflow-hidden">
           {/* Image Section */}
-          <div className="relative bg-gray-50">
-            {/* <button
-              onClick={handleClose}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button> */}
+          <div className="relative bg-[#ffbdc5]/20 flex-shrink-0">
 
-            <div className="relative h-96 md:h-full">
+            <div className="relative h-56 sm:h-72 md:h-[90vh]">
               <Image
                 src={images[currentImageIndex] || "/placeholder.svg"}
                 alt={product.title}
@@ -130,7 +124,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
           </div>
 
           {/* Product Info Section */}
-          <div className="p-6 flex flex-col">
+          <div className="p-4 md:p-6 flex flex-col md:overflow-y-auto">
             <div className="flex-1">
               {/* Header */}
               <div className="flex items-start justify-between my-4">
@@ -147,7 +141,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
                   <Heart
                     className={`w-5 h-5 ${
                       isInWishlist
-                        ? "fill-red-500 text-red-500"
+                        ? "fill-[#670626] text-[#670626]"
                         : "text-gray-400"
                     }`}
                   />
@@ -165,7 +159,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 
               {/* Price */}
               <div className="mb-6">
-                <span className="text-3xl font-bold text-gray-900">
+                <span className="text-3xl font-bold text-[#670626]">
                   ${product.price}
                 </span>
                 {product.originalPrice && (
@@ -179,17 +173,17 @@ export default function ProductModal({ params }: { params: { id: string } }) {
               {product.colors && product.colors.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-3">
-                    Color
+                    رنگ
                   </h3>
                   <div className="flex gap-2">
                     {product.colors.map((color: string) => (
                       <button
                         key={color}
                         onClick={() => setSelectedColor(color)}
-                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                        className={`px-4 py-2 border text-sm font-medium transition-colors ${
                           selectedColor === color
-                            ? "border-black bg-black text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                            ? "border-[#670626] bg-[#670626] text-white"
+                            : "border-gray-300 bg-white text-gray-700 hover:border-[#670626]"
                         }`}
                       >
                         {color}
@@ -203,17 +197,17 @@ export default function ProductModal({ params }: { params: { id: string } }) {
               {product.sizes && product.sizes.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-3">
-                    Size
+                    سایز
                   </h3>
                   <div className="grid grid-cols-4 gap-2">
                     {product.sizes.map((size: string) => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`py-2 rounded-lg border text-sm font-medium transition-colors ${
+                        className={`py-2 border text-sm font-medium transition-colors ${
                           selectedSize === size
-                            ? "border-black bg-black text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                            ? "border-[#670626] bg-[#670626] text-white"
+                            : "border-gray-300 bg-white text-gray-700 hover:border-[#670626]"
                         }`}
                       >
                         {size}
@@ -225,34 +219,28 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 
               {/* Stock Status */}
               <div className="mb-6">
-                <Badge
-                  variant="secondary"
-                  className="bg-green-100 text-green-800"
-                >
-                  In Stock
-                </Badge>
+                <div className="inline-block bg-[#ffbdc5]/40 text-[#670626] text-xs font-medium px-2 py-1">
+                  موجود در انبار
+                </div>
               </div>
             </div>
 
             {/* Actions */}
             <div className="space-y-3">
-              <Button
+              <button
                 onClick={handleAddToCart}
-                className="w-full bg-black text-white hover:bg-gray-800 py-3"
-                size="lg"
+                className="w-full bg-[#670626] text-white hover:bg-[#670626]/90 py-3 font-bold flex items-center justify-center gap-2 transition-colors"
               >
-                <ShoppingBag className="w-4 h-4 mr-2" />
-                Add to Cart
-              </Button>
+                <ShoppingBag className="w-4 h-4" />
+                افزودن به سبد خرید
+              </button>
 
-              <Button
+              <button
                 onClick={handleViewDetails}
-                variant="outline"
-                className="w-full py-3 bg-transparent"
-                size="lg"
+                className="w-full py-3 border border-[#670626] text-[#670626] font-medium hover:bg-[#ffbdc5]/20 transition-colors"
               >
-                View Full Details
-              </Button>
+                مشاهده جزئیات کامل
+              </button>
             </div>
           </div>
         </div>

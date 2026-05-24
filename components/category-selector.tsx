@@ -1,21 +1,26 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import Link from "next/link"
-import { Swiper, SwiperSlide } from "swiper/react"
-import { FreeMode } from "swiper/modules"
 
 interface Category {
   id: string
   name: string
-  slug: string
-  imageUrl: string
 }
 
 interface CategorySelectorProps {
   categories: Category[]
 }
+
+const cardGradients = [
+  "from-[#670626] to-[#8B1A3C]",
+  "from-[#8B1A3C] to-[#A52A5E]",
+  "from-[#670626] to-[#C4527A]",
+  "from-[#A52A5E] to-[#D4789A]",
+  "from-[#670626] to-[#8B1A3C]",
+  "from-[#C4527A] to-[#E3A7C4]",
+  "from-[#670626] to-[#A52A5E]",
+]
 
 export function CategorySelector({ categories }: CategorySelectorProps) {
   const [mounted, setMounted] = useState(false)
@@ -26,29 +31,80 @@ export function CategorySelector({ categories }: CategorySelectorProps) {
 
   if (!mounted) return null
 
+  const display = categories.slice(0, 5)
+
   return (
-    <div className="py-4 px-4">
-      <h2 className="text-xl font-bold mb-4">Categories</h2>
-      <Swiper modules={[FreeMode]} spaceBetween={12} slidesPerView="auto" freeMode={true} className="categories-swiper">
-        {categories.map((category) => (
-          <SwiperSlide key={category.id} className="!w-auto">
-            <Link href={`/category/${category.slug}`}>
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full overflow-hidden mb-2">
-                  <Image
-                    src={category.imageUrl || "/placeholder.svg?height=80&width=80"}
-                    alt={category.name}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
+    <div className="py-6">
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-4 px-3 sm:px-4">
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-5 bg-[#670626]" />
+          <h2 className="text-base font-bold tracking-wide">دسته‌بندی محصولات</h2>
+        </div>
+        <Link
+          href="/categories"
+          className="text-xs text-[#670626] border-b border-[#670626]/40 pb-0.5 hover:border-[#670626] transition-colors"
+        >
+          مشاهده همه
+        </Link>
+      </div>
+
+      {/* Framed card row — fills full width, staggered vertical alignment */}
+      <div className="mx-3 sm:mx-4 border ">
+        <div className="flex gap-3 h-64 sm:h-56  md:h-64">
+          {display.map((category, index) => {
+            // odd index → name above the image (image pushed to bottom)
+            const nameOnTop = index % 2 === 1
+
+            return (
+              <Link
+                key={category.id}
+                href={`/category/${category.id}`}
+                className={[
+                  "flex-1 flex flex-col group border-x",
+                  index === 4 ? "hidden sm:flex" : "",
+                ].join(" ")}
+              >
+                {/* Name zone — top (centered in available space) */}
+                {nameOnTop && (
+                  <div className="flex-1 flex items-center justify-center border-b p-2">
+                    <p className="text-[11px] sm:text-xs font-semibold text-primary text-center leading-tight">
+                      {category.name}
+                    </p>
+                  </div>
+                )}
+
+                {/* Image card */}
+
+                <div
+                  className={`relative aspect-[3/4] w-full max-w-[90%] m-2 mx-auto overflow-hidden border border-[#E3A7C4] group-hover:border-[#670626]/40 transition-colors bg-gradient-to-b ${
+                    cardGradients[index % cardGradients.length]
+                  }`}
+                >
+                  {/* First-letter watermark */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none select-none">
+                    <span className="text-[5rem] font-bold text-white leading-none">
+                      {category.name.charAt(0)}
+                    </span>
+                  </div>
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
                 </div>
-                <span className="text-sm md:text-base font-medium text-center">{category.name}</span>
-              </div>
-            </Link>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+
+                {/* Name zone — bottom (centered in available space) */}
+                {!nameOnTop && (
+                  <div className="flex-1 flex items-center justify-center border-t p-2">
+                    <p className="text-[11px] sm:text-xs font-semibold text-primary text-center leading-tight">
+                      {category.name}
+                    </p>
+                  </div>
+                )}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

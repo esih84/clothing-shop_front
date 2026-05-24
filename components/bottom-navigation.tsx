@@ -82,12 +82,12 @@ export function BottomNavigation() {
     return (
       <div className="fixed bottom-4 left-0 right-0 z-40 sm:hidden">
         <div className="max-w-md mx-auto px-4">
-          <div className="bg-black rounded-full shadow-lg">
+          <div className="bg-[#670626] rounded-full shadow-lg">
             <div className="flex justify-around items-center p-2">
               <Link
                 href={`/shop/${shopId}`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname === `/shop/${shopId}` ? "bg-white text-black" : "text-white"
+                  pathname === `/shop/${shopId}` ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <LayoutDashboard className="w-5 h-5" />
@@ -96,7 +96,7 @@ export function BottomNavigation() {
               <Link
                 href={`/shop/${shopId}/products`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/products`) ? "bg-white text-black" : "text-white"
+                  pathname.includes(`/shop/${shopId}/products`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <Package className="w-5 h-5" />
@@ -105,7 +105,7 @@ export function BottomNavigation() {
               <Link
                 href={`/shop/${shopId}/orders`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/orders`) ? "bg-white text-black" : "text-white"
+                  pathname.includes(`/shop/${shopId}/orders`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <ShoppingBag className="w-5 h-5" />
@@ -114,7 +114,7 @@ export function BottomNavigation() {
               <Link
                 href={`/shop/${shopId}/blog`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/blog`) ? "bg-white text-black" : "text-white"
+                  pathname.includes(`/shop/${shopId}/blog`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <FileText className="w-5 h-5" />
@@ -123,7 +123,7 @@ export function BottomNavigation() {
               <Link
                 href={`/shop/${shopId}/settings`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/settings`) ? "bg-white text-black" : "text-white"
+                  pathname.includes(`/shop/${shopId}/settings`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <Settings className="w-5 h-5" />
@@ -140,11 +140,11 @@ export function BottomNavigation() {
     <>
       <div className="fixed bottom-4 left-0 right-0 z-40">
         <div className="max-w-md mx-auto px-4">
-          <div className="bg-black rounded-full shadow-lg">
+          <div className="bg-[#670626] rounded-full shadow-lg">
             <div className="flex justify-around items-center p-2">
               <Link
                 href="/"
-                className={`flex items-center p-2 rounded-full ${isActive("/") ? "bg-white text-black" : "text-white"}`}
+                className={`flex items-center p-2 rounded-full ${isActive("/") ? "bg-white text-[#670626]" : "text-white"}`}
               >
                 <Home className="w-5 h-5" />
               </Link>
@@ -152,7 +152,7 @@ export function BottomNavigation() {
               <Link
                 href="/wishlist"
                 className={`flex items-center p-2 rounded-full ${
-                  isActive("/wishlist") ? "bg-white text-black" : "text-white"
+                  isActive("/wishlist") ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <Heart className="w-5 h-5" />
@@ -161,12 +161,12 @@ export function BottomNavigation() {
               <Link
                 href="/cart"
                 className={`flex items-center p-2 rounded-full ${
-                  isActive("/cart") ? "bg-white text-black" : "text-white"
+                  isActive("/cart") ? "bg-white text-[#670626]" : "text-white"
                 } relative`}
               >
                 <ShoppingCart className="w-5 h-5" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                  <span className="absolute -top-1 -right-1 bg-[#ffbdc5] text-[#670626] text-xs w-4 h-4 flex items-center justify-center rounded-full font-bold">
                     {cartItemCount}
                   </span>
                 )}
@@ -174,7 +174,7 @@ export function BottomNavigation() {
 
               <button
                 className={`flex items-center p-2 rounded-full ${
-                  isActive("/profile") ? "bg-white text-black" : "text-white"
+                  isActive("/profile") ? "bg-white text-[#670626]" : "text-white"
                 }`}
                 onClick={handleProfileClick}
                 onMouseDown={handleProfileMouseDown}

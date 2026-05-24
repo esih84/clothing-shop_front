@@ -7,7 +7,7 @@ export default async function ProductsSection() {
   return (
     <div className="px-4 py-6 mx-auto">
       <h2 className="text-xl md:text-2xl md:font-lg font-bold mb-4 md:mb-6">
-        Featured Products
+        محصولات ویژه
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {products.map((product) => (
@@ -17,9 +17,6 @@ export default async function ProductsSection() {
             title={product.title}
             price={product.price}
             imageUrl={product.images[0]}
-            rating={product.rating}
-            reviews={product.reviews}
-            sales={product.sales}
           />
         ))}
       </div>

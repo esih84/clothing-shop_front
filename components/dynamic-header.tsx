@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import {
   Bell,
-  ChevronLeft,
+  ChevronRight,
   MoreVertical,
   Search,
   Edit,
   Trash2,
   Filter,
-  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { FilterModal } from "./filter-modal";
@@ -19,13 +19,13 @@ export function DynamicHeader() {
   const pathname = usePathname();
   const params = useParams();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [placeholder, setPlaceholder] = useState("Search");
+  const [placeholder, setPlaceholder] = useState("جستجو");
   useEffect(() => {
     function handleResize() {
       if (window.innerWidth < 600) {
-        setPlaceholder("Search in Bungkusa"); // small screen placeholder
+        setPlaceholder("جستجو در بانگکوسا");
       } else {
-        setPlaceholder("search..."); // large screen placeholder
+        setPlaceholder("جستجو...");
       }
     }
     // Set initially
@@ -62,16 +62,16 @@ export function DynamicHeader() {
         id: shopId,
         name:
           shopId === "store1"
-            ? "Fashion Boutique"
+            ? "بوتیک مد"
             : shopId === "store2"
-            ? "Urban Styles"
-            : "Trendy Threads",
+            ? "استایل شهری"
+            : "پارچه‌های روز مد",
         role:
           shopId === "store1"
-            ? "Manager"
+            ? "مدیر"
             : shopId === "store2"
-            ? "Employee"
-            : "Owner",
+            ? "کارمند"
+            : "صاحب",
       }
     : null;
 
@@ -81,11 +81,11 @@ export function DynamicHeader() {
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b">
         <div className="p-4 flex items-center justify-between  mx-auto">
           <div className="flex items-center">
-            <Link href="/" className="mr-3">
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Link href="/" className="ml-3">
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </Link>
             <h1 className="text-base sm:text-lg font-bold truncate">
-              Store Profile
+              پروفایل فروشگاه
             </h1>
           </div>
           <button className="p-1.5 sm:p-2 rounded-full bg-gray-100">
@@ -102,8 +102,8 @@ export function DynamicHeader() {
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b">
         <div className="p-4 flex items-center justify-between  mx-auto">
           <div className="flex items-center">
-            <Link href={`/shop/${shopId}/blog`} className="mr-3">
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Link href={`/shop/${shopId}/blog`} className="ml-3">
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </Link>
             <h1 className="text-base sm:text-lg font-bold truncate">
               {getShopPageName()}
@@ -140,8 +140,8 @@ export function DynamicHeader() {
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b">
         <div className="p-4 flex items-center justify-between  mx-auto">
           <div className="flex items-center">
-            <Link href={`/shop/${shopId}/orders`} className="mr-3">
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Link href={`/shop/${shopId}/orders`} className="ml-3">
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </Link>
             <h1 className="text-base sm:text-lg font-bold truncate">
               {getShopPageName()}
@@ -158,15 +158,15 @@ export function DynamicHeader() {
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b">
         <div className="p-4 flex items-center justify-between  mx-auto">
           <div className="flex items-center">
-            <Link href="/" className="mr-3">
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Link href="/" className="ml-3">
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </Link>
             <div>
               <h1 className="text-base sm:text-lg font-bold truncate">
                 {getShopPageName()}
               </h1>
               <p className="text-xs text-gray-500 truncate">
-                {shopData.name} - You are a {shopData.role}
+                {shopData.name} - شما یک {shopData.role} هستید
               </p>
             </div>
           </div>
@@ -184,26 +184,53 @@ export function DynamicHeader() {
           onClose={() => setIsFilterModalOpen(false)}
         />
 
-        <div className="p-4 flex items-center flex-col md:flex-row md:justify-between max-w-full md:p-0 md:my-6 ">
-          <h1 className=" hidden md:block md:text-4xl font-bold">Bungkusa</h1>
-          {/*<Bell className="w-5 h-5 sm:w-6 sm:h-6" />*/}
-          <div className="w-full  md:w-1/3 mx-4">
-            <div className="relative ">
-              <Search className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 md:left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder={placeholder}
-                className="w-10/12 md:w-full pl-10 pr-12 py-2 md:py-4 rounded-full bg-white border border-gray-200"
-              />
-              <button
-                className="absolute right-1  md:right-4 top-1/2 transform -translate-y-1/2 p-1.5 sm:p-2 rounded-full"
-                onClick={() => setIsFilterModalOpen(true)}
-              >
-                <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+        <header className="sticky top-0 z-40 bg-white border-b border-[#E3A7C4]/30 shadow-sm">
+          {/* Top accent line */}
+          <div className="h-0.5 bg-gradient-to-l from-[#670626] via-[#E3A7C4] to-[#ffbdc5]" />
+
+          <div className="max-w-7xl mx-auto">
+            {/* Brand row */}
+            <div className="px-4 md:px-6 pt-3 pb-2 flex items-center justify-between">
+              {/* Logo + brand name */}
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-[#670626] flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-sm font-bold leading-none">ب</span>
+                </div>
+                <div>
+                  <h1 className="text-base md:text-xl font-bold text-[#670626] leading-none">
+                    بانگکوسا
+                  </h1>
+                  <p className="text-[10px] text-[#E3A7C4] mt-0.5 hidden sm:block tracking-wide">
+                    فروشگاه آنلاین مد
+                  </p>
+                </div>
+              </div>
+
+              {/* Notification bell */}
+              <button className="p-2 hover:bg-[#ffbdc5]/30 transition-colors">
+                <Bell className="w-5 h-5 text-[#670626]/70" />
               </button>
             </div>
+
+            {/* Search row */}
+            <div className="px-4 md:px-6 pb-3">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-[#670626]/40" />
+                <input
+                  type="text"
+                  placeholder={placeholder}
+                  className="w-full pr-10 pl-12 py-2.5 bg-[#ffbdc5]/15 border border-[#E3A7C4]/50 text-right text-sm focus:outline-none focus:border-[#670626]/40 transition-colors"
+                />
+                <button
+                  onClick={() => setIsFilterModalOpen(true)}
+                  className="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 bg-[#670626] text-white hover:bg-[#670626]/90 transition-colors"
+                >
+                  <Filter className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </header>
       </>
     );
   }
@@ -213,11 +240,11 @@ export function DynamicHeader() {
     return (
       <div className=" p-4 flex items-center justify-between ">
         <Link href="/" className="flex items-center text-gray-600">
-          <ArrowLeft className="w-5 h-5 mr-1" />
-          <span>Back</span>
+          <ArrowRight className="w-5 h-5 ml-1" />
+          <span>بازگشت</span>
         </Link>
-        <h1 className="text-xl md:text-3xl font-bold">Product detail</h1>
-        <div className="w-16"></div> {/* Spacer for centering */}
+        <h1 className="text-xl md:text-3xl font-bold">جزئیات محصول</h1>
+        <div className="w-16"></div>
       </div>
     );
   }
@@ -227,11 +254,11 @@ export function DynamicHeader() {
     return (
       <div className=" p-4 flex items-center justify-between mb-6">
         <Link href="/" className="flex items-center text-gray-600">
-          <ArrowLeft className="w-5 h-5 mr-1" />
-          <span>Back</span>
+          <ArrowRight className="w-5 h-5 ml-1" />
+          <span>بازگشت</span>
         </Link>
-        <h1 className="text-xl md:text-3xl font-bold">wishlist</h1>
-        <div className="w-16"></div> {/* Spacer for centering */}
+        <h1 className="text-xl md:text-3xl font-bold">علاقه‌مندی‌ها</h1>
+        <div className="w-16"></div>
       </div>
     );
   }
@@ -241,11 +268,11 @@ export function DynamicHeader() {
     return (
       <div className=" p-4 flex items-center justify-between mb-6">
         <Link href="/" className="flex items-center text-gray-600">
-          <ArrowLeft className="w-5 h-5 mr-1" />
-          <span>Back</span>
+          <ArrowRight className="w-5 h-5 ml-1" />
+          <span>بازگشت</span>
         </Link>
-        <h1 className="text-xl md:text-3xl font-bold">My Cart</h1>
-        <div className="w-16"></div> {/* Spacer for centering */}
+        <h1 className="text-xl md:text-3xl font-bold">سبد خرید</h1>
+        <div className="w-16"></div>
       </div>
     );
   }
@@ -255,11 +282,11 @@ export function DynamicHeader() {
     return (
       <div className=" p-4 flex items-center justify-between mb-6">
         <Link href="/" className="flex items-center text-gray-600">
-          <ArrowLeft className="w-5 h-5 mr-1" />
-          <span>Back</span>
+          <ArrowRight className="w-5 h-5 ml-1" />
+          <span>بازگشت</span>
         </Link>
-        <h1 className="text-xl md:text-3xl font-bold">Profile</h1>
-        <div className="w-16"></div> {/* Spacer for centering */}
+        <h1 className="text-xl md:text-3xl font-bold">پروفایل</h1>
+        <div className="w-16"></div>
       </div>
     );
   }
@@ -268,11 +295,11 @@ export function DynamicHeader() {
   return (
     <div className=" p-4 flex items-center justify-between mb-6">
       <Link href="/" className="flex items-center text-gray-600">
-        <ArrowLeft className="w-5 h-5 mr-1" />
-        <span>Back</span>
+        <ArrowRight className="w-5 h-5 ml-1" />
+        <span>بازگشت</span>
       </Link>
-      <h1 className="text-xl md:text-3xl font-bold">Bungkusa</h1>
-      <div className="w-16"></div> {/* Spacer for centering */}
+      <h1 className="text-xl md:text-3xl font-bold">بانگکوسا</h1>
+      <div className="w-16"></div>
     </div>
   );
 }

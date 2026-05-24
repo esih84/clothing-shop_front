@@ -30,7 +30,7 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
         nextEl: ".swiper-button-next",
         prevEl: ".swiper-button-prev",
       }}
-      className="offers-swiper pl-6 md:pl-[200px]"
+      className="offers-swiper"
       wrapperClass="items-center"
     >
       {products.map((product) => (

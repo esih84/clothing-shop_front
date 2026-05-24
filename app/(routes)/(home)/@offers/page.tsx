@@ -5,26 +5,28 @@ import { getDiscountedProducts } from "@/lib/actions";
 export default async function OffersSection() {
   const discountedProducts = await getDiscountedProducts();
 
-  if (discountedProducts.length === 0) {
-    return null;
-  }
+  if (discountedProducts.length === 0) return null;
 
   return (
-    <div className="px-4 mb-6 mx-auto">
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg sm:text-xl md:text-lg font-medium">
-          Special Offers
-        </h3>
-        <Link href="/offers" className="text-xs sm:text-sm text-gray-500">
-          See all
+    <div className="mb-6 mx-auto">
+      {/* Section header */}
+      <div className="px-4 flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-5 bg-[#670626]" />
+          <h3 className="text-base font-bold tracking-wide">پیشنهادات ویژه</h3>
+          <span className="text-[10px] bg-[#670626] text-white px-2 py-0.5 font-medium">
+            {discountedProducts.length} تخفیف
+          </span>
+        </div>
+        <Link
+          href="/offers"
+          className="text-xs text-[#670626] border-b border-[#670626]/40 pb-0.5"
+        >
+          مشاهده همه
         </Link>
       </div>
 
-      <div className="relative">
-        <div className="h-full hidden w-[200px] bg-white md:flex justify-center items-center font-bold text-red-500 text-2xl z-20 absolute left-0 top-0">
-          <h1>offers</h1>
-        </div>
-
+      <div className="px-4">
         <SwiperWrapper products={discountedProducts} />
       </div>
     </div>

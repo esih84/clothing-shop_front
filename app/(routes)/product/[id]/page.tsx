@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getProduct } from "@/lib/actions";
+import { getProduct, getProducts } from "@/lib/actions";
 import { ProductDetails } from "@/components/product-details";
 
 interface ProductPageProps {
@@ -8,15 +8,21 @@ interface ProductPageProps {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const product = await getProduct(id);
+  const [product, allProducts] = await Promise.all([
+    getProduct(id),
+    getProducts(),
+  ]);
 
   if (!product) {
     notFound();
   }
 
-  return <ProductDetails product={product} />;
+  const related = allProducts
+    .filter((p) => p.id !== id && p.category === product.category)
+    .slice(0, 4);
+
+  return <ProductDetails product={product} relatedProducts={related} />;
 }
-// <div className="min-h-screen bg-white">
 //   <div className="max-w-6xl mx-auto px-4 py-6">
 //     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 //       {/* Product Images */}

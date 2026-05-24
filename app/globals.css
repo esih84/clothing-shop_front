@@ -10,7 +10,7 @@
 @import "swiper/css/free-mode";
 
 body {
-  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  font-family: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
   font-size: 16px;
   background-color: #fafafa;
 
@@ -19,12 +19,12 @@ body {
   }
 }
 
-/* Luxury font for headings */
+/* Persian font for all text */
 h1,
 h2,
 h3,
 .font-serif {
-  font-family: var(--font-playfair), serif;
+  font-family: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
 }
 
 /* Larger text utilities */
@@ -119,27 +119,27 @@ td {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 351 100% 99%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 0 0% 0%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --primary: 339 96% 21%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 353 100% 95%;
+    --secondary-foreground: 339 96% 21%;
+    --muted: 353 60% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 353 100% 87%;
+    --accent-foreground: 339 96% 21%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 0 0% 0%;
-    --radius: 0.5rem;
-    --main: 0 0% 0%;
+    --border: 353 40% 88%;
+    --input: 353 40% 88%;
+    --ring: 339 96% 21%;
+    --radius: 0rem;
+    --main: 339 96% 21%;
 
     /* Chart colors */
     --chart-1: 240 50% 50%;

@@ -46,39 +46,48 @@ export function OfferCard({
   return (
     <Link
       href={`/product/${id}`}
-      className="min-w-[160px] sm:min-w-[180px] md:min-w-[220px] flex-shrink-0"
+      className="block group w-[150px] sm:w-[170px] md:w-[190px] flex-shrink-0"
     >
-      <div className="relative">
-        <div className="absolute top-2 left-2 z-10 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-          -{discount}%
-        </div>
+      {/* Image container */}
+      <div className="relative overflow-hidden aspect-[3/4] bg-[#ffbdc5]/20 border border-[#E3A7C4]/30">
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={title}
-          width={180}
-          height={180}
-          className="rounded-xl w-full h-[140px] xs:h-[160px] sm:h-[180px] md:h-[200px] object-cover"
+          fill
+          sizes="190px"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
-      </div>
-      <div className="p-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="font-bold text-sm sm:text-base">
-              ${price.toFixed(2)}
-            </p>
-            <p className="text-xs text-gray-500 line-through">
-              ${originalPrice.toFixed(2)}
-            </p>
-          </div>
-          <button onClick={handleToggleWishlist} className="p-1">
-            <Heart
-              className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                isInWishlist ? "fill-red-500 text-red-500" : "text-gray-400"
-              }`}
-            />
-          </button>
+        {/* Discount badge */}
+        <div className="absolute top-0 left-0 bg-[#670626] text-white text-[11px] font-bold px-2 py-1 leading-none">
+          -{discount}%
         </div>
-        <p className="text-xs sm:text-sm text-gray-600 truncate">{title}</p>
+        {/* Save amount strip at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 bg-[#670626]/85 text-white text-[10px] text-center py-1 font-medium">
+          صرفه‌جویی ${(originalPrice - price).toFixed(2)}
+        </div>
+        {/* Wishlist */}
+        <button
+          onClick={handleToggleWishlist}
+          className={`absolute top-2 right-2 p-1.5 bg-white/90 transition-colors ${
+            isInWishlist ? "text-[#670626]" : "text-gray-400 hover:text-[#670626]"
+          }`}
+          aria-label="Toggle wishlist"
+        >
+          <Heart
+            className={`w-3.5 h-3.5 ${
+              isInWishlist ? "fill-[#670626]" : ""
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* Info */}
+      <div className="pt-2 px-0.5">
+        <p className="text-xs text-gray-500 line-clamp-1 mb-1.5 leading-tight">{title}</p>
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm font-bold text-[#670626]">${price.toFixed(2)}</span>
+          <span className="text-xs text-gray-400 line-through">${originalPrice.toFixed(2)}</span>
+        </div>
       </div>
     </Link>
   );
