@@ -237,11 +237,7 @@ export function ProductDetails({
                   <span className="text-lg text-gray-400 line-through">
                     ${product.originalPrice.toFixed(2)}
                   </span>
-                  {product.discount && (
-                    <span className="bg-[#ffbdc5]/60 text-[#670626] text-xs font-bold px-2 py-0.5 border border-[#E3A7C4]/50">
-                      صرفه‌جویی {product.discount}٪
-                    </span>
-                  )}
+
                 </>
               )}
             </div>
@@ -329,14 +325,14 @@ export function ProductDetails({
                   <button
                     onClick={handleAddToCart}
                     disabled={isPending}
-                    className="flex-1 bg-[#670626] hover:bg-[#670626]/90 text-white py-3 font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                    className="flex-1 bg-[#670626] hover:bg-[#670626]/90 text-white py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                   >
                     <ShoppingBag className="w-4 h-4" />
                     {isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
                   </button>
                   <button
                     onClick={handleToggleWishlist}
-                    className={`flex-1 border py-3 font-medium flex items-center justify-center gap-2 transition-colors ${
+                    className={`flex-1 border py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors ${
                       isInWishlist
                         ? "border-[#670626] bg-[#ffbdc5]/20 text-[#670626]"
                         : "border-[#E3A7C4] text-gray-600 hover:border-[#670626] hover:text-[#670626] hover:bg-[#ffbdc5]/10"

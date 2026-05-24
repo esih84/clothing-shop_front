@@ -3,14 +3,15 @@
 import { getProduct, Product } from "@/lib/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Image from "next/image";
-import { Heart, Star, ShoppingBag, X } from "lucide-react";
+import { Heart, Star, ShoppingBag, X, Trash2, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { addToCart } from "@/lib/store/slices/cartSlice";
 import { toggleWishlist } from "@/lib/store/slices/wishlistSlice";
+
 
 export default function ProductModal({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -22,6 +23,19 @@ export default function ProductModal({ params }: { params: { id: string } }) {
 
   const dispatch = useAppDispatch();
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
+  const cartItems = useAppSelector((state) => state.cart.items);
+  const [isPending, startTransition] = useTransition();
+
+  // Find cart item for this product/color/size
+  const cartItem = product
+    ? cartItems.find(
+        (item) =>
+          item.id === product.id &&
+          item.size === selectedSize &&
+          item.color === selectedColor
+      )
+    : undefined;
+  const isInCart = !!cartItem;
   const isInWishlist = wishlistItems.some((item) => item.id === params.id);
 
   useEffect(() => {
@@ -129,7 +143,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
               {/* Header */}
               <div className="flex items-start justify-between my-4">
                 <div>
-                  <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">
+                  <DialogTitle className="text-xl font-bold text-gray-900 mb-2">
                     {product.title}
                   </DialogTitle>
                   <p className="text-sm text-gray-600">{product.brand?.name}</p>
@@ -148,18 +162,11 @@ export default function ProductModal({ params }: { params: { id: string } }) {
                 </button>
               </div>
 
-              {/* Rating */}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">4.5</span>
-                </div>
-                <span className="text-sm text-gray-500">(2,341 reviews)</span>
-              </div>
+
 
               {/* Price */}
               <div className="mb-6">
-                <span className="text-3xl font-bold text-[#670626]">
+                <span className="text-xl md:text-2xl font-bold text-[#670626]">
                   ${product.price}
                 </span>
                 {product.originalPrice && (
@@ -175,20 +182,36 @@ export default function ProductModal({ params }: { params: { id: string } }) {
                   <h3 className="text-sm font-medium text-gray-900 mb-3">
                     رنگ
                   </h3>
-                  <div className="flex gap-2">
-                    {product.colors.map((color: string) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`px-4 py-2 border text-sm font-medium transition-colors ${
-                          selectedColor === color
-                            ? "border-[#670626] bg-[#670626] text-white"
-                            : "border-gray-300 bg-white text-gray-700 hover:border-[#670626]"
-                        }`}
-                      >
-                        {color}
-                      </button>
-                    ))}
+                  <div className="flex gap-2 flex-wrap">
+                    {product.colors.map((color: string) => {
+                      // Color swatch style copied from product-details.tsx
+                      const colorMap = {
+                        black: "bg-black",
+                        white: "bg-white border border-gray-300",
+                        gray: "bg-gray-400",
+                        silver: "bg-gray-300",
+                        blue: "bg-blue-600",
+                        navy: "bg-blue-900",
+                        brown: "bg-amber-800",
+                        green: "bg-green-600",
+                        red: "bg-red-600",
+                        pink: "bg-pink-400",
+                        purple: "bg-purple-600",
+                      };
+                      const colorClass = colorMap[color.toLowerCase()] || "bg-[#E3A7C4]";
+                      return (
+                        <button
+                          key={color}
+                          onClick={() => setSelectedColor(color)}
+                          aria-label={color}
+                          className={`w-8 h-8 rounded-full transition-all ${colorClass} ${
+                            selectedColor === color
+                              ? "ring-2 ring-offset-2 ring-[#670626] scale-110"
+                              : "hover:scale-105"
+                          }`}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -225,22 +248,71 @@ export default function ProductModal({ params }: { params: { id: string } }) {
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="space-y-3">
-              <button
-                onClick={handleAddToCart}
-                className="w-full bg-[#670626] text-white hover:bg-[#670626]/90 py-3 font-bold flex items-center justify-center gap-2 transition-colors"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                افزودن به سبد خرید
-              </button>
-
-              <button
-                onClick={handleViewDetails}
-                className="w-full py-3 border border-[#670626] text-[#670626] font-medium hover:bg-[#ffbdc5]/20 transition-colors"
-              >
-                مشاهده جزئیات کامل
-              </button>
+            {/* Actions (match product-details) */}
+            <div className="space-y-3 pt-1">
+              {isInCart ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center border border-[#E3A7C4]/50 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        if (cartItem.quantity === 1) {
+                          dispatch({ type: "cart/removeFromCart", payload: { id: cartItem.id } });
+                        } else {
+                          dispatch({ type: "cart/updateQuantity", payload: { id: cartItem.id, quantity: cartItem.quantity - 1 } });
+                        }
+                      }}
+                      className="px-4 py-3 bg-[#ffbdc5]/30 hover:bg-[#ffbdc5]/60 transition-colors"
+                    >
+                      {cartItem?.quantity === 1 ? (
+                        <Trash2 className="w-5 h-5 text-[#670626]" />
+                      ) : (
+                        <Minus className="w-5 h-5 text-[#670626]" />
+                      )}
+                    </button>
+                    <span className="px-6 py-3 text-lg font-bold bg-white">
+                      {cartItem?.quantity || 0}
+                    </span>
+                    <button
+                      onClick={() => {
+                        dispatch({ type: "cart/updateQuantity", payload: { id: cartItem.id, quantity: cartItem.quantity + 1 } });
+                      }}
+                      className="px-4 py-3 bg-[#670626] hover:bg-[#670626]/90 text-white transition-colors"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="text-start">
+                    <p className="text-xs text-gray-400">جمع کل</p>
+                    <p className="text-xl font-bold text-[#670626]">
+                      ${(product.price * (cartItem?.quantity || 0)).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isPending}
+                    className="flex-1 bg-[#670626] hover:bg-[#670626]/90 text-white py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    {isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
+                  </button>
+                  <button
+                    onClick={handleToggleWishlist}
+                    className={`flex-1 border py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors ${
+                      isInWishlist
+                        ? "border-[#670626] bg-[#ffbdc5]/20 text-[#670626]"
+                        : "border-[#E3A7C4] text-gray-600 hover:border-[#670626] hover:text-[#670626] hover:bg-[#ffbdc5]/10"
+                    }`}
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${isInWishlist ? "fill-[#670626] text-[#670626]" : ""}`}
+                    />
+                    {isInWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
