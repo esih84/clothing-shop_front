@@ -330,19 +330,12 @@ export function ProductDetails({
                     <ShoppingBag className="w-4 h-4" />
                     {isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
                   </button>
-                  <button
-                    onClick={handleToggleWishlist}
-                    className={`flex-1 border py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors ${
-                      isInWishlist
-                        ? "border-[#670626] bg-[#ffbdc5]/20 text-[#670626]"
-                        : "border-[#E3A7C4] text-gray-600 hover:border-[#670626] hover:text-[#670626] hover:bg-[#ffbdc5]/10"
-                    }`}
+                  <a
+                    href={`/product/${product.id}`}
+                    className="flex-1 border border-[#670626] text-[#670626] py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors hover:bg-[#ffbdc5]/10"
                   >
-                    <Heart
-                      className={`w-4 h-4 ${isInWishlist ? "fill-[#670626] text-[#670626]" : ""}`}
-                    />
-                    {isInWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-                  </button>
+                    مشاهده جزئیات محصول
+                  </a>
                 </div>
               )}
             </div>

@@ -95,7 +95,7 @@ export default function CartPage() {
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-x-4 text-sm md:text-base text-gray-500 mt-1">
-                    {/* {item.color && <p>Color: {item.color}</p>} */}
+                    {item.color && <p>رنگ: {item.color}</p>}
                     {item.size && <p>سایز: {item.size}</p>}
                   </div>
                   <div className="flex justify-between items-center mt-3">

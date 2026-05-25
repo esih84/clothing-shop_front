@@ -96,8 +96,54 @@ export default function ProductModal({ params }: { params: { id: string } }) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] p-0 overflow-hidden">
-          <div className="flex items-center justify-center h-64 md:h-96">
-            <div className="animate-spin h-8 w-8 border-b-2 border-[#670626]"></div>
+          <div className="flex flex-col md:grid md:grid-cols-2 max-h-[90vh] overflow-y-auto md:overflow-hidden animate-pulse">
+            {/* Image Section Skeleton */}
+            <div className="relative bg-[#ffbdc5]/20 flex-shrink-0">
+              <div className="relative h-56 sm:h-72 md:h-[90vh]">
+                <div className="absolute inset-0 bg-[#ffbdc5]/40" />
+              </div>
+            </div>
+            {/* Product Info Skeleton */}
+            <div className="p-4 md:p-6 flex flex-col md:overflow-y-auto">
+              <div className="flex-1">
+                <div className="flex items-start justify-between my-4">
+                  <div>
+                    <div className="h-6 w-40 bg-[#ffbdc5]/50 rounded mb-2" />
+                    <div className="h-4 w-24 bg-[#ffbdc5]/40 rounded" />
+                  </div>
+                  <div className="h-8 w-8 bg-[#ffbdc5]/40 rounded-full" />
+                </div>
+                <div className="mb-6 flex gap-3 items-center">
+                  <div className="h-8 w-24 bg-[#ffbdc5]/50 rounded" />
+                  <div className="h-6 w-16 bg-[#ffbdc5]/30 rounded" />
+                </div>
+                <div className="mb-6">
+                  <div className="h-4 w-16 bg-[#ffbdc5]/40 rounded mb-3" />
+                  <div className="flex gap-2">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="w-8 h-8 rounded-full bg-[#ffbdc5]/30" />
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-6">
+                  <div className="h-4 w-16 bg-[#ffbdc5]/40 rounded mb-3" />
+                  <div className="grid grid-cols-4 gap-2">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="h-8 bg-[#ffbdc5]/30 rounded" />
+                    ))}
+                  </div>
+                </div>
+                <div className="mb-6">
+                  <div className="h-6 w-24 bg-[#ffbdc5]/30 rounded" />
+                </div>
+              </div>
+              <div className="space-y-3 pt-1">
+                <div className="flex flex-col gap-3">
+                  <div className="h-12 bg-[#670626]/30 rounded" />
+                  <div className="h-12 bg-[#ffbdc5]/30 rounded" />
+                </div>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -289,7 +335,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-3">
                   <button
                     onClick={handleAddToCart}
                     disabled={isPending}
@@ -299,17 +345,13 @@ export default function ProductModal({ params }: { params: { id: string } }) {
                     {isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
                   </button>
                   <button
-                    onClick={handleToggleWishlist}
-                    className={`flex-1 border py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors ${
-                      isInWishlist
-                        ? "border-[#670626] bg-[#ffbdc5]/20 text-[#670626]"
-                        : "border-[#E3A7C4] text-gray-600 hover:border-[#670626] hover:text-[#670626] hover:bg-[#ffbdc5]/10"
-                    }`}
+                    onClick={() => {
+                      setIsOpen(false);
+                      router.push(`/product/${product.id}`);
+                    }}
+                    className="flex-1 border border-[#670626] text-[#670626] py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors hover:bg-[#ffbdc5]/10"
                   >
-                    <Heart
-                      className={`w-4 h-4 ${isInWishlist ? "fill-[#670626] text-[#670626]" : ""}`}
-                    />
-                    {isInWishlist ? "در علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
+                    مشاهده جزئیات محصول
                   </button>
                 </div>
               )}
