@@ -1,13 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* Import Swiper styles */
 @import "swiper/css";
 @import "swiper/css/navigation";
 @import "swiper/css/pagination";
 @import "swiper/css/thumbs";
 @import "swiper/css/free-mode";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 
 body {
   font-family: var(--font-vazirmatn), Tahoma, Arial, sans-serif;

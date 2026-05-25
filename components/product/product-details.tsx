@@ -24,7 +24,7 @@ import { useTransition } from "react";
 import type { Product } from "@/lib/actions";
 import Image from "next/image";
 import Link from "next/link";
-import { ProductCard } from "@/components/product-card";
+import { ProductCard } from "@/components/product/product-card";
 
 interface ProductDetailsProps {
   product: Product;

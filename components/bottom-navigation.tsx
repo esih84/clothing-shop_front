@@ -24,11 +24,15 @@ export function BottomNavigation() {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null)
   const cartItems = useAppSelector((state) => state.cart.items)
 
+
+
+
   // Hide navigation on product detail pages (direct ID routes)
   if (pathname.match(/^\/product\/[^/]+$/)) {
     return null
   }
 
+const prefetch = (href: string) => router.prefetch(href)
   // Check if we're in the shop section
   const isShopSection = pathname.startsWith("/shop")
   const shopId = isShopSection ? pathname.split("/")[2] : null
@@ -62,11 +66,7 @@ export function BottomNavigation() {
     }
   }
 
-  const handleTouchStart = () => {
-    longPressTimer.current = setTimeout(() => {
-      setIsProfileModalOpen(true)
-    }, 500)
-  }
+
 
   const handleTouchEnd = () => {
     if (longPressTimer.current) {
@@ -151,6 +151,8 @@ export function BottomNavigation() {
 
               <Link
                 href="/wishlist"
+                  onMouseEnter={() => router.prefetch("/wishlist")}
+                  onTouchStart={() => router.prefetch("/wishlist")}
                 className={`flex items-center p-2 rounded-full ${
                   isActive("/wishlist") ? "bg-white text-[#670626]" : "text-white"
                 }`}
@@ -160,6 +162,8 @@ export function BottomNavigation() {
 
               <Link
                 href="/cart"
+                  onMouseEnter={() => router.prefetch("/cart")}
+                  onTouchStart={() => router.prefetch("/cart")}
                 className={`flex items-center p-2 rounded-full ${
                   isActive("/cart") ? "bg-white text-[#670626]" : "text-white"
                 } relative`}
@@ -173,6 +177,8 @@ export function BottomNavigation() {
               </Link>
 
               <button
+                onMouseEnter={() => router.prefetch("/profile")}
+                onTouchStart={() => router.prefetch("/profile")}
                 className={`flex items-center p-2 rounded-full ${
                   isActive("/profile") ? "bg-white text-[#670626]" : "text-white"
                 }`}
@@ -180,7 +186,6 @@ export function BottomNavigation() {
                 onMouseDown={handleProfileMouseDown}
                 onMouseUp={handleProfileMouseUp}
                 onMouseLeave={handleProfileMouseUp}
-                onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
                 <User className="w-5 h-5" />

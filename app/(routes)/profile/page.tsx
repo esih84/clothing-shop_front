@@ -1,181 +1,209 @@
 "use client"
 
 import { useState } from "react"
-import { Package, MapPin, CreditCard, Settings, LogOut, Store } from "lucide-react"
-import { StoreCard } from "@/components/store-card"
+import { Package, MapPin, Settings, LogOut, ChevronLeft, Plus, Bell, Moon } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+const orders = [
+  { id: "۱۲۳۴۵", date: "۱۲ اردیبهشت ۱۴۰۴", status: "تحویل شده", statusColor: "bg-[#ffbdc5]/40 text-[#670626]" },
+  { id: "۱۲۳۴۶", date: "۹ اردیبهشت ۱۴۰۴", status: "در حال پردازش", statusColor: "bg-amber-100 text-amber-700" },
+  { id: "۱۲۳۴۷", date: "۲ اردیبهشت ۱۴۰۴", status: "لغو شده", statusColor: "bg-red-100 text-red-600" },
+]
+
+const addresses = [
+  { label: "خانه", detail: "تهران، خیابان آزادی، پلاک ۱۲۳", isDefault: true },
+  { label: "محل کار", detail: "تهران، خیابان ولیعصر، پلاک ۴۵۶", isDefault: false },
+]
+
+function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      aria-checked={enabled}
+      role="switch"
+      className={`relative inline-flex w-11 h-6 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#670626]/40 ${
+        enabled ? "bg-[#670626]" : "bg-gray-200"
+      }`}
+    >
+      <span
+        className={`absolute top-1 w-4 h-4 bg-white shadow transition-all duration-300 ${
+          enabled ? "right-1" : "right-6"
+        }`}
+      />
+    </button>
+  )
+}
+
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState("orders")
+  const [notifications, setNotifications] = useState(true)
+  const [darkMode, setDarkMode] = useState(false)
 
   return (
-    <div className="p-4 mx-auto max-w-4xl">
-      <div className="bg-white rounded-xl p-4 sm:p-6 text-center mb-6">
-        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-[#d8f5b4] rounded-full mx-auto flex items-center justify-center">
-          <span className="text-2xl sm:text-3xl font-bold">JD</span>
+    <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl" dir="rtl">
+      <div className="flex flex-col lg:flex-row gap-4 items-start">
+
+        {/* ستون چپ — پروفایل و آمار */}
+        <div className="w-full lg:w-80 lg:sticky lg:top-20 space-y-4 flex-shrink-0">
+
+          {/* Profile Card */}
+          <div className="bg-white p-6 shadow-sm border border-[#E3A7C4]/30">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 bg-[#ffbdc5]/40 border border-[#E3A7C4]/30 flex items-center justify-center flex-shrink-0">
+                <span className="text-3xl font-bold text-[#670626]">ج</span>
+              </div>
+              <div className="flex-1 min-w-0 text-right">
+                <h1 className="text-xl font-bold text-gray-900 truncate">جواد محمدی</h1>
+                <p className="text-sm text-gray-500 truncate mt-0.5">user@email.com</p>
+                <span className="inline-block mt-2 text-xs bg-[#ffbdc5]/40 text-[#670626] font-medium px-2 py-0.5 border border-[#E3A7C4]/30">
+                  عضو طلایی
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 divide-x divide-x-reverse divide-[#E3A7C4]/30 border border-[#E3A7C4]/30 bg-white shadow-sm">
+            {[
+              { label: "سفارش‌ها", value: "۱۲" },
+              { label: "امتیاز", value: "۳۴۰" },
+              { label: "آدرس‌ها", value: "۲" },
+            ].map((stat) => (
+              <div key={stat.label} className="flex flex-col items-center py-4 px-2 bg-[#ffbdc5]/10">
+                <span className="text-lg font-bold text-[#670626]">{stat.value}</span>
+                <span className="text-xs text-gray-500 mt-0.5">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Logout */}
+          <button className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-[#E3A7C4]/30 text-[#670626] font-medium text-base shadow-sm hover:bg-[#ffbdc5]/10 transition-colors">
+            <LogOut className="w-5 h-5" />
+            خروج از حساب
+          </button>
+
         </div>
-        <h1 className="mt-4 text-xl sm:text-2xl font-bold">John Doe</h1>
-        <p className="text-gray-500 text-sm sm:text-base">john.doe@example.com</p>
+
+        {/* ستون راست — تب‌ها */}
+        <div className="flex-1 min-w-0">
+          <Tabs defaultValue="orders" className="w-full">
+            <TabsList className="grid grid-cols-3 bg-white border border-[#E3A7C4]/30 shadow-sm h-auto p-0 gap-0 w-full">
+              {[
+                { value: "orders", icon: Package, label: "سفارش‌ها" },
+                { value: "addresses", icon: MapPin, label: "آدرس‌ها" },
+                { value: "settings", icon: Settings, label: "تنظیمات" },
+              ].map(({ value, icon: Icon, label }, i) => (
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className={`flex flex-col items-center gap-1.5 py-3 text-gray-400
+                    data-[state=active]:bg-[#670626] data-[state=active]:text-white
+                    transition-colors duration-200
+                    ${i < 2 ? "border-l border-[#E3A7C4]/30" : ""}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-xs font-medium">{label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {/* Orders */}
+            <TabsContent value="orders" className="mt-4 space-y-3">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#E3A7C4]/30 hover:border-[#E3A7C4]/60 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#ffbdc5]/20 border border-[#E3A7C4]/30 flex items-center justify-center flex-shrink-0">
+                      <Package className="w-5 h-5 text-[#670626]" />
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-800 text-sm">سفارش #{order.id}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{order.date}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-medium px-2 py-0.5 ${order.statusColor}`}>
+                      {order.status}
+                    </span>
+                    <ChevronLeft className="w-4 h-4 text-gray-300" />
+                  </div>
+                </div>
+              ))}
+            </TabsContent>
+
+            {/* Addresses */}
+            <TabsContent value="addresses" className="mt-4 space-y-3">
+              {addresses.map((addr) => (
+                <div
+                  key={addr.label}
+                  className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#E3A7C4]/30 hover:border-[#E3A7C4]/60 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#ffbdc5]/20 border border-[#E3A7C4]/30 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-[#670626]" />
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-gray-800 text-sm">{addr.label}</p>
+                        {addr.isDefault && (
+                          <span className="text-xs bg-[#ffbdc5]/40 text-[#670626] px-2 py-0.5 border border-[#E3A7C4]/30">
+                            پیش‌فرض
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">{addr.detail}</p>
+                    </div>
+                  </div>
+                  <ChevronLeft className="w-4 h-4 text-gray-300" />
+                </div>
+              ))}
+
+              <button className="w-full flex items-center justify-center gap-2 p-4 border border-dashed border-[#E3A7C4]/60 text-[#670626] text-sm font-medium hover:bg-[#ffbdc5]/10 transition-colors">
+                <Plus className="w-4 h-4" />
+                افزودن آدرس جدید
+              </button>
+            </TabsContent>
+
+            {/* Settings */}
+            <TabsContent value="settings" className="mt-4 space-y-3">
+              {[
+                {
+                  icon: Bell,
+                  label: "اعلان‌ها",
+                  desc: "دریافت پیام‌های سیستم",
+                  enabled: notifications,
+                  toggle: () => setNotifications((p) => !p),
+                },
+                {
+                  icon: Moon,
+                  label: "حالت تیره",
+                  desc: "تغییر ظاهر برنامه",
+                  enabled: darkMode,
+                  toggle: () => setDarkMode((p) => !p),
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#E3A7C4]/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#ffbdc5]/20 border border-[#E3A7C4]/30 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-5 h-5 text-[#670626]" />
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-800 text-sm">{item.label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                    </div>
+                  </div>
+                  <Toggle enabled={item.enabled} onToggle={item.toggle} />
+                </div>
+              ))}
+            </TabsContent>
+          </Tabs>
+        </div>
+
       </div>
-
-      <Tabs defaultValue="orders" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 mb-6">
-          <TabsTrigger value="orders" className="flex flex-col items-center gap-1 py-3">
-            <Package className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">Orders</span>
-          </TabsTrigger>
-          <TabsTrigger value="addresses" className="flex flex-col items-center gap-1 py-3">
-            <MapPin className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">Addresses</span>
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="flex flex-col items-center gap-1 py-3">
-            <CreditCard className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">Payment</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex flex-col items-center gap-1 py-3">
-            <Settings className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">Settings</span>
-          </TabsTrigger>
-          <TabsTrigger value="stores" className="flex flex-col items-center gap-1 py-3">
-            <Store className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">Stores</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="orders" className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <Package className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">Order #12345</p>
-                  <p className="text-sm sm:text-base text-gray-500">May 1, 2025</p>
-                </div>
-              </div>
-              <span className="text-sm sm:text-base bg-[#d8f5b4] px-3 py-1 rounded-full">Delivered</span>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <Package className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">Order #12346</p>
-                  <p className="text-sm sm:text-base text-gray-500">April 28, 2025</p>
-                </div>
-              </div>
-              <span className="text-sm sm:text-base bg-gray-200 px-3 py-1 rounded-full">Processing</span>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <Package className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">Order #12347</p>
-                  <p className="text-sm sm:text-base text-gray-500">April 15, 2025</p>
-                </div>
-              </div>
-              <span className="text-sm sm:text-base bg-[#d8f5b4] px-3 py-1 rounded-full">Delivered</span>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="addresses" className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">Home</p>
-                  <p className="text-sm sm:text-base text-gray-500">123 Main St, Anytown, USA</p>
-                </div>
-              </div>
-              <span className="text-sm sm:text-base bg-[#d8f5b4] px-3 py-1 rounded-full">Default</span>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">Work</p>
-                  <p className="text-sm sm:text-base text-gray-500">456 Office Blvd, Business City, USA</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="payment" className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">Visa ending in 4242</p>
-                  <p className="text-sm sm:text-base text-gray-500">Expires 05/26</p>
-                </div>
-              </div>
-              <span className="text-sm sm:text-base bg-[#d8f5b4] px-3 py-1 rounded-full">Default</span>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">Mastercard ending in 8888</p>
-                  <p className="text-sm sm:text-base text-gray-500">Expires 12/25</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <div>
-                  <p className="font-medium text-base sm:text-lg">PayPal</p>
-                  <p className="text-sm sm:text-base text-gray-500">john.doe@example.com</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <Settings className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <p className="font-medium text-base sm:text-lg">Notifications</p>
-              </div>
-              <div className="relative inline-block w-10 sm:w-12 h-6 sm:h-7 rounded-full bg-[#d8f5b4]">
-                <div className="absolute right-1 top-1 w-4 sm:w-5 h-4 sm:h-5 rounded-full bg-white"></div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between bg-white p-4 rounded-lg border">
-              <div className="flex items-center">
-                <Settings className="w-5 h-5 sm:w-6 sm:h-6 mr-3 sm:mr-4 text-[#d8f5b4]" />
-                <p className="font-medium text-base sm:text-lg">Dark Mode</p>
-              </div>
-              <div className="relative inline-block w-10 sm:w-12 h-6 sm:h-7 rounded-full bg-gray-300">
-                <div className="absolute left-1 top-1 w-4 sm:w-5 h-4 sm:h-5 rounded-full bg-white"></div>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="stores" className="space-y-4">
-          <div className="space-y-3">
-            <StoreCard id="store1" name="Fashion Boutique" role="Manager" address="123 Fashion St" color="#d8f5b4" />
-            <StoreCard id="store2" name="Urban Styles" role="Employee" address="456 Urban Ave" color="#66a3ff" />
-            <StoreCard id="store3" name="Trendy Threads" role="Owner" address="789 Trend Blvd" color="#ff6666" />
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <button className="w-full bg-red-100 text-red-600 p-4 rounded-xl font-medium flex items-center justify-center mt-8 text-base sm:text-lg">
-        <LogOut className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
-        Log Out
-      </button>
     </div>
   )
 }

@@ -3,7 +3,7 @@
 import { getProduct, Product } from "@/lib/actions";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, use } from "react";
 import Image from "next/image";
 import { Heart, Star, ShoppingBag, X, Trash2, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import { addToCart } from "@/lib/store/slices/cartSlice";
 import { toggleWishlist } from "@/lib/store/slices/wishlistSlice";
 
 
-export default function ProductModal({ params }: { params: { id: string } }) {
+export default function ProductModal( {params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("");
@@ -36,11 +37,11 @@ export default function ProductModal({ params }: { params: { id: string } }) {
       )
     : undefined;
   const isInCart = !!cartItem;
-  const isInWishlist = wishlistItems.some((item) => item.id === params.id);
+  const isInWishlist = wishlistItems.some((item) => item.id === id);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const productData = await getProduct(params.id);
+      const productData = await getProduct(id);
       setProduct(productData);
       if (Array.isArray(productData?.colors) && productData.colors.length > 0) {
         setSelectedColor(productData.colors[0]);
@@ -50,7 +51,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
       }
     };
     fetchProduct();
-  }, [params.id]);
+  }, [id]);
 
   const handleClose = () => {
     setIsOpen(false);
@@ -96,6 +97,7 @@ export default function ProductModal({ params }: { params: { id: string } }) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          <DialogTitle className="sr-only">در حال بارگذاری...</DialogTitle> 
           <div className="flex flex-col md:grid md:grid-cols-2 max-h-[90vh] overflow-y-auto md:overflow-hidden animate-pulse">
             {/* Image Section Skeleton */}
             <div className="relative bg-[#ffbdc5]/20 flex-shrink-0">

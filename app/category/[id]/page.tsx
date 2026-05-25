@@ -1,11 +1,12 @@
 import { getCategories, getProducts } from "@/lib/actions";
-import { ProductCard } from "@/components/product-card";
+import { ProductCard } from "@/components/product/product-card";
 import Link from "next/link";
 
-export default async function CategoryPage({ params }: { params: { id: string } }) {
+export default async function CategoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const categories = await getCategories();
-  const products = await getProducts();
-  const category = categories.find((c) => c.id === params.id);
+  const {products} = await getProducts();
+  const category = categories.find((c) => c.id === id);
   const filtered = products.filter((p) => p.category === category?.name);
 
   if (!category) {

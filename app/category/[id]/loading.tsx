@@ -1,4 +1,4 @@
-import { ProductCardSkeleton } from "@/components/product-card";
+import { ProductCardSkeleton } from "@/components/product/product-card";
 
 export default function Loading() {
   return (

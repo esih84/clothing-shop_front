@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getProduct, getProducts } from "@/lib/actions";
-import { ProductDetails } from "@/components/product-details";
+import { ProductDetails } from "@/components/product/product-details";
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
@@ -8,7 +8,7 @@ interface ProductPageProps {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const [product, allProducts] = await Promise.all([
+  const [product, { products }] = await Promise.all([
     getProduct(id),
     getProducts(),
   ]);
@@ -17,7 +17,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const related = allProducts
+  const related = products
     .filter((p) => p.id !== id && p.category === product.category)
     .slice(0, 4);
 

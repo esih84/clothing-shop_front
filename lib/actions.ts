@@ -585,12 +585,13 @@ export async function getProduct(id: string): Promise<Product | null> {
   return product || null;
 }
 
-export async function getProducts(): Promise<Product[]> {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  return products;
+// lib/actions.ts
+export async function getProducts(page = 1, limit = 4): Promise<{ products: Product[]; hasMore: boolean }> {
+  const start = (page - 1) * limit
+  const slice = products.slice(start, start + limit)
+  return { products: slice, hasMore: start + limit < products.length }
 }
+
 
 export async function getDiscountedProducts(): Promise<Product[]> {
   // Simulate network delay

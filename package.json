@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
-    "lint": "next lint",
-    "start": "next start"
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -38,6 +38,7 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@reduxjs/toolkit": "latest",
+    "@tanstack/react-query": "^5.100.14",
     "@tanstack/react-table": "latest",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
@@ -47,11 +48,11 @@
     "embla-carousel-react": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
-    "next": "14.2.16",
+    "next": "^16.2.6",
     "next-themes": "latest",
-    "react": "^18",
+    "react": "^19.2.6",
     "react-day-picker": "latest",
-    "react-dom": "^18",
+    "react-dom": "^19.2.6",
     "react-hook-form": "latest",
     "react-redux": "latest",
     "react-resizable-panels": "latest",
