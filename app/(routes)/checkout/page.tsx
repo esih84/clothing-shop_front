@@ -360,7 +360,7 @@ export default function CheckoutPage() {
               <div className="space-y-3">
                 {cartItems.map((item) => (
                   <div
-                    key={item.id}
+                    key={`item-${item.id} ${item.color || ""} ${item.size || ""}`}
                     className="flex items-center gap-3 py-3 border-b border-[#E3A7C4]/20 last:border-0"
                   >
                     <div className="w-14 h-14 md:w-16 md:h-16 bg-[#ffbdc5]/20 flex-shrink-0 overflow-hidden">

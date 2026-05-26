@@ -91,7 +91,7 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-4">
             {cartItems.map((item) => (
               <div
-                key={item.id}
+                key={`item-${item.id} ${item.color || ""} ${item.size || ""}`}
                 className="cart-item bg-white p-4 md:p-6 flex items-center gap-4 shadow-sm border border-[#E3A7C4]/30"
               >
                 <div className="cart-item-image w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 bg-[#ffbdc5]/20 flex-shrink-0 overflow-hidden">
