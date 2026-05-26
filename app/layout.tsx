@@ -3,10 +3,9 @@ import "./globals.css"
 import type { Metadata } from "next"
 import { Vazirmatn } from "next/font/google"
 import { Providers } from "./providers"
-import { DynamicHeader } from "@/components/dynamic-header"
-import { BottomNavigation } from "@/components/bottom-navigation"
-import { ScrollToTop } from "@/components/scroll-to-top"
-
+import { BottomNavigation } from "@/components/global/bottom-navigation"
+import { ScrollToTop } from "@/components/global/scroll-to-top"
+import { DynamicHeader } from "@/components/global/dynamic-header"
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
   display: "swap",
