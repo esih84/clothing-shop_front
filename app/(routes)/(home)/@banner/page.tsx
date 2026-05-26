@@ -1,8 +1,8 @@
 import { BannerSlider } from "@/components/banner-slider"
 import { getBanners } from "@/lib/actions"
 
-export default async function BannerSection() {
-  const banners = await getBanners()
+export default  function BannerSection() {
+  const banners = getBanners()
 
-  return <BannerSlider banners={banners} />
+  return <BannerSlider bannersData={banners} />
 }

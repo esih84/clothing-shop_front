@@ -10,7 +10,7 @@ export default function OffersLoading() {
         <div className="h-4 w-12 bg-[#ffbdc5]/30 animate-pulse" />
       </div>
       <div className="flex gap-3">
-        {[1, 2, 3, 4].map((i) => (
+        {Array.from({ length: 10 }).map((_,i) => (
           <div key={i} className="w-[150px] sm:w-[170px] flex-shrink-0">
             <div className="aspect-[3/4] bg-[#ffbdc5]/40 animate-pulse mb-2" />
             <div className="space-y-1.5">

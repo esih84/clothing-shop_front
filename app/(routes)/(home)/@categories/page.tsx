@@ -1,8 +1,8 @@
-import { CategorySelector } from "@/components/category-selector"
+import { CategorySelector } from "@/components/category/category-selector"
 import { getCategories } from "@/lib/actions"
 
 export default async function CategoriesSection() {
-  const categories = await getCategories()
+  const categories =  getCategories()
 
-  return <CategorySelector categories={categories} />
+  return <CategorySelector categoriesData={categories} />
 }
