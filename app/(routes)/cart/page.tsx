@@ -7,16 +7,30 @@ import { ArrowLeft, ShoppingBag, Minus, Plus, Trash2 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { removeFromCart, updateQuantity } from "@/lib/store/slices/cartSlice";
 
+// Dummy login check (replace with real auth logic)
+function useIsLoggedIn() {
+  // For now, always false. Replace with real logic.
+  return false;
+}
+
 export default function CartPage() {
-  const cartItems = useAppSelector((state) => state.cart.items);
+  const isLoggedIn = useIsLoggedIn();
+  const reduxCartItems = useAppSelector((state) => state.cart.items);
   const dispatch = useAppDispatch();
   const [mounted, setMounted] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<any>(null);
+  // For backend cart (future)
+  const [backendCartItems, setBackendCartItems] = useState<any[]>([]);
+
+  // Choose cart source
+  const cartItems = isLoggedIn ? backendCartItems : reduxCartItems;
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // In future: if logged in, fetch backend cart here
+    // if (isLoggedIn) { ...fetch and setBackendCartItems... }
+  }, [isLoggedIn]);
 
   if (!mounted) {
     return null;
@@ -24,11 +38,19 @@ export default function CartPage() {
 
   const handleUpdateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
-    dispatch(updateQuantity({ id, quantity: newQuantity }));
+    if (isLoggedIn) {
+      // TODO: update backend cart
+    } else {
+      dispatch(updateQuantity({ id, quantity: newQuantity }));
+    }
   };
 
   const handleRemoveItem = (id: string) => {
-    dispatch(removeFromCart({ id }));
+    if (isLoggedIn) {
+      // TODO: remove from backend cart
+    } else {
+      dispatch(removeFromCart({ id }));
+    }
     setRemoveModalOpen(false);
   };
 
