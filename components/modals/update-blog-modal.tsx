@@ -26,10 +26,9 @@ interface UpdateBlogModalProps {
   isOpen: boolean
   onClose: () => void
   blogPost: BlogPost
-  shopId: string
 }
 
-export function UpdateBlogModal({ isOpen, onClose, blogPost, shopId }: UpdateBlogModalProps) {
+export function UpdateBlogModal({ isOpen, onClose, blogPost }: UpdateBlogModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     title: blogPost.title,

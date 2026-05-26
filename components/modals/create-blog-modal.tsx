@@ -16,10 +16,9 @@ import { RichTextEditor } from "@/components/rich-text-editor"
 interface CreateBlogModalProps {
   isOpen: boolean
   onClose: () => void
-  shopId: string
 }
 
-export function CreateBlogModal({ isOpen, onClose, shopId }: CreateBlogModalProps) {
+export function CreateBlogModal({ isOpen, onClose }: CreateBlogModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
@@ -48,7 +47,7 @@ export function CreateBlogModal({ isOpen, onClose, shopId }: CreateBlogModalProp
     setIsSubmitting(false)
     onClose()
     // Refresh the page or update the state
-    window.location.href = `/shop/${shopId}/blog`
+    window.location.href = `/shop/blog`
   }
 
   return (

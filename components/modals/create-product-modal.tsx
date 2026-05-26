@@ -15,10 +15,9 @@ import {
 interface CreateProductModalProps {
   isOpen: boolean
   onClose: () => void
-  shopId: string
 }
 
-export function CreateProductModal({ isOpen, onClose, shopId }: CreateProductModalProps) {
+export function CreateProductModal({ isOpen, onClose }: CreateProductModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
@@ -44,7 +43,7 @@ export function CreateProductModal({ isOpen, onClose, shopId }: CreateProductMod
     setIsSubmitting(false)
     onClose()
     // Refresh the page or update the state
-    window.location.href = `/shop/${shopId}/products`
+    window.location.href = `/shop/products`
   }
 
   return (

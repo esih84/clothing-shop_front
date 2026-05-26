@@ -26,10 +26,9 @@ interface UpdateProductModalProps {
   isOpen: boolean
   onClose: () => void
   product: Product
-  shopId: string
 }
 
-export function UpdateProductModal({ isOpen, onClose, product, shopId }: UpdateProductModalProps) {
+export function UpdateProductModal({ isOpen, onClose, product }: UpdateProductModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: product.name,

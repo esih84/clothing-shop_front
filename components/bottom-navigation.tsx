@@ -14,14 +14,11 @@ import {
   Settings,
 } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
-import { ProfileModal } from "./profile-modal"
 import { useAppSelector } from "@/lib/store/hooks"
 
 export function BottomNavigation() {
   const pathname = usePathname()
   const router = useRouter()
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null)
   const cartItems = useAppSelector((state) => state.cart.items)
 
 
@@ -35,7 +32,6 @@ export function BottomNavigation() {
 const prefetch = (href: string) => router.prefetch(href)
   // Check if we're in the shop section
   const isShopSection = pathname.startsWith("/shop")
-  const shopId = isShopSection ? pathname.split("/")[2] : null
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true
@@ -43,87 +39,67 @@ const prefetch = (href: string) => router.prefetch(href)
     return false
   }
 
-  const handleProfileMouseDown = () => {
-    longPressTimer.current = setTimeout(() => {
-      setIsProfileModalOpen(true)
-    }, 500) // 500ms long press
-  }
 
-  const handleProfileMouseUp = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current)
-      longPressTimer.current = null
-    }
-  }
+
 
   const handleProfileClick = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current)
-      longPressTimer.current = null
-    }
-    if (!isProfileModalOpen) {
+
       router.push("/profile")
-    }
+    
   }
 
 
 
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current)
-      longPressTimer.current = null
-    }
-  }
 
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0)
 
   // Render shop-specific navigation when in shop routes
-  if (isShopSection && shopId) {
+  if (isShopSection ) {
     return (
       <div className="fixed bottom-4 left-0 right-0 z-40 sm:hidden">
         <div className="max-w-md mx-auto px-4">
           <div className="bg-[#670626] rounded-full shadow-lg">
             <div className="flex justify-around items-center p-2">
               <Link
-                href={`/shop/${shopId}`}
+                href={`/shop`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname === `/shop/${shopId}` ? "bg-white text-[#670626]" : "text-white"
+                  pathname === `/shop` ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <LayoutDashboard className="w-5 h-5" />
               </Link>
 
               <Link
-                href={`/shop/${shopId}/products`}
+                href={`/shop/products`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/products`) ? "bg-white text-[#670626]" : "text-white"
+                  pathname.includes(`/shop/products`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <Package className="w-5 h-5" />
               </Link>
 
               <Link
-                href={`/shop/${shopId}/orders`}
+                href={`/shop/orders`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/orders`) ? "bg-white text-[#670626]" : "text-white"
+                  pathname.includes(`/shop/orders`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <ShoppingBag className="w-5 h-5" />
               </Link>
 
               <Link
-                href={`/shop/${shopId}/blog`}
+                href={`/shop/blog`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/blog`) ? "bg-white text-[#670626]" : "text-white"
+                  pathname.includes(`/shop/blog`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <FileText className="w-5 h-5" />
               </Link>
 
               <Link
-                href={`/shop/${shopId}/settings`}
+                href={`/shop/settings`}
                 className={`flex items-center p-2 rounded-full ${
-                  pathname.includes(`/shop/${shopId}/settings`) ? "bg-white text-[#670626]" : "text-white"
+                  pathname.includes(`/shop/settings`) ? "bg-white text-[#670626]" : "text-white"
                 }`}
               >
                 <Settings className="w-5 h-5" />
@@ -183,10 +159,7 @@ const prefetch = (href: string) => router.prefetch(href)
                   isActive("/profile") ? "bg-white text-[#670626]" : "text-white"
                 }`}
                 onClick={handleProfileClick}
-                onMouseDown={handleProfileMouseDown}
-                onMouseUp={handleProfileMouseUp}
-                onMouseLeave={handleProfileMouseUp}
-                onTouchEnd={handleTouchEnd}
+
               >
                 <User className="w-5 h-5" />
               </button>
@@ -195,7 +168,6 @@ const prefetch = (href: string) => router.prefetch(href)
         </div>
       </div>
 
-      <ProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)} />
     </>
   )
 }

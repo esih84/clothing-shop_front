@@ -36,8 +36,6 @@ export function DynamicHeader() {
   // Check if we're in the shop section
   const isShopSection = pathname.startsWith("/shop");
   const isStorePage = pathname.startsWith("/store");
-  const shopId = isShopSection ? (params.shopId as string) : null;
-  const storeId = isStorePage ? (params.id as string) : null;
   const isBlogDetail =
     isShopSection && pathname.includes("/blog/") && params.blogId;
   const isOrderDetail =
@@ -48,32 +46,14 @@ export function DynamicHeader() {
     if (isBlogDetail) return "Blog Post";
     if (isOrderDetail) return `Order #${params.orderId}`;
 
-    if (pathname.endsWith(`/shop/${shopId}`)) return "Dashboard";
-    if (pathname.includes(`/shop/${shopId}/products`)) return "Products";
-    if (pathname.includes(`/shop/${shopId}/orders`)) return "Orders";
-    if (pathname.includes(`/shop/${shopId}/blog`)) return "Blog";
+    if (pathname.endsWith(`/shop`)) return "Dashboard";
+    if (pathname.includes(`/shop/products`)) return "Products";
+    if (pathname.includes(`/shop/orders`)) return "Orders";
+    if (pathname.includes(`/shop/blog`)) return "Blog";
 
     return "Shop";
   };
 
-  // Shop data based on shopId
-  const shopData = shopId
-    ? {
-        id: shopId,
-        name:
-          shopId === "store1"
-            ? "بوتیک مد"
-            : shopId === "store2"
-            ? "استایل شهری"
-            : "پارچه‌های روز مد",
-        role:
-          shopId === "store1"
-            ? "مدیر"
-            : shopId === "store2"
-            ? "کارمند"
-            : "صاحب",
-      }
-    : null;
 
   // Store page header
   if (isStorePage) {
@@ -102,7 +82,7 @@ export function DynamicHeader() {
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b">
         <div className="p-4 flex items-center justify-between  mx-auto">
           <div className="flex items-center">
-            <Link href={`/shop/${shopId}/blog`} className="ml-3">
+            <Link href={`/shop/blog`} className="ml-3">
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </Link>
             <h1 className="text-base sm:text-lg font-bold truncate">
@@ -140,7 +120,7 @@ export function DynamicHeader() {
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b">
         <div className="p-4 flex items-center justify-between  mx-auto">
           <div className="flex items-center">
-            <Link href={`/shop/${shopId}/orders`} className="ml-3">
+            <Link href={`/shop/orders`} className="ml-3">
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </Link>
             <h1 className="text-base sm:text-lg font-bold truncate">
@@ -152,28 +132,7 @@ export function DynamicHeader() {
     );
   }
 
-  // Shop header
-  if (isShopSection && shopData) {
-    return (
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b">
-        <div className="p-4 flex items-center justify-between  mx-auto">
-          <div className="flex items-center">
-            <Link href="/" className="ml-3">
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-            </Link>
-            <div>
-              <h1 className="text-base sm:text-lg font-bold truncate">
-                {getShopPageName()}
-              </h1>
-              <p className="text-xs text-gray-500 truncate">
-                {shopData.name} - شما یک {shopData.role} هستید
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   // Home page header
   if (pathname === "/") {
