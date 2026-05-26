@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import Link from "next/link"
 
 interface Category {
@@ -9,7 +9,7 @@ interface Category {
 }
 
 interface CategorySelectorProps {
-  categories: Category[]
+  categoriesData: Promise<Category[]>
 }
 
 const cardGradients = [
@@ -22,8 +22,9 @@ const cardGradients = [
   "from-[#670626] to-[#A52A5E]",
 ]
 
-export function CategorySelector({ categories }: CategorySelectorProps) {
+export function CategorySelector({ categoriesData }: CategorySelectorProps) {
   const [mounted, setMounted] = useState(false)
+  const categories = use(categoriesData)
 
   useEffect(() => {
     setMounted(true)

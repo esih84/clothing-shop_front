@@ -3,12 +3,14 @@
 import Image from "next/image"
 import Link from "next/link"
 import type { Banner } from "@/lib/actions"
+import { use } from "react"
 
 interface BannerSliderProps {
-  banners: Banner[]
+  bannersData: Promise<Banner[]>
 }
 
-export function BannerSlider({ banners }: BannerSliderProps) {
+export function BannerSlider({ bannersData }: BannerSliderProps) {
+  const banners = use(bannersData)
   if (!banners.length) return null
 
   const [main, ...rest] = banners

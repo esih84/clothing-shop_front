@@ -610,7 +610,7 @@ export async function getBanners(): Promise<Banner[]> {
 
 export async function getCategories(): Promise<Category[]> {
   // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   return categories;
 }

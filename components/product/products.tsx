@@ -1,23 +1,23 @@
 "use client"
 
 import { useInfiniteQuery } from "@tanstack/react-query"
-import { useCallback, useEffect, useRef } from "react"
+import { use, useCallback, useEffect, useRef } from "react"
 import { getProducts, Product } from "@/lib/actions"
 import dynamic from "next/dynamic"
 const ProductCard = dynamic(() => import("./product-card").then(m => ({ default: m.ProductCard })), {
   loading: () => <div className="aspect-square bg-gray-100 rounded-lg animate-pulse" />,
   ssr: false,
 })
-export function Products({ initialProducts }: { initialProducts: Product[] }) {
+export function Products({ initialProducts }: { initialProducts: Promise<{ products: Product[]; hasMore: boolean }> }) {
   const bottomRef = useRef<HTMLDivElement>(null)
-
+const {products,hasMore} = use(initialProducts)
 const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
   queryKey: ["products"],
   queryFn: ({ pageParam }) => getProducts(pageParam as number),
   initialPageParam: 1,  
   getNextPageParam: (last, pages) => last.hasMore ? pages.length + 1 : undefined,
   initialData: {
-    pages: [{ products: initialProducts, hasMore: true }],
+    pages: [{ products: products, hasMore: hasMore }],
     pageParams: [1],
   },
   staleTime: 1000 * 60 * 5,
