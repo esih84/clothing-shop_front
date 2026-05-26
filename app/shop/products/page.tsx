@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { createColumnHelper } from "@tanstack/react-table";
@@ -20,9 +20,9 @@ interface Product {
 }
 
 export default function ProductsPage() {
-  const params = useParams();
+  
   const router = useRouter();
-  const shopId = params.shopId as string;
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteModalData, setDeleteModalData] = useState<{
     isOpen: boolean;
@@ -76,7 +76,7 @@ export default function ProductsPage() {
   ];
 
   const handleEditClick = (productId: string) => {
-    router.push(`/shop/${shopId}/products/edit/${productId}`);
+    router.push(`/shop/products/edit/${productId}`);
   };
 
   const handleDeleteClick = (productId: string, name: string) => {
@@ -232,7 +232,7 @@ export default function ProductsPage() {
           </button>
           <button
             className="bg-black text-white p-2 rounded-full shadow-sm flex items-center justify-center"
-            onClick={() => router.push(`/shop/${shopId}/products/create`)}
+            onClick={() => router.push(`/shop/products/create`)}
           >
             <Plus className="w-5 h-5" />
           </button>

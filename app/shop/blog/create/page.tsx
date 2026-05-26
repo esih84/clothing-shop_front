@@ -9,9 +9,7 @@ import Image from "next/image"
 import { RichTextEditor } from "@/components/rich-text-editor"
 
 export default function CreateBlogPage() {
-  const params = useParams()
   const router = useRouter()
-  const shopId = params.shopId as string
 
   const [formData, setFormData] = useState({
     title: "",
@@ -39,13 +37,13 @@ export default function CreateBlogPage() {
     console.log("Featured image:", featuredImage)
 
     // Redirect back to blog page
-    router.push(`/shop/${shopId}/blog`)
+    router.push(`/shop/blog`)
   }
 
   return (
     <div className="p-4 pb-20  mx-auto">
       <div className="flex items-center mb-6">
-        <button onClick={() => router.push(`/shop/${shopId}/blog`)} className="mr-3">
+        <button onClick={() => router.push(`/shop/blog`)} className="mr-3">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="text-xl font-bold">Create New Blog Post</h1>
@@ -148,7 +146,7 @@ export default function CreateBlogPage() {
             <div className="pt-4 flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => router.push(`/shop/${shopId}/blog`)}
+                onClick={() => router.push(`/shop/blog`)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
               >
                 Cancel

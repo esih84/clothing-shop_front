@@ -20,7 +20,7 @@ interface StaffMember {
 export default function StaffManagementPage() {
   const params = useParams()
   const router = useRouter()
-  const shopId = params.shopId as string
+  
   const [searchQuery, setSearchQuery] = useState("")
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
 
@@ -192,7 +192,7 @@ export default function StaffManagementPage() {
 
             <button
               className="flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-sm"
-              onClick={() => router.push(`/shop/${shopId}/staff/add`)}
+              onClick={() => router.push(`/shop/staff/add`)}
             >
               <Plus className="w-4 h-4 mr-1" />
               <span>Add</span>

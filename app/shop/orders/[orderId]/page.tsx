@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { use, useState } from "react"
 import Image from "next/image"
 import { Package, Truck, Calendar, MapPin, CreditCard, Edit } from "lucide-react"
 import { OrderStatusModal } from "@/components/modals/order-status-modal"
@@ -48,9 +48,10 @@ const getOrder = (orderId: string) => {
   }
 }
 
-export default function OrderDetailPage({ params }: { params: { shopId: string; orderId: string } }) {
+export default function OrderDetailPage({ params }: { params: Promise<{  orderId: string }> }) {
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false)
-  const order = getOrder(params.orderId)
+  const { orderId } = use(params)
+  const order = getOrder(orderId)
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -201,7 +202,7 @@ export default function OrderDetailPage({ params }: { params: { shopId: string; 
         isOpen={isStatusModalOpen}
         onClose={() => setIsStatusModalOpen(false)}
         currentStatus={order.status}
-        orderId={params.orderId}
+        orderId={orderId}
       />
     </div>
   )

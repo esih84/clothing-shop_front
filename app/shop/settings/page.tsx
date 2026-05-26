@@ -7,13 +7,13 @@ import Image from "next/image"
 export default function ShopSettingsPage() {
   const params = useParams()
   const router = useRouter()
-  const shopId = params.shopId as string
+  
   const [activeTab, setActiveTab] = useState("general")
 
   // Mock shop data based on shopId
   const shopData = {
-    id: shopId,
-    name: shopId === "store1" ? "Fashion Boutique" : shopId === "store2" ? "Urban Styles" : "Trendy Threads",
+    id: "store2",
+    name:  "Fashion Boutique" ,
     email: "shop@example.com",
     phone: "+1 (555) 123-4567",
     logo: "/placeholder.svg?height=60&width=60&text=FB",

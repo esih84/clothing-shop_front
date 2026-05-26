@@ -10,7 +10,7 @@ import Image from "next/image"
 export default function CreateProductPage() {
   const params = useParams()
   const router = useRouter()
-  const shopId = params.shopId as string
+  
 
   const [formData, setFormData] = useState({
     name: "",
@@ -42,7 +42,7 @@ export default function CreateProductPage() {
     console.log("Images:", images)
 
     // Redirect back to products page
-    router.push(`/shop/${shopId}/products`)
+    router.push(`/shop/products`)
   }
 
   const handleRemoveImage = (index: number) => {
@@ -52,7 +52,7 @@ export default function CreateProductPage() {
   return (
     <div className="p-4 pb-20 max-w-6xl mx-auto">
       <div className="flex items-center mb-6">
-        <button onClick={() => router.push(`/shop/${shopId}/products`)} className="mr-3">
+        <button onClick={() => router.push(`/shop/products`)} className="mr-3">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="text-xl font-bold">Create New Product</h1>
@@ -254,7 +254,7 @@ export default function CreateProductPage() {
             <div className="pt-4 flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => router.push(`/shop/${shopId}/products`)}
+                onClick={() => router.push(`/shop/products`)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
               >
                 Cancel

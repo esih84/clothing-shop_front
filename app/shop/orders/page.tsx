@@ -19,7 +19,6 @@ interface Order {
 
 export default function OrdersPage() {
   const params = useParams();
-  const shopId = params.shopId as string;
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -126,7 +125,7 @@ export default function OrdersPage() {
       header: "",
       cell: (info) => (
         <Link
-          href={`/shop/${shopId}/orders/${info.row.original.id}`}
+          href={`/shop/orders/${info.row.original.id}`}
           className="text-sm text-blue-600 hover:underline"
         >
           View Details
@@ -162,7 +161,7 @@ export default function OrdersPage() {
               <div className="text-right">
                 <p className="font-bold">${order.amount.toFixed(2)}</p>
                 <Link
-                  href={`/shop/${shopId}/orders/${order.id}`}
+                  href={`/shop/orders/${order.id}`}
                   className="text-blue-600 text-sm"
                 >
                   View Details

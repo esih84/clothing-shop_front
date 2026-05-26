@@ -1,14 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import {  useRouter } from "next/navigation"
 import { ChevronLeft, Search, Filter, Plus, Clock } from "lucide-react"
 import Image from "next/image"
 
 export default function JobApplicationsPage() {
-  const params = useParams()
   const router = useRouter()
-  const shopId = params.shopId as string
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [activeTab, setActiveTab] = useState("applications")
@@ -151,7 +149,7 @@ export default function JobApplicationsPage() {
   return (
     <div className="p-4 space-y-6 mx-auto pb-20">
       <div className="flex items-center mb-4">
-        <button onClick={() => router.push(`/shop/${shopId}/settings`)} className="mr-3">
+        <button onClick={() => router.push(`/shop/settings`)} className="mr-3">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="text-xl font-bold">Job Applications</h1>
@@ -250,7 +248,7 @@ export default function JobApplicationsPage() {
               <div
                 key={app.id}
                 className="bg-white p-4 rounded-xl shadow-sm"
-                onClick={() => router.push(`/shop/${shopId}/jobs/application/${app.id}`)}
+                onClick={() => router.push(`/shop/jobs/application/${app.id}`)}
               >
                 <div className="flex items-start">
                   <Image
@@ -346,7 +344,7 @@ export default function JobApplicationsPage() {
                 <div
                   key={position.id}
                   className="bg-white p-4 rounded-xl shadow-sm"
-                  onClick={() => router.push(`/shop/${shopId}/jobs/position/${position.id}`)}
+                  onClick={() => router.push(`/shop/jobs/position/${position.id}`)}
                 >
                   <div className="flex justify-between">
                     <h3 className="font-bold">{position.title}</h3>

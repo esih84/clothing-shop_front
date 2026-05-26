@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import Image from "next/image"
 import { Calendar, MessageSquare, User } from "lucide-react"
 import { UpdateBlogModal } from "@/components/modals/update-blog-modal"
@@ -88,12 +88,12 @@ const getBlogPost = (blogId: string) => {
   }
 }
 
-export default function BlogDetailPage({ params }: { params: { shopId: string; blogId: string } }) {
+export default function BlogDetailPage({ params }: { params: Promise<{ blogId: string }> }) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const blogPost = getBlogPost(params.blogId)
+const { blogId } = use(params) 
+  const blogPost = getBlogPost(blogId)
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -102,7 +102,7 @@ export default function BlogDetailPage({ params }: { params: { shopId: string; b
     setIsDeleting(false)
     setIsDeleteModalOpen(false)
     // Redirect to blog list
-    window.location.href = `/shop/${params.shopId}/blog`
+    window.location.href = `/shop/blog`
   }
 
   // Listen for edit/delete events from the header
@@ -177,7 +177,6 @@ export default function BlogDetailPage({ params }: { params: { shopId: string; b
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
         blogPost={blogPost}
-        shopId={params.shopId}
       />
 
       <DeleteConfirmationModal

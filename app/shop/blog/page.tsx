@@ -15,9 +15,7 @@ import Link from "next/link";
 import { DeleteConfirmationModal } from "@/components/modals/delete-confirmation-modal";
 
 export default function BlogPage() {
-  const params = useParams();
   const router = useRouter();
-  const shopId = params.shopId as string;
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteModalData, setDeleteModalData] = useState<{
     isOpen: boolean;
@@ -99,7 +97,7 @@ export default function BlogPage() {
 
         <button
           className="bg-black text-white p-2 rounded-full shadow-sm flex items-center justify-center"
-          onClick={() => router.push(`/shop/${shopId}/blog/create`)}
+          onClick={() => router.push(`/shop/blog/create`)}
         >
           <Plus className="w-5 h-5" />
         </button>
@@ -123,7 +121,7 @@ export default function BlogPage() {
               </div>
               <div className="w-2/3 min-h-full justify-between flex flex-col  p-4">
                 <div>
-                  <Link href={`/shop/${shopId}/blog/${post.id}`}>
+                  <Link href={`/shop/blog/${post.id}`}>
                     <h3 className=" font-normal text-sm md:text-md md:font-bold">
                       {post.title}
                     </h3>
@@ -140,7 +138,7 @@ export default function BlogPage() {
                     <span>{post.comments}</span>
                   </div>
                   <div className="flex space-x-1 md:space-x-2">
-                    <Link href={`/shop/${shopId}/blog/${post.id}`}>
+                    <Link href={`/shop/blog/${post.id}`}>
                       <button className="text-blue-500">
                         <Edit className="w-4 h-4" />
                       </button>

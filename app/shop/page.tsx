@@ -60,11 +60,7 @@ interface Transaction {
   status: "unpaid" | "pending" | "completed";
 }
 
-export default function ShopDashboard({
-  params,
-}: {
-  params: { shopId: string };
-}) {
+export default function ShopDashboard() {
   const [timeframe, setTimeframe] = useState("weekly");
   const [salesTimeframe, setSalesTimeframe] = useState("weekly");
   const [categoryTimeframe, setCategoryTimeframe] = useState("weekly");

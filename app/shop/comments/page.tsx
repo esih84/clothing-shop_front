@@ -1,14 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import {  useRouter } from "next/navigation"
 import { ChevronLeft, Search, Filter, Check, X, Star } from "lucide-react"
 import Image from "next/image"
 
 export default function CommentsManagementPage() {
-  const params = useParams()
   const router = useRouter()
-  const shopId = params.shopId as string
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
@@ -91,8 +89,8 @@ export default function CommentsManagementPage() {
     (comment) =>
       (comment.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         comment.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (comment.type === "product" && comment.productName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (comment.type === "blog" && comment.blogTitle.toLowerCase().includes(searchQuery.toLowerCase()))) &&
+        (comment.type === "product" && comment.productName?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (comment.type === "blog" && comment.blogTitle?.toLowerCase().includes(searchQuery.toLowerCase()))) &&
       (statusFilter === "all" || comment.status === statusFilter) &&
       (typeFilter === "all" || comment.type === typeFilter),
   )
@@ -113,7 +111,7 @@ export default function CommentsManagementPage() {
   return (
     <div className="p-4 space-y-6  mx-auto pb-20">
       <div className="flex items-center mb-4">
-        <button onClick={() => router.push(`/shop/${shopId}`)} className="mr-3">
+        <button onClick={() => router.push(`/shop`)} className="mr-3">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <h1 className="text-xl font-bold">Comments Management</h1>
@@ -233,7 +231,7 @@ export default function CommentsManagementPage() {
                     ) : (
                       <div className="flex items-center text-xs text-gray-500">
                         <span>On blog: </span>
-                        <a href={`/shop/${shopId}/blog/${comment.blogId}`} className="ml-1 text-main hover:underline">
+                        <a href={`/shop/blog/${comment.blogId}`} className="ml-1 text-main hover:underline">
                           {comment.blogTitle}
                         </a>
                       </div>
