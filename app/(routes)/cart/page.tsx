@@ -6,7 +6,6 @@ import Image from "next/image";
 import { ArrowLeft, ShoppingBag, Minus, Plus, Trash2 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { removeFromCart, updateQuantity } from "@/lib/store/slices/cartSlice";
-
 // Dummy login check (replace with real auth logic)
 function useIsLoggedIn() {
   // For now, always false. Replace with real logic.
@@ -175,24 +174,10 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
-            <button className="w-full bg-[#670626] text-white py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center">
+            <Link href="/checkout" className="w-full bg-[#670626] text-white py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center">
               پرداخت نهایی
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="ml-2"
-              >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </button>
+
+            </Link>
           </div>
         </div>
       )}
