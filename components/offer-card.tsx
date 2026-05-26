@@ -61,10 +61,7 @@ export function OfferCard({
         <div className="absolute top-0 left-0 bg-[#670626] text-white text-[11px] font-bold px-2 py-1 leading-none">
           -{discount}%
         </div>
-        {/* Save amount strip at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 bg-[#670626]/85 text-white text-[10px] text-center py-1 font-medium">
-          صرفه‌جویی ${(originalPrice - price).toFixed(2)}
-        </div>
+        
         {/* Wishlist */}
         <button
           onClick={handleToggleWishlist}

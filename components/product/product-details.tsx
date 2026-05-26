@@ -330,12 +330,7 @@ export function ProductDetails({
                     <ShoppingBag className="w-4 h-4" />
                     {isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
                   </button>
-                  <a
-                    href={`/product/${product.id}`}
-                    className="flex-1 border border-[#670626] text-[#670626] py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors hover:bg-[#ffbdc5]/10"
-                  >
-                    مشاهده جزئیات محصول
-                  </a>
+
                 </div>
               )}
             </div>
