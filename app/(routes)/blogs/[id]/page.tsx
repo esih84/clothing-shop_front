@@ -1,5 +1,5 @@
-import { Blog, getBlogs } from "@/lib/actions";
-import { BlogDetail } from "@/components/blog/blog-detail";
+import {  getBlogs } from "@/lib/actions";
+import { BlogDetail } from "@/components/blogs/blog-detail";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

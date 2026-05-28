@@ -540,6 +540,25 @@ export interface Blog {
   category: string;
 }
 [];
+export interface BlogComment {
+  id: string;
+  author: string;
+  content: string;
+  date: string;
+}
+
+export interface Blog {
+  id: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  comments: number;
+  imageUrl: string;
+  readTime: string;
+  category: string;
+  commentsList?: BlogComment[];
+}
+
 const blogs: Blog[] = [
   {
     id: "1",
@@ -551,6 +570,20 @@ const blogs: Blog[] = [
     imageUrl: "/placeholder.svg?height=120&width=120",
     readTime: "2",
     category: "پایداری",
+    commentsList: [
+      {
+        id: "c1",
+        author: "سارا",
+        content: "مطلب خیلی مفیدی بود، ممنون!",
+        date: "2025-04-29",
+      },
+      {
+        id: "c2",
+        author: "علی",
+        content: "منتظر ترندهای بیشتری هستیم.",
+        date: "2025-04-30",
+      },
+    ],
   },
   {
     id: "2",
@@ -562,6 +595,14 @@ const blogs: Blog[] = [
     imageUrl: "/placeholder.svg?height=120&width=120",
     readTime: "4",
     category: "ترندهای مد",
+    commentsList: [
+      {
+        id: "c3",
+        author: "مریم",
+        content: "خیلی کاربردی بود!",
+        date: "2025-04-21",
+      },
+    ],
   },
   {
     id: "3",
@@ -573,6 +614,14 @@ const blogs: Blog[] = [
     imageUrl: "/placeholder.svg?height=120&width=120",
     readTime: "10",
     category: "ترندهای مد",
+    commentsList: [
+      {
+        id: "c4",
+        author: "رضا",
+        content: "مد پایدار واقعا مهمه، عالی بود!",
+        date: "2025-04-16",
+      },
+    ],
   },
 ];
 
