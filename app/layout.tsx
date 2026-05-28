@@ -6,6 +6,7 @@ import { Providers } from "./providers"
 import { BottomNavigation } from "@/components/global/bottom-navigation"
 import { ScrollToTop } from "@/components/global/scroll-to-top"
 import { DynamicHeader } from "@/components/global/dynamic-header"
+import { Footer } from "@/components/global/footer"
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
   display: "swap",
@@ -22,13 +23,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
-      <body className="bg-gray-50 min-h-screen md:mx-12">
+      <body className="bg-gray-50 min-h-screen ">
         <Providers>
           <DynamicHeader />
-          <main className="mt-4">{children}</main>
+          <main className="mt-4 md:mx-12">{children}</main>
           <BottomNavigation />
           <ScrollToTop />
         </Providers>
+          <Footer/>
       </body>
     </html>
   )
