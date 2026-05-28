@@ -1,15 +1,18 @@
-import { getProfileData } from '@/lib/profile'
+import { getUserOrders } from '@/lib/order'
 import { Package, ChevronLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function OrdersTab() {
-  const data = await getProfileData()
-  const orders = data.orders || []
+  // In a real app, get userId from session/auth
+  const userId = 'user-1'
+  const orders = await getUserOrders(userId)
   return (
     <div className="space-y-3" style={{ direction: 'rtl' }}>
-      {orders.map((order: any) => (
-        <div
+      {orders.map((order) => (
+        <Link
           key={order.id}
-          className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#E3A7C4]/30 hover:border-[#E3A7C4]/60 transition-colors cursor-pointer"
+          href={`/order/${order.id}`}
+          className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#E3A7C4]/30 hover:border-[#E3A7C4]/60 transition-colors cursor-pointer no-underline"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#ffbdc5]/20 border border-[#E3A7C4]/30 flex items-center justify-center flex-shrink-0">
@@ -26,7 +29,7 @@ export default async function OrdersTab() {
             </span>
             <ChevronLeft className="w-4 h-4 text-gray-300" />
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   )

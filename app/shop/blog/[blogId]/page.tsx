@@ -1,6 +1,4 @@
-"use client"
 
-import { useState, useEffect, use } from "react"
 import Image from "next/image"
 import { Calendar, MessageSquare, User } from "lucide-react"
 import { UpdateBlogModal } from "@/components/modals/update-blog-modal"
@@ -88,37 +86,13 @@ const getBlogPost = (blogId: string) => {
   }
 }
 
-export default function BlogDetailPage({ params }: { params: Promise<{ blogId: string }> }) {
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-const { blogId } = use(params) 
-  const blogPost = getBlogPost(blogId)
+interface BlogDetailPageProps {
+  params: { blogId: string }
+}
 
-  const handleDelete = async () => {
-    setIsDeleting(true)
-    // In a real app, this would call an API to delete the blog post
-    await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
-    setIsDeleting(false)
-    setIsDeleteModalOpen(false)
-    // Redirect to blog list
-    window.location.href = `/shop/blog`
-  }
-
-  // Listen for edit/delete events from the header
-  useEffect(() => {
-    const handleEdit = () => setIsUpdateModalOpen(true)
-    const handleDelete = () => setIsDeleteModalOpen(true)
-
-    document.addEventListener("edit-blog", handleEdit)
-    document.addEventListener("delete-blog", handleDelete)
-
-    return () => {
-      document.removeEventListener("edit-blog", handleEdit)
-      document.removeEventListener("delete-blog", handleDelete)
-    }
-  }, [])
-
+export default function BlogDetailPage({ params }: BlogDetailPageProps) {
+  const blogPost = getBlogPost(params.blogId)
+  // You can move modals to client components if needed
   return (
     <div className="pb-20">
       {/* Blog Content */}
@@ -171,23 +145,6 @@ const { blogId } = use(params)
           />
         </div>
       </div>
-
-      {/* Modals */}
-      <UpdateBlogModal
-        isOpen={isUpdateModalOpen}
-        onClose={() => setIsUpdateModalOpen(false)}
-        blogPost={blogPost}
-      />
-
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-        title="Delete Blog Post"
-        message="Are you sure you want to delete the blog post"
-        itemName={blogPost.title}
-        isDeleting={isDeleting}
-      />
     </div>
   )
 }
