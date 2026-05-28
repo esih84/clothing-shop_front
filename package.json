@@ -41,6 +41,7 @@
     "@tanstack/react-query": "^5.100.14",
     "@tanstack/react-table": "latest",
     "autoprefixer": "^10.4.20",
+    "axios": "^1.16.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
