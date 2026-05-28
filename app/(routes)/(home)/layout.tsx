@@ -6,12 +6,14 @@ export default function HomeLayout({
   categories,
   offers,
   products,
+  blogs,
 }: {
   children: React.ReactNode
   banner: React.ReactNode
   categories: React.ReactNode
   offers: React.ReactNode
   products: React.ReactNode
+  blogs: React.ReactNode
 }) {
   return (
     <>
@@ -19,6 +21,7 @@ export default function HomeLayout({
       {categories}
       {offers}
       {products}
+      {blogs}
       {children}
     </>
   )
