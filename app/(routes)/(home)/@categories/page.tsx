@@ -2,7 +2,7 @@ import { CategorySelector } from "@/components/category/category-selector"
 import { getCategories } from "@/lib/actions"
 
 export default async function CategoriesSection() {
-  const categories =  getCategories()
+  const categories = getCategories()
 
-  return <CategorySelector categoriesData={categories} />
+  return <CategorySelector categoriesData={categories} limit={5} showHeader />
 }
