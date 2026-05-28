@@ -29,8 +29,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="mt-4 md:mx-12">{children}</main>
           <BottomNavigation />
           <ScrollToTop />
+          <Footer />
         </Providers>
-          <Footer/>
       </body>
     </html>
   )
