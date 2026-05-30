@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { SwiperWrapper } from "@/components/swiper-wrapper";
-import { productService } from "@/lib/services/product";
+import { useGetProducts } from "@/lib/services/product/useServerProduct";
 
 export default async function OffersSection() {
-  const { data } = await productService.findAll({
+  const { data: response } = await useGetProducts({
     page: 1,
     limit: 10,
     sortBy: "discount",
     sortOrder: "DESC",
   });
-  if (data.length === 0) return null;
+  const products = response?.data ?? [];
+
+  if (!products.length) return null;
 
   return (
     <div className="mb-6 mx-auto">
@@ -28,7 +30,7 @@ export default async function OffersSection() {
       </div>
 
       <div className="px-4">
-        <SwiperWrapper products={data} />
+        <SwiperWrapper products={products} />
       </div>
     </div>
   );

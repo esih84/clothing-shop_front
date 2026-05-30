@@ -1,11 +1,13 @@
 import { Products } from "@/components/product/products";
-import { productService } from "@/lib/services/product";
+import { useGetProducts } from "@/lib/services/product/useServerProduct";
 
 export default async function ProductsSection() {
-  const { data, total, page, limit } = await productService.findAll({
-    page: 1,
-    limit: 12,
-  });
+  const { data: response } = await useGetProducts({ page: 1, limit: 12 });
+
+  const products = response?.data ?? [];
+  const total = response?.total ?? 0;
+  const page = response?.page ?? 1;
+  const limit = response?.limit ?? 12;
 
   const hasMore = page * limit < total;
 
@@ -18,7 +20,7 @@ export default async function ProductsSection() {
         </h2>
       </div>
 
-      <Products initialProducts={data} initialHasMore={hasMore} />
+      <Products initialProducts={products} initialHasMore={hasMore} />
     </div>
   );
 }

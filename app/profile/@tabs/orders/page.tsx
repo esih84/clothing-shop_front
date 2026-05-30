@@ -1,13 +1,21 @@
-import { getUserOrders } from '@/lib/order'
-import { Package, ChevronLeft } from 'lucide-react'
-import Link from 'next/link'
+import { Package, ChevronLeft } from "lucide-react";
+import Link from "next/link";
+import { useMyOrders } from "@/lib/services/order/useServerOrder";
 
 export default async function OrdersTab() {
-  // In a real app, get userId from session/auth
-  const userId = 'user-1'
-  const orders = await getUserOrders(userId)
+  const { data } = await useMyOrders(1);
+  const orders = data ?? [];
+
+  if (!orders.length) {
+    return (
+      <p className="text-center text-sm text-gray-500 py-8" style={{ direction: "rtl" }}>
+        هنوز سفارشی ثبت نکرده‌اید
+      </p>
+    );
+  }
+
   return (
-    <div className="space-y-3" style={{ direction: 'rtl' }}>
+    <div className="space-y-3" style={{ direction: "rtl" }}>
       {orders.map((order) => (
         <Link
           key={order.id}
@@ -20,11 +28,11 @@ export default async function OrdersTab() {
             </div>
             <div className="text-right">
               <p className="font-medium text-gray-800 text-sm">سفارش #{order.id}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{order.date}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{order.createdAt}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-medium px-2 py-0.5 ${order.statusColor}`}>
+            <span className={`text-xs font-medium px-2 py-0.5 `}>
               {order.status}
             </span>
             <ChevronLeft className="w-4 h-4 text-gray-300" />
@@ -32,5 +40,5 @@ export default async function OrdersTab() {
         </Link>
       ))}
     </div>
-  )
+  );
 }

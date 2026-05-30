@@ -1,12 +1,11 @@
-import { getProfileData } from '@/lib/profile'
 import { MapPin, ChevronLeft, Plus } from 'lucide-react'
 
 export default async function AddressesTab() {
-  const data = await getProfileData()
-  const addresses = data.addresses || []
+  // const data = await getProfileData()
+  // const addresses = data.addresses || []
   return (
     <div className="space-y-3" style={{ direction: 'rtl' }}>
-      {addresses.map((addr: any) => (
+      {/* {addresses.map((addr: any) => (
         <div
           key={addr.label}
           className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#E3A7C4]/30 hover:border-[#E3A7C4]/60 transition-colors cursor-pointer"
@@ -29,7 +28,7 @@ export default async function AddressesTab() {
           </div>
           <ChevronLeft className="w-4 h-4 text-gray-300" />
         </div>
-      ))}
+      ))} */}
       <button className="w-full flex items-center justify-center gap-2 p-4 border border-dashed border-[#E3A7C4]/60 text-[#670626] text-sm font-medium hover:bg-[#ffbdc5]/10 transition-colors">
         <Plus className="w-4 h-4" />
         افزودن آدرس جدید

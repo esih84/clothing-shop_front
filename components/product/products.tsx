@@ -4,7 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import type { Product } from "@/types/product";
-import { productService } from "@/lib/services/product";
+import { productService } from "@/lib/services/product/api";
 
 const ProductCard = dynamic(
   () => import("./product-card").then((m) => ({ default: m.ProductCard })),

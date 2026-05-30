@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Category } from "@/types/category";
 
 interface CategorySelectorProps {
-  categoriesData: Promise<Category[]>;
+  categories: Category[] ;
   limit?: number;
   showHeader?: boolean;
 }
@@ -32,12 +32,11 @@ const colsClass: Record<number, string> = {
 const DEFAULT_COLS = 4;
 
 export function CategorySelector({
-  categoriesData,
+  categories  ,
   limit,
   showHeader = false,
 }: CategorySelectorProps) {
   const [mounted, setMounted] = useState(false);
-  const categories = use(categoriesData);
 
   useEffect(() => {
     setMounted(true);
