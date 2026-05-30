@@ -1,32 +1,26 @@
-export type UUID = string;
-export type ISODateString = string; // e.g. "2026-01-01T10:00:00.000Z"
+// types/api.ts
 
-export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: JsonValue }
-  | JsonValue[];
+/** ساختار کلی پاسخ‌های موفق بک‌انـد */
+export type ApiResponse<T> = {
+  success: boolean;
+  data: T;
+  timestamp: string;
+};
 
-export type ApiListMeta = {
+/** ساختار لیست‌ها با کلید داینامیک */
+export type ApiListResponse<T, K extends string> = {
+  [P in K]: T[];
+} & {
+  total: number;
   page: number;
   limit: number;
-  total: number;
-  hasNextPage: boolean;
 };
 
-export type ApiListResponse<T> = {
-  items: T[];
-  meta: ApiListMeta;
+/** ساختار خطا مطابق HttpExceptionFilter */
+export type ApiErrorResponse = {
+  statusCode: number;
+  timestamp: string;
+  path: string;
+  method: string;
+  message: string | string[];
 };
-
-// اگر بک‌اند شما wrapper دارد (مثلا {data, success}) از این استفاده کن:
-export type ApiResponse<T> = {
-  data: T;
-  success: boolean;
-  message?: string;
-};
-
-// برای payloadهای jsonb مثل shipping_address / variant_details
-export type JsonRecord = Record<string, JsonValue>;

@@ -1,8 +1,17 @@
-import { BannerSlider } from "@/components/banner-slider"
-import { getBanners } from "@/lib/actions"
+// components/sections/banner-section.tsx
+import { BannerSlider } from "@/components/banner-slider";
+import { bannerService } from "@/lib/services/banner";
 
-export default  function BannerSection() {
-  const banners = getBanners()
+export default async function BannerSection() {
+  const banners = await bannerService.findAll(["home", "home_side"]);
 
-  return <BannerSlider bannersData={banners} />
+  if (!banners?.length) return null;
+
+  return (
+    <BannerSlider
+      banners={banners}
+      mainPositions={["home"]}
+      sidePositions={["home_side"]}
+    />
+  );
 }

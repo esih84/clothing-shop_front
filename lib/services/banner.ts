@@ -1,8 +1,10 @@
-import { api } from "@/lib/api/api";
-import { Banner } from "@/types/banner";
+// lib/services/banner.ts
+import type { Banner } from "@/types/banner";
+import api from "@/lib/api/api";
 
 export type CreateBannerInput = {
   title: string;
+  description?: string; // اگر اضافه کردی
   imageUrl: string;
   mobileImageUrl?: string;
   link?: string;
@@ -14,25 +16,31 @@ export type CreateBannerInput = {
 };
 
 export const bannerService = {
-  findAll: () =>
-    api<Banner[]>("/banners", {
-      next: { revalidate: 60 },
-    }),
+  findAll: async (positions?: string | string[]) => {
+    const params: Record<string, string> = {};
 
-  create: (data: CreateBannerInput) =>
-    api<Banner>("/banners", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    if (positions) {
+      params.positions = Array.isArray(positions)
+        ? positions.join(",")
+        : positions;
+    }
 
-  update: (id: string, data: Partial<CreateBannerInput>) =>
-    api<Banner>(`/banners/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
+    const res = await api.get<Banner[]>("/banners", { params });
+    return res.data;
+  },
 
-  remove: (id: string) =>
-    api<{ success: boolean }>(`/banners/${id}`, {
-      method: "DELETE",
-    }),
+  create: async (data: CreateBannerInput) => {
+    const res = await api.post<Banner>("/banners", data);
+    return res.data;
+  },
+
+  update: async (id: string, data: Partial<CreateBannerInput>) => {
+    const res = await api.put<Banner>(`/banners/${id}`, data);
+    return res.data;
+  },
+
+  remove: async (id: string) => {
+    const res = await api.delete<{ success: boolean }>(`/banners/${id}`);
+    return res.data;
+  },
 };

@@ -1,17 +1,13 @@
-"use client"
+"use client";
 
-import { useState, useEffect, use } from "react"
-import Link from "next/link"
-
-interface Category {
-  id: string
-  name: string
-}
+import { useState, useEffect, use } from "react";
+import Link from "next/link";
+import type { Category } from "@/types/category";
 
 interface CategorySelectorProps {
-  categoriesData: Promise<Category[]>
-  limit?: number
-  showHeader?: boolean
+  categoriesData: Promise<Category[]>;
+  limit?: number;
+  showHeader?: boolean;
 }
 
 const cardGradients = [
@@ -22,7 +18,7 @@ const cardGradients = [
   "from-[#670626] to-[#8B1A3C]",
   "from-[#C4527A] to-[#E3A7C4]",
   "from-[#670626] to-[#A52A5E]",
-]
+];
 
 const colsClass: Record<number, string> = {
   1: "sm:grid-cols-1",
@@ -35,24 +31,24 @@ const colsClass: Record<number, string> = {
 
 const DEFAULT_COLS = 4;
 
-
 export function CategorySelector({
   categoriesData,
   limit,
   showHeader = false,
 }: CategorySelectorProps) {
-  const [mounted, setMounted] = useState(false)
-  const categories = use(categoriesData)
+  const [mounted, setMounted] = useState(false);
+  const categories = use(categoriesData);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   const smCols = colsClass[limit ?? DEFAULT_COLS] ?? "sm:grid-cols-4";
+  const display = limit ? categories.slice(0, limit) : categories;
 
-  const display = limit ? categories.slice(0, limit) : categories
+  if (!display.length) return null;
 
   return (
     <div className="py-6">
@@ -60,8 +56,11 @@ export function CategorySelector({
         <div className="flex items-center justify-between mb-4 px-3 sm:px-4">
           <div className="flex items-center gap-2">
             <div className="w-1 h-5 bg-[#670626]" />
-            <h2 className="text-base font-bold tracking-wide">دسته‌بندی محصولات</h2>
+            <h2 className="text-base font-bold tracking-wide">
+              دسته‌بندی محصولات
+            </h2>
           </div>
+
           <Link
             href="/categories"
             className="text-xs text-[#670626] border-b border-[#670626]/40 pb-0.5 hover:border-[#670626] transition-colors"
@@ -72,17 +71,18 @@ export function CategorySelector({
       )}
 
       <div className="mx-3 sm:mx-4 border">
-          <div className={`grid grid-cols-2 ${smCols} h-auto`}>
-            {display.map((category, index) => {
+        <div className={`grid grid-cols-2 ${smCols} h-auto`}>
+          {display.map((category, index) => {
             const nameOnTop = index % 2 === 1;
+
             return (
               <Link
                 key={category.id}
-                href={`/categories/${category.id}`}
+                href={`/categories/${category.slug}`}
                 className={[
                   "flex flex-col group border sm:flex-1",
                   index === 4 ? "hidden sm:flex" : "",
-                  "min-w-0"
+                  "min-w-0",
                 ].join(" ")}
               >
                 {nameOnTop && (
@@ -119,5 +119,5 @@ export function CategorySelector({
         </div>
       </div>
     </div>
-  )
+  );
 }

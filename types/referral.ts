@@ -1,15 +1,14 @@
-import type { UUID, ISODateString } from "./api";
 import type { User } from "./user";
 
 export type ReferralStatus = "pending" | "completed";
 
 export type Referral = {
-  id: UUID;
+  id: string;
 
-  referrerId: UUID;
+  referrerId: string;
   referrer?: User;
 
-  referredId?: UUID;
+  referredId?: string;
   referred?: User | null;
 
   code: string;
@@ -18,6 +17,6 @@ export type Referral = {
   referrerReward: number;
   referredReward: number;
 
-  completedAt?: ISODateString;
-  createdAt: ISODateString;
+  completedAt?: string;
+  createdAt: string;
 };

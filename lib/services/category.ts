@@ -1,12 +1,16 @@
-import { api } from "@/lib/api/api";
-import { Category } from "@/types/category";
+// lib/services/category.ts
+import api from "@/lib/api/api";
+import type { Category } from "@/types/category";
+import type { ApiResponse } from "@/types/api";
 
 export const categoryService = {
-  // دریافت ساختار درختی دسته‌بندی‌ها
-  findAll: () =>
-    api<Category[]>("/categories", {
-      next: { revalidate: 86400 }, // دسته‌بندی‌ها روزی یکبار آپدیت شوند
-    }),
+  findAll: async (): Promise<Category[]> => {
+    const res = await api.get<ApiResponse<Category[]>>("/categories");
+    return res.data.data;
+  },
 
-  findBySlug: (slug: string) => api<Category>(`/categories/${slug}`),
+  findBySlug: async (slug: string): Promise<Category> => {
+    const res = await api.get<ApiResponse<Category>>(`/categories/${slug}`);
+    return res.data.data;
+  },
 };

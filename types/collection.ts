@@ -1,8 +1,7 @@
-import type { UUID, ISODateString } from "./api";
 import type { Product } from "./product";
 
 export type Collection = {
-  id: UUID;
+  id: string;
   name: string;
   slug: string;
   description?: string;
@@ -11,6 +10,6 @@ export type Collection = {
 
   products?: Product[];
 
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };

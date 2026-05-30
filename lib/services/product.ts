@@ -1,6 +1,6 @@
-import { api } from "@/lib/api/api";
-import { Product, ProductVariant } from "@/types/product";
-import { ApiListResponse } from "@/types/api";
+import api from "@/lib/api/api";
+import type { Product, ProductVariant } from "@/types/product";
+import type { ApiResponse, ApiListResponse } from "@/types/api";
 
 export type ProductFilters = {
   categoryId?: string;
@@ -14,17 +14,40 @@ export type ProductFilters = {
 };
 
 export const productService = {
-  // این تابع برای صفحه لیست محصولات عالی است (با قابلیت Revalidate)
-  findAll: (filters: ProductFilters) => {
-    const query = new URLSearchParams(filters as any).toString();
-    return api<ApiListResponse<Product>>(`/products?${query}`, {
-      next: { revalidate: 60 }, // داده‌ها هر ۶۰ ثانیه آپدیت شوند
-    });
+  // لیست محصولات
+  findAll: async (
+    filters: ProductFilters,
+  ): Promise<ApiListResponse<Product, "data">> => {
+    const query = new URLSearchParams(
+      Object.entries(filters).reduce(
+        (acc, [key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            acc[key] = String(value);
+          }
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
+    ).toString();
+
+    const res = await api.get<ApiResponse<ApiListResponse<Product, "data">>>(
+      `/products?${query}`,
+    );
+
+    return res.data.data;
   },
 
-  findBySlug: (slug: string) =>
-    api<Product>(`/products/${slug}`, { cache: "no-store" }), // SSR کامل
+  // دریافت محصول با slug
+  findBySlug: async (slug: string): Promise<Product> => {
+    const res = await api.get<ApiResponse<Product>>(`/products/${slug}`);
+    return res.data.data;
+  },
 
-  getVariants: (id: string) =>
-    api<ProductVariant[]>(`/products/${id}/variants`),
+  // دریافت variants
+  getVariants: async (id: string): Promise<ProductVariant[]> => {
+    const res = await api.get<ApiResponse<ProductVariant[]>>(
+      `/products/${id}/variants`,
+    );
+    return res.data.data;
+  },
 };

@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { SwiperWrapper } from "@/components/swiper-wrapper";
-import { getDiscountedProducts } from "@/lib/actions";
+import { productService } from "@/lib/services/product";
 
 export default async function OffersSection() {
-  const discountedProducts = await getDiscountedProducts();
-
-  if (discountedProducts.length === 0) return null;
+  const { data } = await productService.findAll({
+    page: 1,
+    limit: 10,
+    sortBy: "discount",
+    sortOrder: "DESC",
+  });
+  if (data.length === 0) return null;
 
   return (
     <div className="mb-6 mx-auto">
@@ -14,7 +18,6 @@ export default async function OffersSection() {
         <div className="flex items-center gap-2">
           <div className="w-1 h-5 bg-[#670626]" />
           <h3 className="text-base font-bold tracking-wide">پیشنهادات ویژه</h3>
-
         </div>
         <Link
           href="/offers"
@@ -25,7 +28,7 @@ export default async function OffersSection() {
       </div>
 
       <div className="px-4">
-        <SwiperWrapper products={discountedProducts} />
+        <SwiperWrapper products={data} />
       </div>
     </div>
   );

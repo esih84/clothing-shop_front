@@ -1,17 +1,16 @@
-import type { UUID, ISODateString } from "./api";
 import type { User } from "./user";
 
 export type Review = {
-  id: UUID;
-  productId: UUID;
+  id: string;
+  productId: string;
 
-  userId: UUID;
+  userId: string;
   user?: User;
 
   rating: number;
   comment?: string;
   isApproved: boolean;
 
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };

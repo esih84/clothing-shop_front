@@ -1,30 +1,29 @@
-import type { UUID, ISODateString } from "./api";
 import type { User } from "./user";
 import type { ProductVariant } from "./product";
 
 export type CartItem = {
-  id: UUID;
+  id: string;
 
-  cartId: UUID;
-  variantId: UUID;
+  cartId: string;
+  variantId: string;
 
   // در entity eager: true هست، پس معمولاً API variant را برمی‌گرداند
   variant?: ProductVariant;
 
   quantity: number;
-  addedAt: ISODateString;
+  addedAt: string;
 };
 
 export type Cart = {
-  id: UUID;
+  id: string;
 
-  userId: UUID;
+  userId: string;
   user?: User;
 
   items: CartItem[];
 
-  expiresAt?: ISODateString;
+  expiresAt?: string;
 
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };

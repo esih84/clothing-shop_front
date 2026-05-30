@@ -1,18 +1,17 @@
-import type { UUID, ISODateString } from "./api";
 import type { User } from "./user";
 import type { Product, ProductVariant } from "./product";
 
 export type Wishlist = {
-  id: UUID;
+  id: string;
 
-  userId: UUID;
+  userId: string;
   user?: User;
 
-  productId: UUID;
+  productId: string;
   product?: Product;
 
-  variantId?: UUID;
+  variantId?: string;
   variant?: ProductVariant | null;
 
-  addedAt: ISODateString;
+  addedAt: string;
 };

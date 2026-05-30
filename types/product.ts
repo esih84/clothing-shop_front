@@ -1,32 +1,31 @@
-import type { UUID, ISODateString } from "./api";
 import type { Category } from "./category";
 import type { Review } from "./review";
 
 export type DiscountType = "percentage" | "fixed";
 
 export type Discount = {
-  id: UUID;
-  productId: UUID;
+  id: string;
+  productId: string;
   type: DiscountType;
   value: number;
-  startDate: ISODateString;
-  endDate: ISODateString;
+  startDate: string;
+  endDate: string;
   isActive: boolean;
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type ProductAttribute = {
-  id: UUID;
-  productId: UUID;
+  id: string;
+  productId: string;
   key: string;
   value: string;
 };
 
 export type ProductImage = {
-  id: UUID;
-  productId: UUID;
-  variantId?: UUID;
+  id: string;
+  productId: string;
+  variantId?: string;
   url: string;
   thumbnailUrl?: string;
   mediumUrl?: string;
@@ -36,27 +35,27 @@ export type ProductImage = {
 };
 
 export type ProductVariant = {
-  id: UUID;
-  productId: UUID;
+  id: string;
+  productId: string;
   color?: string;
   size?: string;
   price: number;
   stock: number;
   sku: string;
   isActive: boolean;
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Product = {
-  id: UUID;
+  id: string;
   name: string;
   slug: string;
   description?: string;
   basePrice: number;
   isActive: boolean;
 
-  categoryId?: UUID;
+  categoryId?: string;
   category?: Category | null;
 
   variants?: ProductVariant[];
@@ -65,6 +64,6 @@ export type Product = {
   discounts?: Discount[];
   reviews?: Review[];
 
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };

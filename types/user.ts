@@ -1,9 +1,7 @@
-import type { UUID, ISODateString } from "./api";
-
 export type Role = "USER" | "ADMIN" | string; // چون Role از بک‌اند کاملش را نداریم
 
 export type User = {
-  id: UUID;
+  id: string;
   phone: string;
   email?: string;
   firstName?: string;
@@ -13,6 +11,6 @@ export type User = {
   isActive: boolean;
   referralCode?: string;
   referredBy?: string;
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };

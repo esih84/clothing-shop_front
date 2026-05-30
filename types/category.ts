@@ -1,7 +1,5 @@
-import type { UUID, ISODateString } from "./api";
-
 export type Category = {
-  id: UUID;
+  id: string;
   name: string;
   slug: string;
   imageUrl?: string;
@@ -9,10 +7,10 @@ export type Category = {
   order: number;
   isActive: boolean;
 
-  parentId?: UUID;
+  parentId?: string;
   parent?: Category | null;
   children?: Category[];
 
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };

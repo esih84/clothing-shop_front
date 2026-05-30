@@ -1,4 +1,4 @@
-import type { UUID, ISODateString, JsonRecord } from "./api";
+import type { string, string, JsonRecord } from "./api";
 import type { User } from "./user";
 
 export type OrderStatus =
@@ -11,10 +11,10 @@ export type OrderStatus =
   | "refunded";
 
 export type OrderItem = {
-  id: UUID;
-  orderId: UUID;
+  id: string;
+  orderId: string;
 
-  variantId?: UUID;
+  variantId?: string;
   productName: string;
   variantDetails?: JsonRecord;
 
@@ -24,9 +24,9 @@ export type OrderItem = {
 };
 
 export type Order = {
-  id: UUID;
+  id: string;
 
-  userId: UUID;
+  userId: string;
   user?: User;
 
   items: OrderItem[];
@@ -41,6 +41,6 @@ export type Order = {
   status: OrderStatus;
   shippingAddress?: JsonRecord;
 
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };

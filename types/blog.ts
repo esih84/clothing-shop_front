@@ -1,20 +1,19 @@
-import type { UUID, ISODateString } from "./api";
 import type { User } from "./user";
 
 export type Blog = {
-  id: UUID;
+  id: string;
   title: string;
   slug: string;
   content: string;
   excerpt?: string;
 
-  authorId?: UUID;
+  authorId?: string;
   author?: User;
 
   featuredImage?: string;
-  publishedAt?: ISODateString;
+  publishedAt?: string;
   isPublished: boolean;
 
-  createdAt: ISODateString;
-  updatedAt: ISODateString;
+  createdAt: string;
+  updatedAt: string;
 };
