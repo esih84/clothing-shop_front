@@ -1,8 +1,8 @@
 import { Products } from "@/components/product/products";
-import { useGetProducts } from "@/lib/services/product/useServerProduct";
+import { getProducts } from "@/lib/services/product/useServerProduct";
 
 export default async function ProductsSection() {
-  const { data: response } = await useGetProducts({ page: 1, limit: 12 });
+  const { data: response } = await getProducts({ page: 1, limit: 12 });
 
   const products = response?.data ?? [];
   const total = response?.total ?? 0;
@@ -10,6 +10,7 @@ export default async function ProductsSection() {
   const limit = response?.limit ?? 12;
 
   const hasMore = page * limit < total;
+  if (!products.length) return null;
 
   return (
     <div className="px-4 py-6 mx-auto">

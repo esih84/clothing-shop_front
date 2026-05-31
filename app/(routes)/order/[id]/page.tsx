@@ -1,10 +1,9 @@
-import { getOrderDetail } from '@/lib/order'
 import OrderDetail from '@/components/order/order-detail'
-
+import { getOrderDetails } from '@/lib/services/order/useServerOrder'
 export default async function OrderDetailPage({ params}: { params: Promise<{ id: string }> }) {
     const { id } = await params;
   console.log('Fetching order detail for id:', id)
-  const order = await getOrderDetail(id)
+  const { data: order, error } = await getOrderDetails(id)
   if (!order) {
     return <div className="p-6 text-center text-gray-500">سفارش مورد نظر یافت نشد.</div>
   }

@@ -1,6 +1,6 @@
 import { bannerService } from "./api";
 
-export async function useGetBanners(positions?: string | string[]) {
+export async function getBanners(positions?: string | string[]) {
   try {
     const banners = await bannerService.findAll(positions);
     return { data: banners, error: null };

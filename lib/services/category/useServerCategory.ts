@@ -1,6 +1,6 @@
 import { categoryService } from "./api";
 
-export async function useGetCategories() {
+export async function getCategories() {
   try {
     const categories = await categoryService.findAll();
     return { data: categories, error: null };
@@ -9,7 +9,7 @@ export async function useGetCategories() {
   }
 }
 
-export async function useServerCategoryBySlug(slug: string) {
+export async function getCategoryBySlug(slug: string) {
   try {
     const category = await categoryService.findBySlug(slug);
     return { data: category, error: null };

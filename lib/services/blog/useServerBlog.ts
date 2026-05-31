@@ -1,6 +1,6 @@
 import { blogService } from "./api";
 
-export async function useGetBlogs(page = 1, limit = 20) {
+export async function getBlogs(page = 1, limit = 20) {
   try {
     const blogs = await blogService.findAll(page, limit);
     return { data: blogs, error: null };
@@ -9,7 +9,7 @@ export async function useGetBlogs(page = 1, limit = 20) {
   }
 }
 
-export async function useGetBlogBySlug(slug: string) {
+export async function getBlogBySlug(slug: string) {
   try {
     const blog = await blogService.findBySlug(slug);
     return { data: blog, error: null };

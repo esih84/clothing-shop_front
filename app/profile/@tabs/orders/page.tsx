@@ -1,9 +1,9 @@
 import { Package, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { useMyOrders } from "@/lib/services/order/useServerOrder";
+import { getMyOrders} from "@/lib/services/order/useServerOrder";
 
 export default async function OrdersTab() {
-  const { data } = await useMyOrders(1);
+  const { data } = await getMyOrders(1);
   const orders = data ?? [];
 
   if (!orders.length) {

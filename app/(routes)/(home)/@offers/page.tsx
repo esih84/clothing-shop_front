@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { SwiperWrapper } from "@/components/swiper-wrapper";
-import { useGetProducts } from "@/lib/services/product/useServerProduct";
+import { getProducts } from "@/lib/services/product/useServerProduct";
 
 export default async function OffersSection() {
-  const { data: response } = await useGetProducts({
+  const { data: response } = await getProducts({
     page: 1,
     limit: 10,
     sortBy: "discount",

@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-gray-50 min-h-screen ">
         <Providers>
           <DynamicHeader />
-          <main className="mt-4 md:mx-12">{children}</main>
+          <main className="mt-4 md:mx-12 h-screen">{children}</main>
           <BottomNavigation />
           <ScrollToTop />
           <Footer />

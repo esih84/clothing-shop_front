@@ -1,6 +1,6 @@
 import { authService } from "./api";
 
-export async function useServerSendOtp(phone: string) {
+export async function sendOtp(phone: string) {
   try {
     const result = await authService.sendOtp(phone);
     return { data: result, error: null };
@@ -9,7 +9,7 @@ export async function useServerSendOtp(phone: string) {
   }
 }
 
-export async function useServerVerifyOtp(phone: string, code: string) {
+export async function verifyOtp(phone: string, code: string) {
   try {
     const result = await authService.verifyOtp(phone, code);
     return { data: result, error: null };
@@ -18,7 +18,7 @@ export async function useServerVerifyOtp(phone: string, code: string) {
   }
 }
 
-export async function useServerRefresh(refreshToken: string) {
+export async function refreshToken(refreshToken: string) {
   try {
     const result = await authService.refresh(refreshToken);
     return { data: result, error: null };

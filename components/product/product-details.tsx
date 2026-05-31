@@ -3,8 +3,6 @@
 import { useState } from "react";
 import {
   Star,
-  Heart,
-  Store,
   Shield,
   Truck,
   Trash2,
@@ -21,10 +19,9 @@ import {
 } from "@/lib/store/slices/cartSlice";
 import { toggleWishlist } from "@/lib/store/slices/wishlistSlice";
 import { useTransition } from "react";
-import type { Product } from "@/lib/actions";
 import Image from "next/image";
-import Link from "next/link";
 import { ProductCard } from "@/components/product/product-card";
+import type { Product, ProductVariant } from "@/types/product";
 
 interface ProductDetailsProps {
   product: Product;
@@ -35,15 +32,18 @@ export function ProductDetails({
   product,
   relatedProducts = [],
 }: ProductDetailsProps) {
-  const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState<string>(
-    product.colors?.[0] ?? ""
-  );
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || "M");
+  const variants = product.variants ?? [];
+  const images = product.images ?? [];
+
+  // Derive unique colors and sizes from variants
+  const colors = [...new Set(variants.map((v) => v.color).filter(Boolean))] as string[];
+  const sizes = [...new Set(variants.map((v) => v.size).filter(Boolean))] as string[];
+
+  const [selectedColor, setSelectedColor] = useState<string>(colors[0] ?? "");
+  const [selectedSize, setSelectedSize] = useState<string>(sizes[0] ?? "");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<"details" | "care" | "specs">(
-    "details"
-  );
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState<"details" | "care" | "specs">("details");
 
   const dispatch = useAppDispatch();
   const [isPending, startTransition] = useTransition();
@@ -51,6 +51,27 @@ export function ProductDetails({
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
   const cartItems = useAppSelector((state) => state.cart.items);
   const isInWishlist = wishlistItems.some((item) => item.id === product.id);
+
+  // Find the matching variant for selected color+size
+  const selectedVariant: ProductVariant | undefined = variants.find(
+    (v) =>
+      (colors.length === 0 || v.color === selectedColor) &&
+      (sizes.length === 0 || v.size === selectedSize)
+  );
+
+  // Price: prefer variant price, fall back to basePrice
+  const activePrice = selectedVariant?.price ?? product.basePrice;
+
+  // Active discount (first active one)
+  const activeDiscount = product.discounts?.find((d) => d.isActive);
+  const discountedPrice = activeDiscount
+    ? activeDiscount.type === "percentage"
+      ? activePrice * (1 - activeDiscount.value / 100)
+      : activePrice - activeDiscount.value
+    : null;
+  const displayPrice = discountedPrice ?? activePrice;
+
+  const inStock = selectedVariant ? selectedVariant.stock > 0 : true;
 
   const cartItem = cartItems.find(
     (item) =>
@@ -60,15 +81,23 @@ export function ProductDetails({
   );
   const isInCart = !!cartItem;
 
+  // Primary image first, then sorted by order
+  const sortedImages = [...images].sort((a, b) => {
+    if (a.isPrimary) return -1;
+    if (b.isPrimary) return 1;
+    return a.order - b.order;
+  });
+  const currentImage = sortedImages[selectedImageIndex];
+
   const handleToggleWishlist = () => {
     dispatch(
       toggleWishlist({
         id: product.id,
-        name: product.title,
-        price: product.price,
-        imageUrl: product.images[0],
-        brand: product.brand.name,
-        location: product.store.name,
+        name: product.name,
+        price: displayPrice,
+        imageUrl: sortedImages[0]?.url ?? "",
+        brand: "",
+        location: "",
       })
     );
   };
@@ -78,12 +107,12 @@ export function ProductDetails({
       dispatch(
         addToCart({
           id: product.id,
-          name: product.title,
+          name: product.name,
           size: selectedSize,
-          price: product.price,
+          price: displayPrice,
           color: selectedColor,
-          quantity: quantity,
-          imageUrl: product.images[0],
+          quantity,
+          imageUrl: sortedImages[0]?.url ?? "",
         })
       );
     });
@@ -91,9 +120,7 @@ export function ProductDetails({
 
   const incrementQuantity = () => {
     if (isInCart && cartItem) {
-      dispatch(
-        updateQuantity({ id: cartItem.id, quantity: cartItem.quantity + 1 })
-      );
+      dispatch(updateQuantity({ id: cartItem.id, quantity: cartItem.quantity + 1 }));
     } else {
       setQuantity((prev) => prev + 1);
     }
@@ -104,9 +131,7 @@ export function ProductDetails({
       if (cartItem.quantity === 1) {
         dispatch(removeFromCart({ id: cartItem.id }));
       } else {
-        dispatch(
-          updateQuantity({ id: cartItem.id, quantity: cartItem.quantity - 1 })
-        );
+        dispatch(updateQuantity({ id: cartItem.id, quantity: cartItem.quantity - 1 }));
       }
     } else if (quantity > 1) {
       setQuantity((prev) => prev - 1);
@@ -130,8 +155,12 @@ export function ProductDetails({
     return colorMap[color.toLowerCase()] || "bg-[#E3A7C4]";
   };
 
-  const colors = product.colors || ["black", "blue", "brown", "gray"];
-  const currentImage = product.images[selectedImageIndex] || product.images[0];
+  // Derive average rating from reviews if available
+  const reviewList = product.reviews ?? [];
+  const avgRating =
+    reviewList.length > 0
+      ? reviewList.reduce((sum, r) => sum + r.rating, 0) / reviewList.length
+      : null;
 
   return (
     <div className="min-h-screen bg-white">
@@ -142,28 +171,34 @@ export function ProductDetails({
 
           {/* LEFT: Image gallery */}
           <div>
-            {/* Main image */}
             <div className="relative aspect-square overflow-hidden bg-[#ffbdc5]/20 border border-[#E3A7C4]/30 mb-3">
-              <Image
-                src={currentImage}
-                alt={product.title}
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
-              {product.discount && (
+              {currentImage ? (
+                <Image
+                  src={currentImage.url}
+                  alt={currentImage.altText ?? product.name}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                  بدون تصویر
+                </div>
+              )}
+              {activeDiscount && (
                 <div className="absolute top-0 left-0 z-10 bg-[#670626] text-white text-xs font-bold px-2 py-1.5 leading-none">
-                  {product.discount}٪ تخفیف
+                  {activeDiscount.type === "percentage"
+                    ? `${activeDiscount.value}٪ تخفیف`
+                    : `${activeDiscount.value}$ تخفیف`}
                 </div>
               )}
             </div>
 
-            {/* Thumbnail strip */}
-            {product.images.length > 1 && (
+            {sortedImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
-                {product.images.map((img, idx) => (
+                {sortedImages.map((img, idx) => (
                   <button
-                    key={idx}
+                    key={img.id}
                     onClick={() => setSelectedImageIndex(idx)}
                     className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 overflow-hidden border-2 transition-colors ${
                       selectedImageIndex === idx
@@ -172,8 +207,8 @@ export function ProductDetails({
                     }`}
                   >
                     <Image
-                      src={img}
-                      alt={`${product.title} ${idx + 1}`}
+                      src={img.thumbnailUrl ?? img.url}
+                      alt={img.altText ?? `${product.name} ${idx + 1}`}
                       fill
                       sizes="80px"
                       className="object-cover"
@@ -187,91 +222,87 @@ export function ProductDetails({
           {/* RIGHT: Product info */}
           <div className="space-y-5">
 
-            {/* Brand */}
-            <div className="flex items-center gap-2">
-              <span className="border border-[#E3A7C4]/60 px-2 py-0.5 text-xs text-[#670626] font-medium">
-                {product.brand.name}
-              </span>
-              <span className="text-sm text-gray-400">{product.brand.handle}</span>
-            </div>
+            {/* Category badge */}
+            {product.category && (
+              <div className="flex items-center gap-2">
+                <span className="border border-[#E3A7C4]/60 px-2 py-0.5 text-xs text-[#670626] font-medium">
+                  {product.category.name}
+                </span>
+              </div>
+            )}
 
             {/* Title */}
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug">
-              {product.title}
+              {product.name}
             </h1>
 
-            {/* Rating row */}
-            <div className="flex items-center flex-wrap gap-2">
-              <div className="flex items-center gap-0.5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${
-                      i <= Math.round(product.rating)
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "fill-gray-200 text-gray-200"
-                    }`}
-                  />
-                ))}
+            {/* Rating row — only shown if reviews exist */}
+            {avgRating !== null && (
+              <div className="flex items-center flex-wrap gap-2">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i <= Math.round(avgRating)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "fill-gray-200 text-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  {avgRating.toFixed(1)}
+                </span>
+                <span className="text-gray-300">|</span>
+                <span className="text-sm text-gray-500">
+                  {reviewList.length.toLocaleString()} نظر
+                </span>
               </div>
-              <span className="text-sm font-medium text-gray-700">
-                {product.rating}
-              </span>
-              <span className="text-gray-300">|</span>
-              <span className="text-sm text-gray-500">
-                {product.reviews.toLocaleString()} نظر
-              </span>
-              <span className="text-gray-300">|</span>
-              <span className="text-sm text-gray-500">
-                {product.sales.toLocaleString()} فروش
-              </span>
-            </div>
+            )}
 
             {/* Price */}
             <div className="flex items-center gap-3 pb-4 border-b border-[#E3A7C4]/30">
               <span className="text-3xl font-bold text-[#670626]">
-                ${product.price.toFixed(2)}
+                ${displayPrice.toFixed(2)}
               </span>
-              {product.originalPrice && (
-                <>
-                  <span className="text-lg text-gray-400 line-through">
-                    ${product.originalPrice.toFixed(2)}
-                  </span>
-
-                </>
+              {discountedPrice !== null && (
+                <span className="text-lg text-gray-400 line-through">
+                  ${activePrice.toFixed(2)}
+                </span>
               )}
             </div>
 
             {/* Color selector */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                رنگ:{" "}
-                <span className="text-[#670626] font-semibold">
-                  {selectedColor}
-                </span>
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {colors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    aria-label={color}
-                    className={`w-8 h-8 rounded-full transition-all ${getColorClass(color)} ${
-                      selectedColor === color
-                        ? "ring-2 ring-offset-2 ring-[#670626] scale-110"
-                        : "hover:scale-105"
-                    }`}
-                  />
-                ))}
+            {colors.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  رنگ:{" "}
+                  <span className="text-[#670626] font-semibold">{selectedColor}</span>
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      aria-label={color}
+                      className={`w-8 h-8 rounded-full transition-all ${getColorClass(color)} ${
+                        selectedColor === color
+                          ? "ring-2 ring-offset-2 ring-[#670626] scale-110"
+                          : "hover:scale-105"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size selector */}
-            {product.sizes && product.sizes.length > 0 && (
+            {sizes.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">سایز:</p>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
+                  {sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -288,7 +319,7 @@ export function ProductDetails({
               </div>
             )}
 
-            {/* Quantity stepper or CTA buttons */}
+            {/* Quantity stepper / Add to cart */}
             <div className="space-y-3 pt-1">
               {isInCart ? (
                 <div className="flex items-center justify-between">
@@ -304,7 +335,7 @@ export function ProductDetails({
                       )}
                     </button>
                     <span className="px-6 py-3 text-lg font-bold bg-white">
-                      {cartItem?.quantity || 0}
+                      {cartItem?.quantity ?? 0}
                     </span>
                     <button
                       onClick={incrementQuantity}
@@ -316,22 +347,23 @@ export function ProductDetails({
                   <div className="text-start">
                     <p className="text-xs text-gray-400">جمع کل</p>
                     <p className="text-xl font-bold text-[#670626]">
-                      ${(product.price * (cartItem?.quantity || 0)).toFixed(2)}
+                      ${(displayPrice * (cartItem?.quantity ?? 0)).toFixed(2)}
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={isPending}
-                    className="flex-1 bg-[#670626] hover:bg-[#670626]/90 text-white py-3 font-normal md:font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                    {isPending ? "در حال افزودن..." : "افزودن به سبد خرید"}
-                  </button>
-
-                </div>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isPending || !inStock}
+                  className="w-full bg-[#670626] hover:bg-[#670626]/90 text-white py-3 font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  {!inStock
+                    ? "ناموجود"
+                    : isPending
+                    ? "در حال افزودن..."
+                    : "افزودن به سبد خرید"}
+                </button>
               )}
             </div>
 
@@ -353,9 +385,6 @@ export function ProductDetails({
                 <p className="text-[10px] text-gray-400">۳۰ روزه</p>
               </div>
             </div>
-
-
-
           </div>
         </div>
 
@@ -387,23 +416,32 @@ export function ProductDetails({
             {activeTab === "details" && (
               <div className="space-y-4">
                 <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-                  {product.description}
+                  {product.description ?? "توضیحاتی ثبت نشده است."}
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2">
-                  <div className="bg-[#ffbdc5]/15 border border-[#E3A7C4]/30 p-3">
-                    <p className="text-xs text-gray-400 mb-0.5">دسته‌بندی</p>
-                    <p className="text-sm font-medium text-gray-800">{product.category}</p>
-                  </div>
-                  <div className="bg-[#ffbdc5]/15 border border-[#E3A7C4]/30 p-3">
-                    <p className="text-xs text-gray-400 mb-0.5">برند</p>
-                    <p className="text-sm font-medium text-gray-800">{product.brand.name}</p>
-                  </div>
+                  {product.category && (
+                    <div className="bg-[#ffbdc5]/15 border border-[#E3A7C4]/30 p-3">
+                      <p className="text-xs text-gray-400 mb-0.5">دسته‌بندی</p>
+                      <p className="text-sm font-medium text-gray-800">
+                        {product.category.name}
+                      </p>
+                    </div>
+                  )}
                   <div className="bg-[#ffbdc5]/15 border border-[#E3A7C4]/30 p-3">
                     <p className="text-xs text-gray-400 mb-0.5">موجودی</p>
-                    <p className={`text-sm font-medium ${product.inStock ? "text-[#670626]" : "text-gray-400"}`}>
-                      {product.inStock ? "موجود" : "ناموجود"}
+                    <p className={`text-sm font-medium ${inStock ? "text-[#670626]" : "text-gray-400"}`}>
+                      {inStock ? "موجود" : "ناموجود"}
                     </p>
                   </div>
+                  {product.attributes?.map((attr) => (
+                    <div
+                      key={attr.id}
+                      className="bg-[#ffbdc5]/15 border border-[#E3A7C4]/30 p-3"
+                    >
+                      <p className="text-xs text-gray-400 mb-0.5">{attr.key}</p>
+                      <p className="text-sm font-medium text-gray-800">{attr.value}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -435,30 +473,32 @@ export function ProductDetails({
 
             {activeTab === "specs" && (
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between py-2 border-b border-[#E3A7C4]/20">
-                  <span className="text-gray-500">سایزهای موجود</span>
-                  <span className="font-medium text-gray-800">
-                    {product.sizes.join("، ")}
-                  </span>
-                </div>
-                {product.colors && (
+                {sizes.length > 0 && (
+                  <div className="flex justify-between py-2 border-b border-[#E3A7C4]/20">
+                    <span className="text-gray-500">سایزهای موجود</span>
+                    <span className="font-medium text-gray-800">{sizes.join("، ")}</span>
+                  </div>
+                )}
+                {colors.length > 0 && (
                   <div className="flex justify-between py-2 border-b border-[#E3A7C4]/20">
                     <span className="text-gray-500">رنگ‌های موجود</span>
+                    <span className="font-medium text-gray-800">{colors.join("، ")}</span>
+                  </div>
+                )}
+                {selectedVariant && (
+                  <div className="flex justify-between py-2 border-b border-[#E3A7C4]/20">
+                    <span className="text-gray-500">SKU</span>
+                    <span className="font-medium text-gray-800">{selectedVariant.sku}</span>
+                  </div>
+                )}
+                {selectedVariant && (
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-500">موجودی انبار</span>
                     <span className="font-medium text-gray-800">
-                      {product.colors.join("، ")}
+                      {selectedVariant.stock.toLocaleString()} عدد
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-b border-[#E3A7C4]/20">
-                  <span className="text-gray-500">فروشگاه</span>
-                  <span className="font-medium text-gray-800">{product.store.name}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-500">تعداد فروش</span>
-                  <span className="font-medium text-gray-800">
-                    {product.sales.toLocaleString()}
-                  </span>
-                </div>
               </div>
             )}
           </div>
@@ -471,17 +511,33 @@ export function ProductDetails({
               شاید دوست داشته باشید
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {relatedProducts.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  id={p.id}
-                  title={p.title}
-                  price={p.price}
-                  imageUrl={p.images[0]}
-                  originalPrice={p.originalPrice}
-                  discount={p.discount}
-                />
-              ))}
+              {relatedProducts.map((p) => {
+                const primaryImage = p.images?.find((i) => i.isPrimary) ?? p.images?.[0];
+                const relatedVariant = p.variants?.[0];
+                const relatedDiscount = p.discounts?.find((d) => d.isActive);
+                const relatedBase = relatedVariant?.price ?? p.basePrice;
+                const relatedFinal = relatedDiscount
+                  ? relatedDiscount.type === "percentage"
+                    ? relatedBase * (1 - relatedDiscount.value / 100)
+                    : relatedBase - relatedDiscount.value
+                  : null;
+
+                return (
+                  <ProductCard
+                    key={p.id}
+                    id={p.id}
+                    title={p.name}
+                    price={relatedFinal ?? relatedBase}
+                    imageUrl={primaryImage?.url ?? ""}
+                    originalPrice={relatedFinal ? relatedBase : undefined}
+                    discount={
+                      relatedDiscount?.type === "percentage"
+                        ? relatedDiscount.value
+                        : undefined
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
         )}
