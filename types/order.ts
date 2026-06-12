@@ -1,4 +1,5 @@
-import type { string, string, JsonRecord } from "./api";
+// removed incorrect import from ./api; use built-in types instead
+import { ProductVariant } from "./product";
 import type { User } from "./user";
 
 export type OrderStatus =
@@ -39,7 +40,7 @@ export type Order = {
   pointsRedeemed: number;
 
   status: OrderStatus;
-  shippingAddress?: JsonRecord;
+  shippingAddress?: Record<string, unknown>;
 
   createdAt: string;
   updatedAt: string;
