@@ -1,7 +1,10 @@
-import api from "@/lib/api/api";
+import api from "@/lib/api/client";
 import { Referral } from "@/types/referral";
 
 export const referralService = {
   getReferrals: () =>
-    api.get<Referral[]>("/referrals", { adapter: "fetch", fetchOptions: { cache: "no-store" } }),
+    api.get<Referral[]>("/referrals", {
+      adapter: "fetch",
+      fetchOptions: { cache: "no-store" },
+    }),
 };

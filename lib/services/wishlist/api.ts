@@ -1,4 +1,4 @@
-import api from "@/lib/api/api";
+import api from "@/lib/api/client";
 import { Wishlist } from "@/types/wishlist";
 
 export type AddWishlistItemInput = {
@@ -8,7 +8,10 @@ export type AddWishlistItemInput = {
 
 export const wishlistService = {
   getWishlist: () =>
-    api.get<Wishlist[]>("/wishlist", { adapter: "fetch", fetchOptions: { cache: "no-store" } }),
+    api.get<Wishlist[]>("/wishlist", {
+      adapter: "fetch",
+      fetchOptions: { cache: "no-store" },
+    }),
 
   addItem: (data: AddWishlistItemInput) =>
     api.post<Wishlist>("/wishlist", { data: JSON.stringify(data) }),

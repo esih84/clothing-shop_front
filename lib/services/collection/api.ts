@@ -1,4 +1,4 @@
-import api from "@/lib/api/api";
+import api from "@/lib/api/client";
 import { Collection } from "@/types/collection";
 
 export type CreateCollectionInput = {
@@ -12,10 +12,16 @@ export type CreateCollectionInput = {
 
 export const collectionService = {
   findAll: () =>
-    api.get<Collection[]>("/collections", { adapter: "fetch", fetchOptions: { cache: "no-store" } }),
+    api.get<Collection[]>("/collections", {
+      adapter: "fetch",
+      fetchOptions: { cache: "no-store" },
+    }),
 
   findOne: (slug: string) =>
-    api.get<Collection>(`/collections/${slug}`, { adapter: "fetch", fetchOptions: { cache: "no-store" } }),
+    api.get<Collection>(`/collections/${slug}`, {
+      adapter: "fetch",
+      fetchOptions: { cache: "no-store" },
+    }),
 
   create: (data: CreateCollectionInput) =>
     api.post<Collection>("/collections", { data: JSON.stringify(data) }),

@@ -16,7 +16,7 @@ export type OrderItem = {
 
   variantId?: string;
   productName: string;
-  variantDetails?: JsonRecord;
+  variantDetails?: ProductVariant;
 
   quantity: number;
   unitPrice: number;

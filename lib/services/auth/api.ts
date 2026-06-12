@@ -1,4 +1,4 @@
-import  api  from "@/lib/api/api";
+import api from "@/lib/api/client";
 
 export const authService = {
   sendOtp: (phone: string) =>

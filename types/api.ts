@@ -24,3 +24,18 @@ export type ApiErrorResponse = {
   method: string;
   message: string | string[];
 };
+
+export class ApiError extends Error {
+  statusCode: number;
+  data?: ApiErrorResponse;
+
+  constructor(error: ApiErrorResponse) {
+    super(
+      Array.isArray(error.message) ? error.message.join(", ") : error.message,
+    );
+
+    this.name = "ApiError";
+    this.statusCode = error.statusCode;
+    this.data = error;
+  }
+}
