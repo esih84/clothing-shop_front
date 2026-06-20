@@ -120,33 +120,39 @@ td {
 
 @layer base {
   :root {
-    --background: 351 100% 99%;
-    --foreground: 222.2 84% 4.9%;
+    /* پالت برند: زرد (primary) + آبی (secondary/accent) + مشکی (foreground) */
+    --background: 48 33% 98%;
+    --foreground: 220 18% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 18% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 339 96% 21%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 353 100% 95%;
-    --secondary-foreground: 339 96% 21%;
-    --muted: 353 60% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 353 100% 87%;
-    --accent-foreground: 339 96% 21%;
+    --popover-foreground: 220 18% 12%;
+    /* زرد دوستانه؛ متن روی آن مشکی برای کنتراست */
+    --primary: 45 94% 52%;
+    --primary-foreground: 220 25% 12%;
+    /* آبی زنده */
+    --secondary: 212 88% 48%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 45 30% 95%;
+    --muted-foreground: 220 12% 40%;
+    /* اکسنت آبی روشن */
+    --accent: 205 90% 94%;
+    --accent-foreground: 212 88% 30%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 353 40% 88%;
-    --input: 353 40% 88%;
-    --ring: 339 96% 21%;
-    --radius: 0rem;
-    --main: 339 96% 21%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 25% 88%;
+    --input: 45 25% 88%;
+    --ring: 212 88% 48%;
+    /* گوشه‌های کاملاً گرد */
+    --radius: 1rem;
+    --main: 45 94% 52%;
 
-    /* Chart colors */
-    --chart-1: 240 50% 50%;
-    --chart-2: 0 70% 50%;
-    --chart-3: 120 50% 50%;
-    --chart-4: 30 80% 50%;
+    /* Chart colors (هماهنگ با برند) */
+    --chart-1: 45 94% 52%;
+    --chart-2: 212 88% 48%;
+    --chart-3: 220 18% 20%;
+    --chart-4: 30 90% 55%;
+    --chart-5: 175 60% 45%;
   }
 
   .dark {

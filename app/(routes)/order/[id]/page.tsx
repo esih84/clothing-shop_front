@@ -1,5 +1,5 @@
-import OrderDetail from '@/components/order/order-detail'
-import { getOrderDetails } from '@/lib/services/order/useServerOrder'
+import OrderDetail from '@/shared/components/order/order-detail'
+import { getOrderDetails } from '@/features/order/order-api'
 export default async function OrderDetailPage({ params}: { params: Promise<{ id: string }> }) {
     const { id } = await params;
   console.log('Fetching order detail for id:', id)

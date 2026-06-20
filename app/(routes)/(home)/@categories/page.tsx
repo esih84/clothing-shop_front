@@ -1,7 +1,7 @@
-import { CategorySelector } from "@/components/category/category-selector";
-import { useGetCategories } from "@/lib/services/category/useServerCategory";
+import { CategorySelector } from "@/shared/components/category/category-selector";
+import { getCategories } from "@/features/category/category-api";
 
 export default async function CategoriesSection() {
-  const { data: categories  } = await useGetCategories();
+  const { data: categories  } = await getCategories();
   return <CategorySelector categories={categories ?? []} limit={5} showHeader />;
 }

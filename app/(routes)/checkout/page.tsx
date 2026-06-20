@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, MapPin, Plus, Check, ChevronDown } from "lucide-react";
-import { useAppSelector } from "@/lib/store/hooks";
+import { useRouter } from "next/navigation";
+import { ShoppingBag, MapPin, Plus, Check, ChevronDown, Loader2 } from "lucide-react";
+import { useAppDispatch } from "@/shared/store/hooks";
+import { clearCart } from "@/shared/store/slices/cartSlice";
+import { useCurrentUser, useIsLoggedIn } from "@/features/auth/queries";
+import { useCart } from "@/features/cart/queries";
+import { useCreateOrder } from "@/features/order/mutations";
+import { formatToman } from "@/shared/lib/utils";
 
-// Dummy login check (replace with real auth logic)
-function useIsLoggedIn() {
-  return false;
-}
-
-// Dummy user profile (replace with real data from store/API)
 interface SavedAddress {
   id: string;
   label: string;
@@ -20,48 +20,37 @@ interface SavedAddress {
   plaque: string;
 }
 
-interface UserProfile {
-  firstName: string;
-  lastName: string;
-  savedAddresses: SavedAddress[];
-}
-
-function useUserProfile(): UserProfile | null {
-  // Replace with real selector/fetch
-  // Return null if not logged in or no profile
-  return null;
-
-  // Example of what real data looks like:
-  // return {
-  //   firstName: "علی",
-  //   lastName: "محمدی",
-  //   savedAddresses: [
-  //     { id: "1", label: "خانه", city: "تهران", address: "خیابان ولیعصر، کوچه بهار", plaque: "۱۲" },
-  //     { id: "2", label: "محل کار", city: "تهران", address: "خیابان آزادی، پلاک ۴۵", plaque: "۳" },
-  //   ],
-  // };
-}
-
 export default function CheckoutPage() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const isLoggedIn = useIsLoggedIn();
-  const userProfile = useUserProfile();
-  const reduxCartItems = useAppSelector((state) => state.cart.items);
+  const createOrder = useCreateOrder();
+  const { lines: cartItems } = useCart();
+  const { data: currentUser } = useCurrentUser();
+  const userProfile = currentUser
+    ? {
+        firstName: currentUser.firstName ?? "",
+        lastName: currentUser.lastName ?? "",
+        savedAddresses: [] as SavedAddress[],
+      }
+    : null;
   const [mounted, setMounted] = useState(false);
 
   // Form state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [petName, setPetName] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [plaque, setPlaque] = useState("");
   const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Saved addresses
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
   const [useNewAddress, setUseNewAddress] = useState(false);
-
-  const cartItems = reduxCartItems; // extend for backend later
 
   useEffect(() => {
     setMounted(true);
@@ -113,18 +102,43 @@ export default function CheckoutPage() {
   const tax = subtotal * 0.1;
   const total = subtotal + shipping + tax;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: submit order
-    console.log({ firstName, lastName, city, address, plaque, note });
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const order = await createOrder.mutateAsync({
+        shippingAddress: {
+          firstName,
+          lastName,
+          petName,
+          city,
+          address,
+          plaque,
+          note,
+        },
+      });
+      dispatch(clearCart());
+      router.push(`/order/${order.id}`);
+    } catch {
+      setSubmitError(
+        "ثبت سفارش با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (cartItems.length === 0) {
     return (
       <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="bg-[#ffbdc5]/30 p-4 mb-4">
-            <ShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-[#670626]" />
+          <div className="bg-[#FDE68A]/30 p-4 mb-4 rounded-2xl">
+            <ShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-[#1473E6]" />
           </div>
           <h2 className="text-xl md:text-2xl font-medium mb-2">
             سبد خرید شما خالی است
@@ -134,7 +148,7 @@ export default function CheckoutPage() {
           </p>
           <Link
             href="/"
-            className="bg-[#670626] text-white px-6 py-3 font-medium inline-block text-base md:text-lg"
+            className="bg-secondary text-secondary-foreground px-6 py-3 font-medium inline-block text-base md:text-lg rounded-2xl hover:bg-secondary/90 transition-colors"
           >
             شروع به خرید
           </Link>
@@ -148,7 +162,7 @@ export default function CheckoutPage() {
       <div className="mb-6">
         <Link
           href="/cart"
-          className="inline-flex items-center gap-2 text-[#670626] text-sm md:text-base hover:underline"
+          className="inline-flex items-center gap-2 text-[#1473E6] text-sm md:text-base hover:underline"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -174,9 +188,9 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
 
             {/* Recipient Info */}
-            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#E3A7C4]/30">
+            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#A9CBF5]/30 rounded-2xl">
               <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-[#670626] text-white text-sm flex items-center justify-center font-bold">
+                <span className="w-6 h-6 bg-[#1473E6] text-white text-sm flex items-center justify-center font-bold rounded-lg">
                   ۱
                 </span>
                 اطلاعات گیرنده
@@ -184,7 +198,7 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm md:text-base text-gray-600 mb-1">
-                    نام <span className="text-[#670626]">*</span>
+                    نام <span className="text-[#1473E6]">*</span>
                   </label>
                   <input
                     type="text"
@@ -192,12 +206,12 @@ export default function CheckoutPage() {
                     onChange={(e) => setFirstName(e.target.value)}
                     required
                     placeholder="نام خود را وارد کنید"
-                    className="w-full border border-[#E3A7C4]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#670626] bg-white"
+                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
                   />
                 </div>
                 <div>
                   <label className="block text-sm md:text-base text-gray-600 mb-1">
-                    نام خانوادگی <span className="text-[#670626]">*</span>
+                    نام خانوادگی <span className="text-[#1473E6]">*</span>
                   </label>
                   <input
                     type="text"
@@ -205,16 +219,29 @@ export default function CheckoutPage() {
                     onChange={(e) => setLastName(e.target.value)}
                     required
                     placeholder="نام خانوادگی خود را وارد کنید"
-                    className="w-full border border-[#E3A7C4]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#670626] bg-white"
+                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm md:text-base text-gray-600 mb-1">
+                    نام حیوان خانگی شما 🐾{" "}
+                    <span className="text-gray-400 text-xs">(اختیاری)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={petName}
+                    onChange={(e) => setPetName(e.target.value)}
+                    placeholder="مثال: پوپک"
+                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
                   />
                 </div>
               </div>
             </div>
 
             {/* Delivery Address */}
-            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#E3A7C4]/30">
+            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#A9CBF5]/30 rounded-2xl">
               <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-[#670626] text-white text-sm flex items-center justify-center font-bold">
+                <span className="w-6 h-6 bg-[#1473E6] text-white text-sm flex items-center justify-center font-bold rounded-lg">
                   ۲
                 </span>
                 آدرس تحویل
@@ -232,10 +259,10 @@ export default function CheckoutPage() {
                       onClick={() =>
                         setShowAddressDropdown(!showAddressDropdown)
                       }
-                      className="w-full flex items-center justify-between border border-[#E3A7C4]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#670626] bg-white"
+                      className="w-full flex items-center justify-between border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
                     >
                       <span className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-[#670626]" />
+                        <MapPin className="w-4 h-4 text-[#1473E6]" />
                         {selectedAddressId
                           ? userProfile!.savedAddresses.find(
                               (a) => a.id === selectedAddressId
@@ -252,16 +279,16 @@ export default function CheckoutPage() {
                     </button>
 
                     {showAddressDropdown && (
-                      <div className="absolute top-full right-0 left-0 bg-white border border-[#E3A7C4]/50 border-t-0 z-10 shadow-md">
+                      <div className="absolute top-full right-0 left-0 bg-white border border-[#A9CBF5]/50 border-t-0 z-10 shadow-md rounded-b-xl overflow-hidden">
                         {userProfile!.savedAddresses.map((saved) => (
                           <button
                             key={saved.id}
                             type="button"
                             onClick={() => handleSelectSavedAddress(saved)}
-                            className="w-full flex items-center justify-between px-3 py-3 text-sm md:text-base hover:bg-[#ffbdc5]/20 text-right"
+                            className="w-full flex items-center justify-between px-3 py-3 text-sm md:text-base hover:bg-[#FDE68A]/20 text-right"
                           >
                             <span className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-[#670626] flex-shrink-0" />
+                              <MapPin className="w-4 h-4 text-[#1473E6] flex-shrink-0" />
                               <span>
                                 <span className="font-medium">
                                   {saved.label}
@@ -272,14 +299,14 @@ export default function CheckoutPage() {
                               </span>
                             </span>
                             {selectedAddressId === saved.id && (
-                              <Check className="w-4 h-4 text-[#670626]" />
+                              <Check className="w-4 h-4 text-[#1473E6]" />
                             )}
                           </button>
                         ))}
                         <button
                           type="button"
                           onClick={handleUseNewAddress}
-                          className="w-full flex items-center gap-2 px-3 py-3 text-sm md:text-base hover:bg-[#ffbdc5]/20 text-[#670626] border-t border-[#E3A7C4]/30"
+                          className="w-full flex items-center gap-2 px-3 py-3 text-sm md:text-base hover:bg-[#FDE68A]/20 text-[#1473E6] border-t border-[#A9CBF5]/30"
                         >
                           <Plus className="w-4 h-4" />
                           افزودن آدرس جدید
@@ -295,7 +322,7 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm md:text-base text-gray-600 mb-1">
-                      شهر <span className="text-[#670626]">*</span>
+                      شهر <span className="text-[#1473E6]">*</span>
                     </label>
                     <input
                       type="text"
@@ -303,12 +330,12 @@ export default function CheckoutPage() {
                       onChange={(e) => setCity(e.target.value)}
                       required
                       placeholder="مثال: تهران"
-                      className="w-full border border-[#E3A7C4]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#670626] bg-white"
+                      className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
                     />
                   </div>
                   <div>
                     <label className="block text-sm md:text-base text-gray-600 mb-1">
-                      پلاک <span className="text-[#670626]">*</span>
+                      پلاک <span className="text-[#1473E6]">*</span>
                     </label>
                     <input
                       type="text"
@@ -316,13 +343,13 @@ export default function CheckoutPage() {
                       onChange={(e) => setPlaque(e.target.value)}
                       required
                       placeholder="مثال: ۱۲"
-                      className="w-full border border-[#E3A7C4]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#670626] bg-white"
+                      className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
                     />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm md:text-base text-gray-600 mb-1">
-                    آدرس کامل <span className="text-[#670626]">*</span>
+                    آدرس کامل <span className="text-[#1473E6]">*</span>
                   </label>
                   <textarea
                     value={address}
@@ -330,7 +357,7 @@ export default function CheckoutPage() {
                     required
                     rows={3}
                     placeholder="خیابان، کوچه، ..."
-                    className="w-full border border-[#E3A7C4]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#670626] bg-white resize-none"
+                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white resize-none rounded-xl"
                   />
                 </div>
                 <div>
@@ -343,16 +370,16 @@ export default function CheckoutPage() {
                     onChange={(e) => setNote(e.target.value)}
                     rows={2}
                     placeholder="توضیحات اضافه برای پیک یا فروشنده..."
-                    className="w-full border border-[#E3A7C4]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#670626] bg-white resize-none"
+                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white resize-none rounded-xl"
                   />
                 </div>
               </div>
             </div>
 
             {/* Order Items Summary (collapsed list) */}
-            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#E3A7C4]/30">
+            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#A9CBF5]/30 rounded-2xl">
               <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-[#670626] text-white text-sm flex items-center justify-center font-bold">
+                <span className="w-6 h-6 bg-[#1473E6] text-white text-sm flex items-center justify-center font-bold rounded-lg">
                   ۳
                 </span>
                 اقلام سفارش
@@ -360,10 +387,10 @@ export default function CheckoutPage() {
               <div className="space-y-3">
                 {cartItems.map((item) => (
                   <div
-                    key={`item-${item.id} ${item.color || ""} ${item.size || ""}`}
-                    className="flex items-center gap-3 py-3 border-b border-[#E3A7C4]/20 last:border-0"
+                    key={item.productId}
+                    className="flex items-center gap-3 py-3 border-b border-[#A9CBF5]/20 last:border-0"
                   >
-                    <div className="w-14 h-14 md:w-16 md:h-16 bg-[#ffbdc5]/20 flex-shrink-0 overflow-hidden">
+                    <div className="w-14 h-14 md:w-16 md:h-16 bg-[#FDE68A]/20 flex-shrink-0 overflow-hidden rounded-xl">
                       <Image
                         src={item.imageUrl || "/placeholder.svg"}
                         alt={item.name}
@@ -377,13 +404,11 @@ export default function CheckoutPage() {
                         {item.name}
                       </p>
                       <div className="flex flex-wrap gap-x-3 text-xs md:text-sm text-gray-500 mt-0.5">
-                        {item.color && <span>رنگ: {item.color}</span>}
-                        {item.size && <span>سایز: {item.size}</span>}
                         <span>تعداد: {item.quantity}</span>
                       </div>
                     </div>
-                    <p className="font-bold text-sm md:text-base text-[#670626] flex-shrink-0">
-                      ${(item.price * item.quantity).toFixed(2)}
+                    <p className="font-bold text-sm md:text-base text-[#1473E6] flex-shrink-0">
+                      {formatToman(item.price * item.quantity)}
                     </p>
                   </div>
                 ))}
@@ -393,14 +418,14 @@ export default function CheckoutPage() {
 
           {/* Right: Order Summary */}
           <div className="space-y-4">
-            <div className="bg-white p-6 shadow-sm border border-[#E3A7C4]/30 h-fit">
+            <div className="bg-white p-6 shadow-sm border border-[#A9CBF5]/30 h-fit rounded-2xl sticky top-20">
               <h2 className="text-xl md:text-2xl font-bold mb-4">
                 خلاصه سفارش
               </h2>
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-base md:text-lg">
                   <span className="text-gray-600">جمع جزء</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">{formatToman(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-base md:text-lg">
                   <span className="text-gray-600">ارسال</span>
@@ -408,20 +433,27 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-base md:text-lg">
                   <span className="text-gray-600">مالیات</span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
+                  <span className="font-medium">{formatToman(tax)}</span>
                 </div>
                 <div className="border-t pt-3 mt-3">
                   <div className="flex justify-between font-bold text-lg md:text-xl">
                     <span>جمع کل</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>{formatToman(total)}</span>
                   </div>
                 </div>
               </div>
+              {submitError && (
+                <div className="mb-3 text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2 text-center">
+                  {submitError}
+                </div>
+              )}
               <button
                 type="submit"
-                className="w-full bg-[#670626] text-white py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center gap-2 hover:bg-[#7d0730] transition-colors"
+                disabled={submitting}
+                className="w-full bg-secondary text-secondary-foreground rounded-2xl py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors disabled:opacity-60"
               >
-                تأیید و پرداخت
+                {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
+                {isLoggedIn ? "تأیید و پرداخت" : "ورود و ادامه"}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"

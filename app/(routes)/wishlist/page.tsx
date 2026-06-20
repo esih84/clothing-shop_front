@@ -1,10 +1,11 @@
 "use client";
 
-import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
-import { removeFromWishlist } from "@/lib/store/slices/wishlistSlice";
-import { MapPin, Trash2, Heart } from "lucide-react";
+import { useAppSelector, useAppDispatch } from "@/shared/store/hooks";
+import { removeFromWishlist } from "@/shared/store/slices/wishlistSlice";
+import { Trash2, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { formatToman } from "@/shared/lib/utils";
 
 export default function WishlistPage() {
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
@@ -22,9 +23,9 @@ export default function WishlistPage() {
             {wishlistItems.map((item) => (
               <div
                 key={item.id}
-                className="cart-item bg-white p-4 md:p-6 flex items-center gap-4 shadow-sm border border-[#E3A7C4]/30"
+                className="bg-white rounded-2xl p-4 md:p-6 flex items-center gap-4 shadow-sm border border-[#A9CBF5]/30"
               >
-                <div className="cart-item-image w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 bg-[#ffbdc5]/20 flex-shrink-0 overflow-hidden">
+                <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-2xl bg-[#FDE68A]/20 flex-shrink-0 overflow-hidden">
                   <Image
                     src={item.imageUrl || "/placeholder.svg"}
                     alt={item.name}
@@ -33,14 +34,15 @@ export default function WishlistPage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex-1 ">
+                <div className="flex-1">
                   <div className="flex justify-between">
                     <h3 className="font-medium text-base md:text-base">
                       {item.name}
                     </h3>
                     <button
                       onClick={() => handleRemoveItem(item.id)}
-                      className="text-gray-400"
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label="حذف از علاقه‌مندی‌ها"
                     >
                       <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
@@ -48,11 +50,11 @@ export default function WishlistPage() {
 
                   <div className="flex justify-between items-center mt-4 md:mt-6">
                     <p className="font-bold text-base md:text-lg lg:text-xl">
-                      ${item.price.toFixed(2)}
+                      {formatToman(item.price)}
                     </p>
-                    <Link href={`/product/${item.id}`}>
-                      <button className="bg-[#670626] text-white px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 font-medium text-xs sm:text-sm md:text-base">
-                         جزئیات محصول
+                    <Link prefetch href={`/product/${item.id}`}>
+                      <button className="bg-secondary text-secondary-foreground rounded-xl px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 font-medium text-xs sm:text-sm md:text-base hover:bg-secondary/90 transition-colors">
+                        جزئیات محصول
                       </button>
                     </Link>
                   </div>
@@ -62,8 +64,8 @@ export default function WishlistPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12">
-            <div className="bg-[#ffbdc5]/30 p-4 mb-4">
-              <Heart className="w-8 h-8 md:w-10 md:h-10 text-[#670626]" />
+            <div className="bg-[#FDE68A]/30 rounded-2xl p-4 mb-4">
+              <Heart className="w-8 h-8 md:w-10 md:h-10 text-secondary" />
             </div>
             <h2 className="text-xl md:text-2xl font-medium mb-2">
               لیست علاقه‌مندی‌های شما خالی است
@@ -72,8 +74,9 @@ export default function WishlistPage() {
               به نظر می‌رسد هنوز چیزی به علاقه‌مندی‌ها اضافه نکرده‌اید.
             </p>
             <Link
+              prefetch
               href="/"
-              className="bg-[#670626] text-white px-6 py-3 md:px-8 md:py-4 font-medium inline-block text-base md:text-lg"
+              className="bg-secondary text-secondary-foreground rounded-2xl px-6 py-3 md:px-8 md:py-4 font-medium inline-block text-base md:text-lg hover:bg-secondary/90 transition-colors"
             >
               شروع به انتخاب
             </Link>

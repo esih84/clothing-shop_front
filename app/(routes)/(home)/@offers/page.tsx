@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { SwiperWrapper } from "@/components/swiper-wrapper";
-import { getProducts } from "@/lib/services/product/useServerProduct";
+import { SwiperWrapper } from "@/shared/components/swiper-wrapper";
+import { getProducts } from "@/features/product/product-api";
 
 export default async function OffersSection() {
   const { data: response } = await getProducts({
@@ -18,12 +18,12 @@ export default async function OffersSection() {
       {/* Section header */}
       <div className="px-4 flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 bg-[#670626]" />
+          <div className="w-1 h-5 bg-[#1473E6]" />
           <h3 className="text-base font-bold tracking-wide">پیشنهادات ویژه</h3>
         </div>
         <Link
           href="/offers"
-          className="text-xs text-[#670626] border-b border-[#670626]/40 pb-0.5"
+          className="text-xs text-[#1473E6] border-b border-[#1473E6]/40 pb-0.5"
         >
           مشاهده همه
         </Link>

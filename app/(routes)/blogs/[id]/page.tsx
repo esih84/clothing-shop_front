@@ -1,17 +1,19 @@
-import {  getBlogs } from "@/lib/actions";
-import { BlogDetail } from "@/components/blogs/blog-detail";
+import { getBlogBySlug } from "@/features/blog/blog-api";
+import { BlogDetail } from "@/shared/components/blogs/blog-detail";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "جزئیات بلاگ | بانگکوسا",
+  title: "جزئیات بلاگ",
 };
 
-
-  
-export default async function BlogDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const blogs = await getBlogs();
-  const blog = blogs.find((b) => b.id === id);
-  return <BlogDetail blog={blog} />;
+// پارامتر مسیر در واقع slug بلاگ است (BlogCard به /blogs/[slug] لینک می‌دهد)
+export default async function BlogDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: slug } = await params;
+  const { data: blog } = await getBlogBySlug(slug);
+  return <BlogDetail blog={blog ?? undefined} />;
 }
 

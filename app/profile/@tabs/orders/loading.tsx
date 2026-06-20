@@ -8,11 +8,11 @@ export default function OrdersLoading() {
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
-          className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#E3A7C4]/30"
+          className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#A9CBF5]/30"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#ffbdc5]/20 border border-[#E3A7C4]/30 flex items-center justify-center flex-shrink-0 animate-pulse">
-              <Package className="w-5 h-5 text-[#E3A7C4]/40" />
+            <div className="w-10 h-10 bg-[#FDE68A]/20 border border-[#A9CBF5]/30 flex items-center justify-center flex-shrink-0 animate-pulse">
+              <Package className="w-5 h-5 text-[#A9CBF5]/40" />
             </div>
             <div className="space-y-2 text-right">
               <div className="h-4 w-28 bg-gray-200 rounded animate-pulse" />

@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export  default function ProductDetailsSkeleton() {
   return (
@@ -9,7 +9,7 @@ export  default function ProductDetailsSkeleton() {
           {/* LEFT: Image gallery */}
           <div>
             {/* Main image */}
-            <div className="relative aspect-square overflow-hidden bg-[#ffbdc5]/20 border border-[#E3A7C4]/30 mb-3">
+            <div className="relative aspect-square overflow-hidden bg-[#FDE68A]/20 border border-[#A9CBF5]/30 mb-3">
               <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
               <div className="absolute top-0 left-0 z-10 p-0">
                 <Skeleton className="h-7 w-20 rounded-none" />
@@ -21,7 +21,7 @@ export  default function ProductDetailsSkeleton() {
               {[...Array(4)].map((_, idx) => (
                 <Skeleton
                   key={idx}
-                  className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-none border-2 border-[#E3A7C4]/30"
+                  className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-none border-2 border-[#A9CBF5]/30"
                 />
               ))}
             </div>
@@ -56,7 +56,7 @@ export  default function ProductDetailsSkeleton() {
             </div>
 
             {/* Price */}
-            <div className="flex items-center gap-3 pb-4 border-b border-[#E3A7C4]/30">
+            <div className="flex items-center gap-3 pb-4 border-b border-[#A9CBF5]/30">
               <Skeleton className="h-9 w-28" />
               <Skeleton className="h-6 w-20" />
             </div>
@@ -90,12 +90,12 @@ export  default function ProductDetailsSkeleton() {
             </div>
 
             {/* Features strip */}
-            <div className="grid grid-cols-3 gap-2 py-4 border-t border-b border-[#E3A7C4]/30">
+            <div className="grid grid-cols-3 gap-2 py-4 border-t border-b border-[#A9CBF5]/30">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
                   className={`flex flex-col items-center text-center gap-1.5 p-2 ${
-                    i === 1 ? "border-x border-[#E3A7C4]/30" : ""
+                    i === 1 ? "border-x border-[#A9CBF5]/30" : ""
                   }`}
                 >
                   <Skeleton className="w-5 h-5 rounded-sm" />
@@ -108,8 +108,8 @@ export  default function ProductDetailsSkeleton() {
         </div>
 
         {/* Info tabs */}
-        <div className="mb-12 border border-[#E3A7C4]/30">
-          <div className="flex border-b border-[#E3A7C4]/30 overflow-x-auto px-0">
+        <div className="mb-12 border border-[#A9CBF5]/30">
+          <div className="flex border-b border-[#A9CBF5]/30 overflow-x-auto px-0">
             {[...Array(3)].map((_, i) => (
               <Skeleton
                 key={i}
@@ -128,7 +128,7 @@ export  default function ProductDetailsSkeleton() {
                 {[...Array(3)].map((_, i) => (
                   <div
                     key={i}
-                    className="bg-[#ffbdc5]/15 border border-[#E3A7C4]/30 p-3 space-y-2"
+                    className="bg-[#FDE68A]/15 border border-[#A9CBF5]/30 p-3 space-y-2"
                   >
                     <Skeleton className="h-3 w-16" />
                     <Skeleton className="h-4 w-20" />

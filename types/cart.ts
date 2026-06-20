@@ -1,14 +1,14 @@
 import type { User } from "./user";
-import type { ProductVariant } from "./product";
+import type { Product } from "./product";
 
 export type CartItem = {
   id: string;
 
   cartId: string;
-  variantId: string;
+  productId: string;
 
-  // در entity eager: true هست، پس معمولاً API variant را برمی‌گرداند
-  variant?: ProductVariant;
+  // در entity eager: true هست و بک‌اند product.images را هم لود می‌کند
+  product?: Product;
 
   quantity: number;
   addedAt: string;

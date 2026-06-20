@@ -1,12 +1,12 @@
 // components/category-selector-skeleton.tsx
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/shared/ui/skeleton"
 
 export default function CategorySelectorSkeleton() {
   return (
     <div className="py-6">
       <div className="flex items-center justify-between mb-4 px-3 sm:px-4">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 bg-[#670626]" />
+          <div className="w-1 h-5 bg-[#1473E6]" />
           <Skeleton className="h-4 w-32" />
         </div>
         <Skeleton className="h-3 w-16" />

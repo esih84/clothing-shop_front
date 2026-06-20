@@ -1,5 +1,3 @@
-// removed incorrect import from ./api; use built-in types instead
-import { ProductVariant } from "./product";
 import type { User } from "./user";
 
 export type OrderStatus =
@@ -15,9 +13,8 @@ export type OrderItem = {
   id: string;
   orderId: string;
 
-  variantId?: string;
+  productId?: string;
   productName: string;
-  variantDetails?: ProductVariant;
 
   quantity: number;
   unitPrice: number;

@@ -1,11 +1,10 @@
 // components/sections/banner-section.tsx
-import { BannerSlider } from "@/components/banner-slider";
-import { useGetBanners } from "@/lib/services/banner/useServerBanner";
+import { BannerSlider } from "@/shared/components/banner-slider";
+import { getBanners } from "@/features/banner/banner-api";
 
 export default async function BannerSection() {
-  const { data: banners } = await useGetBanners(["home", "home_side"]);
-
-  if (!banners ||!banners.length) return null;
+  const { data: banners } = await getBanners(["home", "home_side"]);
+  if (!banners || !banners.length) return null;
 
   return (
     <BannerSlider

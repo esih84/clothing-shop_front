@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FilterModal } from "@/components/global/filter-modal"
+import { FilterModal } from "@/shared/components/global/filter-modal"
 
 export default function HomePage() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)

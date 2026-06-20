@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { ProductDetails } from "@/components/product/product-details";
-import { getProductBySlug, getProducts } from "@/lib/services/product/useServerProduct";
+import { ProductDetails } from "@/shared/components/product/product-details";
+import { getProductBySlug, getProducts } from "@/features/product/product-api";
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
@@ -11,13 +11,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     getProductBySlug(id),
     getProducts({ page: 1, limit: 6 }),
   ]);
-
   if (!product) {
     notFound();
   }
 
-
-
-  return <ProductDetails product={product} relatedProducts={products?.data??[]} />;
+  return (
+    <ProductDetails product={product} relatedProducts={products?.data ?? []} />
+  );
 }
-
