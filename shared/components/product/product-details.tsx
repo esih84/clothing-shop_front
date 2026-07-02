@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Star,
   Shield,
@@ -11,6 +11,10 @@ import {
   ShoppingBag,
   RefreshCw,
 } from "lucide-react";
+import {
+  AppSlider,
+  type AppSliderHandle,
+} from "@/shared/components/app-slider";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import { toggleWishlist } from "@/shared/store/slices/wishlistSlice";
 import { useCart } from "@/features/cart/queries";
@@ -33,7 +37,9 @@ export function ProductDetails({
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"details" | "care" | "specs">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "care" | "specs">(
+    "details",
+  );
 
   const dispatch = useAppDispatch();
   const [isPending, startTransition] = useTransition();
@@ -64,7 +70,10 @@ export function ProductDetails({
     if (b.isPrimary) return 1;
     return a.order - b.order;
   });
-  const currentImage = sortedImages[selectedImageIndex];
+
+  // کنترل اسلایدر از بیرون (کلیک روی thumbnail)
+  const sliderRef = useRef<AppSliderHandle>(null);
+  const goToImage = (index: number) => sliderRef.current?.slideTo(index);
 
   const handleToggleWishlist = () => {
     dispatch(
@@ -75,7 +84,7 @@ export function ProductDetails({
         imageUrl: sortedImages[0]?.url ?? "",
         brand: "",
         location: "",
-      })
+      }),
     );
   };
 
@@ -122,20 +131,33 @@ export function ProductDetails({
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 py-6">
-
         {/* ── Main two-column section ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-
           {/* LEFT: Image gallery */}
           <div>
-            <div className="relative aspect-square overflow-hidden bg-[#FDE68A]/20 border border-[#A9CBF5]/30 mb-3 rounded-2xl">
-              {currentImage ? (
-                <Image
-                  src={currentImage.url}
-                  alt={currentImage.altText ?? product.name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover"
+            <div className="relative aspect-square overflow-hidden bg-[#FDE68A]/20 border border-[#A9CBF5]/30 mb-3 rounded-2xl select-none">
+              {sortedImages.length > 0 ? (
+                <AppSlider
+                  ref={sliderRef}
+                  items={sortedImages}
+                  getKey={(img) => img.id}
+                  loop={sortedImages.length > 1}
+                  navigation={sortedImages.length > 1}
+                  pagination={sortedImages.length > 1}
+                  onSlideChange={setSelectedImageIndex}
+                  className="h-full"
+                  renderItem={(img, idx) => (
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={img.url}
+                        alt={img.altText ?? product.name}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 50vw"
+                        className="object-cover"
+                        priority={idx === 0}
+                      />
+                    </div>
+                  )}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -156,7 +178,7 @@ export function ProductDetails({
                 {sortedImages.map((img, idx) => (
                   <button
                     key={img.id}
-                    onClick={() => setSelectedImageIndex(idx)}
+                    onClick={() => goToImage(idx)}
                     className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 overflow-hidden border-2 rounded-xl transition-colors ${
                       selectedImageIndex === idx
                         ? "border-[#1473E6]"
@@ -178,7 +200,6 @@ export function ProductDetails({
 
           {/* RIGHT: Product info */}
           <div className="space-y-5">
-
             {/* Category badge */}
             {product.category && (
               <div className="flex items-center gap-2">
@@ -235,7 +256,8 @@ export function ProductDetails({
               {inStock ? (
                 <span className="text-green-600 font-medium">
                   موجود در انبار
-                  {product.stock <= 10 && ` — تنها ${product.stock} عدد باقی مانده`}
+                  {product.stock <= 10 &&
+                    ` — تنها ${product.stock} عدد باقی مانده`}
                 </span>
               ) : (
                 <span className="text-gray-400 font-medium">ناموجود</span>
@@ -284,8 +306,8 @@ export function ProductDetails({
                   {!inStock
                     ? "ناموجود"
                     : isPending
-                    ? "در حال افزودن..."
-                    : "افزودن به سبد خرید"}
+                      ? "در حال افزودن..."
+                      : "افزودن به سبد خرید"}
                 </button>
               )}
             </div>
@@ -295,7 +317,9 @@ export function ProductDetails({
               <div className="flex flex-col items-center text-center gap-1.5 p-2">
                 <Truck className="w-5 h-5 text-[#1473E6]" />
                 <p className="text-xs font-medium">ارسال رایگان</p>
-                <p className="text-[10px] text-gray-400">سفارش‌های بالای ۵۰۰ هزار تومان</p>
+                <p className="text-[10px] text-gray-400">
+                  سفارش‌های بالای ۵۰۰ هزار تومان
+                </p>
               </div>
               <div className="flex flex-col items-center text-center gap-1.5 p-2 border-x border-[#A9CBF5]/30">
                 <Shield className="w-5 h-5 text-[#1473E6]" />
@@ -318,7 +342,7 @@ export function ProductDetails({
               [
                 { key: "details", label: "جزئیات محصول" },
                 { key: "care", label: "نکات نگهداری و مصرف" },
-                { key: "specs", label: "مشخصات" },
+                // { key: "specs", label: "مشخصات" },
               ] as const
             ).map((tab) => (
               <button
@@ -350,19 +374,16 @@ export function ProductDetails({
                       </p>
                     </div>
                   )}
-                  <div className="bg-[#FDE68A]/15 border border-[#A9CBF5]/30 p-3">
-                    <p className="text-xs text-gray-400 mb-0.5">موجودی</p>
-                    <p className={`text-sm font-medium ${inStock ? "text-[#1473E6]" : "text-gray-400"}`}>
-                      {inStock ? "موجود" : "ناموجود"}
-                    </p>
-                  </div>
+
                   {product.attributes?.map((attr) => (
                     <div
                       key={attr.id}
-                      className="bg-[#FDE68A]/15 border border-[#A9CBF5]/30 p-3"
+                      className="bg-[#FDE68A]/15 border border-[#A9CBF5]/30 p-3 rounded-xl"
                     >
                       <p className="text-xs text-gray-400 mb-0.5">{attr.key}</p>
-                      <p className="text-sm font-medium text-gray-800">{attr.value}</p>
+                      <p className="text-sm font-medium text-gray-800">
+                        {attr.value}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -394,12 +415,14 @@ export function ProductDetails({
               </ul>
             )}
 
-            {activeTab === "specs" && (
+            {/* {activeTab === "specs" && (
               <div className="space-y-3 text-sm">
                 {product.sku && (
                   <div className="flex justify-between py-2 border-b border-[#A9CBF5]/20">
                     <span className="text-gray-500">کد محصول</span>
-                    <span className="font-medium text-gray-800">{product.sku}</span>
+                    <span className="font-medium text-gray-800">
+                      {product.sku}
+                    </span>
                   </div>
                 )}
                 {product.category && (
@@ -416,7 +439,9 @@ export function ProductDetails({
                     className="flex justify-between py-2 border-b border-[#A9CBF5]/20"
                   >
                     <span className="text-gray-500">{attr.key}</span>
-                    <span className="font-medium text-gray-800">{attr.value}</span>
+                    <span className="font-medium text-gray-800">
+                      {attr.value}
+                    </span>
                   </div>
                 ))}
                 <div className="flex justify-between py-2">
@@ -426,7 +451,7 @@ export function ProductDetails({
                   </span>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -438,7 +463,8 @@ export function ProductDetails({
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {relatedProducts.map((p) => {
-                const primaryImage = p.images?.find((i) => i.isPrimary) ?? p.images?.[0];
+                const primaryImage =
+                  p.images?.find((i) => i.isPrimary) ?? p.images?.[0];
                 const relatedDiscount = p.discounts?.find((d) => d.isActive);
                 const relatedBase = p.basePrice;
                 const relatedFinal = relatedDiscount
@@ -467,7 +493,6 @@ export function ProductDetails({
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

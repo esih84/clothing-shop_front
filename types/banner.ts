@@ -1,4 +1,15 @@
-export type BannerPosition = string; // اگر enum داری بعداً دقیق‌ترش می‌کنیم (مثل "home" | "category" ...)
+/**
+ * جایگاه‌های مجاز بنر — باید با رجیستری بک‌اند
+ * (shop-backend/src/modules/banners/banner-position.ts) همگام بماند.
+ */
+export const BANNER_POSITIONS = {
+  HOME_MAIN: "home_main",
+  HOME_SIDE_TOP: "home_side_top",
+  HOME_SIDE_BOTTOM: "home_side_bottom",
+} as const;
+
+export type BannerPosition =
+  (typeof BANNER_POSITIONS)[keyof typeof BANNER_POSITIONS];
 
 export type Banner = {
   id: string;
@@ -7,7 +18,8 @@ export type Banner = {
   imageUrl: string;
   mobileImageUrl?: string;
   link?: string;
-  position: BannerPosition;
+  // string می‌ماند تا به داده‌ی قدیمی با جایگاه‌های حذف‌شده حساس نباشد
+  position: string;
   order: number;
   isActive: boolean;
   startDate?: string;

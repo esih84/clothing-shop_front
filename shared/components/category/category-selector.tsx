@@ -78,7 +78,7 @@ export function CategorySelector({
               >
                 {nameOnTop && (
                   <div className="flex items-center justify-center p-2">
-                    <p className="text-[11px] sm:text-xs font-semibold text-primary text-center leading-tight">
+                    <p className="text-[11px] sm:text-xs font-semibold text-secondary text-center leading-tight">
                       {category.name}
                     </p>
                   </div>
@@ -109,7 +109,7 @@ export function CategorySelector({
 
                 {!nameOnTop && (
                   <div className="flex items-center justify-center p-2">
-                    <p className="text-[11px] sm:text-xs font-semibold text-primary text-center leading-tight">
+                    <p className="text-[11px] sm:text-xs font-semibold text-secondary text-center leading-tight">
                       {category.name}
                     </p>
                   </div>

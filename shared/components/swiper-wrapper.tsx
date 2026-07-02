@@ -1,11 +1,8 @@
 // components/swiper-wrapper.tsx
 "use client";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
+import { AppSlider } from "@/shared/components/app-slider";
 import { OfferCard } from "@/shared/components/offer-card";
-import "swiper/css";
-import "swiper/css/navigation";
 import type { Product } from "@/types/product";
 
 interface SwiperWrapperProps {
@@ -14,16 +11,17 @@ interface SwiperWrapperProps {
 
 export function SwiperWrapper({ products }: SwiperWrapperProps) {
   return (
-    <Swiper
-      modules={[Navigation]}
-      spaceBetween={12}
-      loop={products.length > 4}
-      slidesPerView="auto"
+    <AppSlider
+      items={products}
+      getKey={(product) => product.id}
       navigation
+      loop={products.length > 4}
+      spaceBetween={12}
+      slidesPerView="auto"
       className="offers-swiper"
-      wrapperClass="items-center"
-    >
-      {products.map((product) => {
+      wrapperClassName="items-center"
+      slideClassName="!w-auto"
+      renderItem={(product) => {
         // پیدا کردن تخفیف فعال (اگر وجود داشته باشد)
         const activeDiscount = product.discounts?.find((d) => d.isActive);
 
@@ -45,19 +43,17 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
         }
 
         return (
-          <SwiperSlide key={product.id} style={{ width: "auto" }}>
-            <OfferCard
-              id={product.id}
-              slug={product.slug}
-              title={product.name}
-              price={finalPrice}
-              originalPrice={product.basePrice}
-              discount={discountPercent}
-              imageUrl={product.images?.[0]?.url || "/placeholder.png"}
-            />
-          </SwiperSlide>
+          <OfferCard
+            id={product.id}
+            slug={product.slug}
+            title={product.name}
+            price={finalPrice}
+            originalPrice={product.basePrice}
+            discount={discountPercent}
+            imageUrl={product.images?.[0]?.url || "/placeholder.png"}
+          />
         );
-      })}
-    </Swiper>
+      }}
+    />
   );
 }

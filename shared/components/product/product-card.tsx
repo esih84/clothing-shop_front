@@ -47,7 +47,7 @@ export function ProductCard({
           imageUrl,
           brand: "Brand",
           location: "In Store",
-        })
+        }),
       );
     });
   };
@@ -75,8 +75,10 @@ export function ProductCard({
         )}
         <button
           onClick={handleToggleWishlist}
-          className={`absolute top-2 right-2 p-1.5 bg-white/90 transition-colors ${
-            isInWishlist ? "text-[#1473E6]" : "text-gray-400 hover:text-[#1473E6]"
+          className={`absolute top-2 rounded-full  right-2 p-2.5 bg-white/90 transition-colors ${
+            isInWishlist
+              ? "text-[#1473E6]"
+              : "text-gray-400 hover:text-[#1473E6]"
           }`}
           disabled={isPending}
           aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
