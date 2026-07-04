@@ -1,15 +1,16 @@
 "use client";
 
-import { Bone } from "lucide-react";
+import { Bone, Cat, Dog, PawPrint, type LucideIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 /**
- * پس‌زمینه‌ی تزئینی: چند استخوان که هنگام اسکرول با سرعت‌های متفاوت
- * (parallax) حرکت می‌کنند. سبک و غیرمسدودکننده؛ روی موبایل و
+ * پس‌زمینه‌ی تزئینی: چند آیکون (استخوان، سگ، گربه، ردپا) که هنگام اسکرول
+ * با سرعت‌های متفاوت (parallax) حرکت می‌کنند. سبک و غیرمسدودکننده؛ روی موبایل و
  * در حالت prefers-reduced-motion غیرفعال می‌شود.
  */
 
-type BoneSpec = {
+type IconSpec = {
+  Icon: LucideIcon;
   top: string;
   left?: string;
   right?: string;
@@ -20,13 +21,88 @@ type BoneSpec = {
   opacity: number;
 };
 
-const BONES: BoneSpec[] = [
-  { top: "8%", left: "4%", size: 56, rotate: -25, speed: 0.18, opacity: 0.1 },
-  { top: "22%", right: "6%", size: 80, rotate: 35, speed: 0.32, opacity: 0.08 },
-  { top: "45%", left: "10%", size: 44, rotate: 15, speed: 0.5, opacity: 0.09 },
-  { top: "60%", right: "12%", size: 64, rotate: -15, speed: 0.24, opacity: 0.1 },
-  { top: "78%", left: "6%", size: 72, rotate: 45, speed: 0.4, opacity: 0.07 },
-  { top: "90%", right: "8%", size: 50, rotate: -40, speed: 0.6, opacity: 0.09 },
+const ICONS: IconSpec[] = [
+  {
+    Icon: Bone,
+    top: "8%",
+    left: "14%",
+    size: 56,
+    rotate: -25,
+    speed: 0.18,
+    opacity: 0.1,
+  },
+  {
+    Icon: Dog,
+    top: "16%",
+    right: "26%",
+    size: 84,
+    rotate: 12,
+    speed: 0.28,
+    opacity: 0.08,
+  },
+  {
+    Icon: PawPrint,
+    top: "30%",
+    left: "28%",
+    size: 40,
+    rotate: -10,
+    speed: 0.44,
+    opacity: 0.09,
+  },
+  {
+    Icon: Cat,
+    top: "40%",
+    right: "40%",
+    size: 72,
+    rotate: 18,
+    speed: 0.36,
+    opacity: 0.08,
+  },
+  {
+    Icon: Bone,
+    top: "52%",
+    left: "32%",
+    size: 48,
+    rotate: 30,
+    speed: 0.5,
+    opacity: 0.09,
+  },
+  {
+    Icon: PawPrint,
+    top: "62%",
+    right: "44%",
+    size: 36,
+    rotate: 25,
+    speed: 0.55,
+    opacity: 0.1,
+  },
+  {
+    Icon: Dog,
+    top: "74%",
+    left: "6%",
+    size: 68,
+    rotate: -18,
+    speed: 0.4,
+    opacity: 0.07,
+  },
+  {
+    Icon: Cat,
+    top: "84%",
+    right: "18%",
+    size: 60,
+    rotate: -22,
+    speed: 0.6,
+    opacity: 0.09,
+  },
+  {
+    Icon: PawPrint,
+    top: "92%",
+    left: "66%",
+    size: 44,
+    rotate: 8,
+    speed: 0.66,
+    opacity: 0.08,
+  },
 ];
 
 export function BoneBackground() {
@@ -34,15 +110,13 @@ export function BoneBackground() {
 
   useEffect(() => {
     const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
+      "(prefers-reduced-motion: reduce)",
     ).matches;
     if (reduce) return;
 
     const el = containerRef.current;
     if (!el) return;
-    const items = Array.from(
-      el.querySelectorAll<HTMLElement>("[data-speed]")
-    );
+    const items = Array.from(el.querySelectorAll<HTMLElement>("[data-speed]"));
 
     let ticking = false;
     const update = () => {
@@ -73,8 +147,8 @@ export function BoneBackground() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden hidden md:block"
     >
-      {BONES.map((b, i) => (
-        <Bone
+      {ICONS.map((b, i) => (
+        <b.Icon
           key={i}
           data-speed={b.speed}
           data-rotate={b.rotate}
