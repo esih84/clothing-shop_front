@@ -8,6 +8,8 @@ export const queryKeys = {
   products: ["products"] as const,
   wishlist: ["wishlist"] as const,
   orders: ["orders"] as const,
+  addresses: ["addresses"] as const,
+  pets: ["pets"] as const,
 } as const;
 
 // نام‌های مستعار پرکاربرد

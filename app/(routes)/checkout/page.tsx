@@ -1,23 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, MapPin, Plus, Check, ChevronDown, Loader2 } from "lucide-react";
+import {
+  ShoppingBag,
+  MapPin,
+  Plus,
+  Check,
+  ChevronDown,
+  Loader2,
+  PawPrint,
+} from "lucide-react";
 import { useAppDispatch } from "@/shared/store/hooks";
 import { clearCart } from "@/shared/store/slices/cartSlice";
 import { useCurrentUser, useIsLoggedIn } from "@/features/auth/queries";
 import { useCart } from "@/features/cart/queries";
 import { useCreateOrder } from "@/features/order/mutations";
+import { useAddresses } from "@/features/address/queries";
+import { useCreateAddress } from "@/features/address/mutations";
+import { usePets } from "@/features/pet/queries";
 import { formatToman } from "@/shared/lib/utils";
+import type { Address } from "@/features/address/address-api";
 
-interface SavedAddress {
-  id: string;
-  label: string;
+/** فرم معلق سفارش برای کاربری که وسط checkout به لاگین فرستاده می‌شود */
+const PENDING_ORDER_KEY = "pending-order";
+
+interface PendingOrder {
+  firstName: string;
+  lastName: string;
+  petName: string;
   city: string;
   address: string;
   plaque: string;
+  note: string;
+  selectedAddressId: string | null;
+  saveNewAddress: boolean;
+  addressLabel: string;
 }
 
 export default function CheckoutPage() {
@@ -25,15 +45,11 @@ export default function CheckoutPage() {
   const dispatch = useAppDispatch();
   const isLoggedIn = useIsLoggedIn();
   const createOrder = useCreateOrder();
+  const createAddress = useCreateAddress();
   const { lines: cartItems } = useCart();
   const { data: currentUser } = useCurrentUser();
-  const userProfile = currentUser
-    ? {
-        firstName: currentUser.firstName ?? "",
-        lastName: currentUser.lastName ?? "",
-        savedAddresses: [] as SavedAddress[],
-      }
-    : null;
+  const { data: addresses = [] } = useAddresses();
+  const { data: pets = [] } = usePets();
   const [mounted, setMounted] = useState(false);
 
   // Form state
@@ -48,35 +64,112 @@ export default function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Saved addresses
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
   const [useNewAddress, setUseNewAddress] = useState(false);
+  const [saveNewAddress, setSaveNewAddress] = useState(true);
+  const [addressLabel, setAddressLabel] = useState("خانه");
+
+  // ثبت خودکار سفارش معلق پس از برگشت از لاگین
+  const [finalizing, setFinalizing] = useState(false);
+  const autoSubmitted = useRef(false);
 
   useEffect(() => {
     setMounted(true);
-
-    // Pre-fill name from profile if available
-    if (userProfile) {
-      setFirstName(userProfile.firstName || "");
-      setLastName(userProfile.lastName || "");
-
-      // Auto-select first saved address if exists
-      if (userProfile.savedAddresses.length > 0) {
-        const first = userProfile.savedAddresses[0];
-        setSelectedAddressId(first.id);
-        setCity(first.city);
-        setAddress(first.address);
-        setPlaque(first.plaque);
-      }
+    if (sessionStorage.getItem(PENDING_ORDER_KEY)) {
+      setFinalizing(true);
     }
   }, []);
 
+  // پر کردن نام از پروفایل وقتی کاربر لود شد
+  useEffect(() => {
+    if (!currentUser) return;
+    setFirstName((v) => v || currentUser.firstName || "");
+    setLastName((v) => v || currentUser.lastName || "");
+  }, [currentUser]);
+
+  // انتخاب خودکار آدرس پیش‌فرض وقتی آدرس‌ها لود شدند
+  useEffect(() => {
+    if (addresses.length === 0 || selectedAddressId || useNewAddress) return;
+    if (city || address) return; // کاربر خودش چیزی وارد کرده
+    const def = addresses.find((a) => a.isDefault) ?? addresses[0];
+    setSelectedAddressId(def.id);
+    setCity(def.city);
+    setAddress(def.address);
+    setPlaque(def.plaque);
+  }, [addresses]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const submitOrder = async (payload: PendingOrder) => {
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const order = await createOrder.mutateAsync({
+        shippingAddress: {
+          firstName: payload.firstName,
+          lastName: payload.lastName,
+          petName: payload.petName,
+          city: payload.city,
+          address: payload.address,
+          plaque: payload.plaque,
+          note: payload.note,
+        },
+      });
+      // ذخیره‌ی آدرس جدید در دفترچه‌ی آدرس (خطای آن ثبت سفارش را خراب نمی‌کند)
+      if (!payload.selectedAddressId && payload.saveNewAddress) {
+        try {
+          await createAddress.mutateAsync({
+            label: payload.addressLabel.trim() || payload.city,
+            city: payload.city,
+            address: payload.address,
+            plaque: payload.plaque,
+          });
+        } catch {}
+      }
+      dispatch(clearCart());
+      router.push(`/order/${order.id}`);
+    } catch {
+      setSubmitError(
+        "ثبت سفارش با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید."
+      );
+      setFinalizing(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // پس از برگشت از لاگین: فرم ذخیره‌شده را بازیابی و سفارش را خودکار ثبت کن
+  useEffect(() => {
+    if (!mounted || !isLoggedIn || autoSubmitted.current) return;
+    const raw = sessionStorage.getItem(PENDING_ORDER_KEY);
+    if (!raw) return;
+    // صبر تا سبد سرور (پس از merge) برسد
+    if (cartItems.length === 0) return;
+    autoSubmitted.current = true;
+    sessionStorage.removeItem(PENDING_ORDER_KEY);
+    try {
+      const pending = JSON.parse(raw) as PendingOrder;
+      setFirstName(pending.firstName);
+      setLastName(pending.lastName);
+      setPetName(pending.petName);
+      setCity(pending.city);
+      setAddress(pending.address);
+      setPlaque(pending.plaque);
+      setNote(pending.note);
+      setSaveNewAddress(pending.saveNewAddress);
+      setAddressLabel(pending.addressLabel);
+      void submitOrder(pending);
+    } catch {
+      setFinalizing(false);
+    }
+  }, [mounted, isLoggedIn, cartItems.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!mounted) return null;
 
-  const hasSavedAddresses =
-    userProfile && userProfile.savedAddresses.length > 0;
+  const hasSavedAddresses = addresses.length > 0;
 
-  const handleSelectSavedAddress = (saved: SavedAddress) => {
+  const handleSelectSavedAddress = (saved: Address) => {
     setSelectedAddressId(saved.id);
     setCity(saved.city);
     setAddress(saved.address);
@@ -104,34 +197,40 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload: PendingOrder = {
+      firstName,
+      lastName,
+      petName,
+      city,
+      address,
+      plaque,
+      note,
+      selectedAddressId,
+      saveNewAddress,
+      addressLabel,
+    };
     if (!isLoggedIn) {
-      router.push("/login");
+      // فرم را نگه می‌داریم تا بعد از لاگین خودکار ثبت شود
+      sessionStorage.setItem(PENDING_ORDER_KEY, JSON.stringify(payload));
+      router.push("/login?redirect=/checkout");
       return;
     }
-    setSubmitError(null);
-    setSubmitting(true);
-    try {
-      const order = await createOrder.mutateAsync({
-        shippingAddress: {
-          firstName,
-          lastName,
-          petName,
-          city,
-          address,
-          plaque,
-          note,
-        },
-      });
-      dispatch(clearCart());
-      router.push(`/order/${order.id}`);
-    } catch {
-      setSubmitError(
-        "ثبت سفارش با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید."
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    await submitOrder(payload);
   };
+
+  // در حال نهایی‌کردن سفارش معلق (بعد از لاگین)
+  if (finalizing && !submitError) {
+    return (
+      <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="w-10 h-10 text-[#1473E6] animate-spin" />
+          <p className="text-gray-600 text-base md:text-lg">
+            در حال ثبت نهایی سفارش شما...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -234,6 +333,25 @@ export default function CheckoutPage() {
                     placeholder="مثال: پوپک"
                     className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
                   />
+                  {pets.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {pets.map((pet) => (
+                        <button
+                          key={pet.id}
+                          type="button"
+                          onClick={() => setPetName(pet.name)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs md:text-sm border transition-colors ${
+                            petName === pet.name
+                              ? "bg-secondary text-secondary-foreground border-secondary"
+                              : "bg-[#FDE68A]/20 text-gray-700 border-[#A9CBF5]/40 hover:border-[#1473E6]"
+                          }`}
+                        >
+                          <PawPrint className="w-3.5 h-3.5" />
+                          {pet.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -264,9 +382,8 @@ export default function CheckoutPage() {
                       <span className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-[#1473E6]" />
                         {selectedAddressId
-                          ? userProfile!.savedAddresses.find(
-                              (a) => a.id === selectedAddressId
-                            )?.label
+                          ? addresses.find((a) => a.id === selectedAddressId)
+                              ?.label
                           : useNewAddress
                           ? "آدرس جدید"
                           : "انتخاب آدرس"}
@@ -280,7 +397,7 @@ export default function CheckoutPage() {
 
                     {showAddressDropdown && (
                       <div className="absolute top-full right-0 left-0 bg-white border border-[#A9CBF5]/50 border-t-0 z-10 shadow-md rounded-b-xl overflow-hidden">
-                        {userProfile!.savedAddresses.map((saved) => (
+                        {addresses.map((saved) => (
                           <button
                             key={saved.id}
                             type="button"
@@ -360,6 +477,36 @@ export default function CheckoutPage() {
                     className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white resize-none rounded-xl"
                   />
                 </div>
+
+                {/* ذخیره‌ی آدرس جدید در دفترچه‌ی آدرس */}
+                {!selectedAddressId && (
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-2 text-sm md:text-base text-gray-600 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={saveNewAddress}
+                        onChange={(e) => setSaveNewAddress(e.target.checked)}
+                        className="w-4 h-4 accent-[#1473E6]"
+                      />
+                      این آدرس در حساب من ذخیره شود
+                    </label>
+                    {saveNewAddress && (
+                      <div>
+                        <label className="block text-sm md:text-base text-gray-600 mb-1">
+                          عنوان آدرس
+                        </label>
+                        <input
+                          type="text"
+                          value={addressLabel}
+                          onChange={(e) => setAddressLabel(e.target.value)}
+                          placeholder="مثال: خانه، محل کار"
+                          className="w-full sm:w-1/2 border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm md:text-base text-gray-600 mb-1">
                     یادداشت{" "}

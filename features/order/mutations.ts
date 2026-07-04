@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { orderService } from "./order-api";
-import { CART_KEY } from "@/features/query-keys";
+import { CART_KEY, CURRENT_USER_KEY, queryKeys } from "@/features/query-keys";
 
 export type CreateOrderInput = {
   couponCode?: string;
@@ -19,6 +19,9 @@ export function useCreateOrder() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CART_KEY });
+      // نام کاربر و پت‌ها ممکن است هنگام ثبت سفارش به‌روز شده باشند
+      qc.invalidateQueries({ queryKey: CURRENT_USER_KEY });
+      qc.invalidateQueries({ queryKey: queryKeys.pets });
     },
   });
 }
