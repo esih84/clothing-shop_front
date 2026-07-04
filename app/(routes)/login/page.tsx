@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PawPrint, Loader2 } from "lucide-react";
 import { useSendOtp, useVerifyOtp } from "@/features/auth/mutations";
 import { useMergeGuestCart } from "@/features/cart/mutations";
 import { normalizeDigits } from "@/shared/lib/digits";
 import { brand } from "@/shared/config/brand";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // فقط مسیرهای داخلی مجازند تا open-redirect نشود
+  const redirectParam = searchParams.get("redirect");
+  const redirectTo =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : "/profile";
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
@@ -45,7 +52,7 @@ export default function LoginPage() {
       await verifyOtp.mutateAsync({ phone, code });
       // ادغام سبد مهمان با سبد سرور پس از ورود
       await mergeGuestCart.mutateAsync();
-      router.push("/profile");
+      router.push(redirectTo);
     } catch {
       setError("کد وارد شده نادرست یا منقضی شده است.");
     }
@@ -133,5 +140,14 @@ export default function LoginPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  // useSearchParams نیازمند مرز Suspense است
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
