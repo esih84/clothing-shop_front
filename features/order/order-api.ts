@@ -27,7 +27,7 @@ export async function getOrderDetails(id: string) {
 }
 
 export const orderService = {
-  create: async (data: { couponCode?: string; shippingAddress?: any }) =>
+  create: async (data: { shippingAddress?: any }) =>
     await api.post<ApiResponse<Order>>("/orders", data),
 
   getMyOrders: async (page = 1) => {

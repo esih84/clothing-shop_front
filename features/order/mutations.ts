@@ -5,7 +5,6 @@ import { orderService } from "./order-api";
 import { CART_KEY, CURRENT_USER_KEY, queryKeys } from "@/features/query-keys";
 
 export type CreateOrderInput = {
-  couponCode?: string;
   shippingAddress?: Record<string, unknown>;
 };
 

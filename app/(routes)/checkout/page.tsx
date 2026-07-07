@@ -21,6 +21,7 @@ import { useCreateOrder } from "@/features/order/mutations";
 import { useAddresses } from "@/features/address/queries";
 import { useCreateAddress } from "@/features/address/mutations";
 import { usePets } from "@/features/pet/queries";
+import { useApplyCoupon, useRemoveCoupon } from "@/features/coupon/mutations";
 import { formatToman } from "@/shared/lib/utils";
 import type { Address } from "@/features/address/address-api";
 
@@ -38,6 +39,7 @@ interface PendingOrder {
   selectedAddressId: string | null;
   saveNewAddress: boolean;
   addressLabel: string;
+  couponCode: string | null;
 }
 
 export default function CheckoutPage() {
@@ -47,6 +49,8 @@ export default function CheckoutPage() {
   const createOrder = useCreateOrder();
   const createAddress = useCreateAddress();
   const { lines: cartItems } = useCart();
+  const applyCoupon = useApplyCoupon();
+  const removeCouponMutation = useRemoveCoupon();
   const { data: currentUser } = useCurrentUser();
   const { data: addresses = [] } = useAddresses();
   const { data: pets = [] } = usePets();
@@ -62,6 +66,14 @@ export default function CheckoutPage() {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // کد تخفیف
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+  } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
 
   // Saved addresses
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -159,7 +171,19 @@ export default function CheckoutPage() {
       setNote(pending.note);
       setSaveNewAddress(pending.saveNewAddress);
       setAddressLabel(pending.addressLabel);
-      void submitOrder(pending);
+      void (async () => {
+        // کوپن باید دوباره روی سبد سرورِ merge‌شده اعمال شود تا هنگام ثبت سفارش لحاظ گردد
+        if (pending.couponCode) {
+          setCouponInput(pending.couponCode);
+          try {
+            const res = await applyCoupon.mutateAsync(pending.couponCode);
+            setAppliedCoupon({ code: res.coupon.code, discount: res.discount });
+          } catch {
+            setAppliedCoupon(null);
+          }
+        }
+        await submitOrder(pending);
+      })();
     } catch {
       setFinalizing(false);
     }
@@ -187,13 +211,36 @@ export default function CheckoutPage() {
     setShowAddressDropdown(false);
   };
 
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponError(null);
+    try {
+      const res = await applyCoupon.mutateAsync(code);
+      setAppliedCoupon({ code: res.coupon.code, discount: res.discount });
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string | string[] } } })
+          ?.response?.data?.message ?? "کد تخفیف معتبر نیست.";
+      setCouponError(Array.isArray(message) ? message[0] : message);
+      setAppliedCoupon(null);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+    removeCouponMutation.mutate();
+  };
+
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
   const shipping = 0;
-  const tax = subtotal * 0.1;
-  const total = subtotal + shipping + tax;
+  const discount = appliedCoupon?.discount ?? 0;
+  const total = Math.max(0, subtotal + shipping - discount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,6 +255,7 @@ export default function CheckoutPage() {
       selectedAddressId,
       saveNewAddress,
       addressLabel,
+      couponCode: appliedCoupon?.code ?? null,
     };
     if (!isLoggedIn) {
       // فرم را نگه می‌داریم تا بعد از لاگین خودکار ثبت شود
@@ -569,6 +617,50 @@ export default function CheckoutPage() {
               <h2 className="text-xl md:text-2xl font-bold mb-4">
                 خلاصه سفارش
               </h2>
+
+              {/* کد تخفیف */}
+              <div className="mb-5">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                    <span className="text-sm text-green-700 flex items-center gap-1.5">
+                      <Check className="w-4 h-4" />
+                      کد «{appliedCoupon.code}» اعمال شد
+                    </span>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-xs text-red-500 hover:underline"
+                    >
+                      حذف
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value)}
+                      placeholder="کد تخفیف"
+                      className="flex-1 min-w-0 border border-[#A9CBF5]/50 px-3 py-2 text-sm focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={applyCoupon.isPending || !couponInput.trim()}
+                      className="bg-[#1473E6] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#1473E6]/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
+                    >
+                      {applyCoupon.isPending && (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      )}
+                      اعمال
+                    </button>
+                  </div>
+                )}
+                {couponError && (
+                  <p className="text-xs text-red-600 mt-1.5">{couponError}</p>
+                )}
+              </div>
+
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-base md:text-lg">
                   <span className="text-gray-600">جمع جزء</span>
@@ -578,10 +670,14 @@ export default function CheckoutPage() {
                   <span className="text-gray-600">ارسال</span>
                   <span className="font-medium text-green-600">رایگان</span>
                 </div>
-                <div className="flex justify-between text-base md:text-lg">
-                  <span className="text-gray-600">مالیات</span>
-                  <span className="font-medium">{formatToman(tax)}</span>
-                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-base md:text-lg">
+                    <span className="text-gray-600">تخفیف</span>
+                    <span className="font-medium text-green-600">
+                      −{formatToman(discount)}
+                    </span>
+                  </div>
+                )}
                 <div className="border-t pt-3 mt-3">
                   <div className="flex justify-between font-bold text-lg md:text-xl">
                     <span>جمع کل</span>
