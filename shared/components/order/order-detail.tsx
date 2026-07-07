@@ -23,13 +23,14 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order }) => {
     label: order.status,
     className: 'bg-gray-100 text-gray-700',
   }
+  const orderLabel = order.orderNumber ?? `#${order.id.slice(0, 8)}`
   return (
     <div className="max-w-xl mx-auto p-4 space-y-6" style={{ direction: 'rtl' }}>
       <div className="flex items-center gap-2 mb-4">
         <Link href="/profile/orders" className="text-gray-400 hover:text-[#A9CBF5]">
           <ChevronLeft className="w-5 h-5" />
         </Link>
-        <h2 className="font-bold text-lg text-gray-800">جزئیات سفارش #{order.id}</h2>
+        <h2 className="font-bold text-lg text-gray-800" dir="ltr">جزئیات سفارش {orderLabel}</h2>
       </div>
       <div className="bg-white rounded-lg shadow p-4 border border-[#A9CBF5]/30">
         <div className="flex items-center gap-3 mb-3">
@@ -37,7 +38,7 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order }) => {
             <Package className="w-5 h-5 text-[#1473E6]" />
           </div>
           <div className="text-right">
-            <p className="font-medium text-gray-800 text-sm">سفارش #{order.id}</p>
+            <p className="font-medium text-gray-800 text-sm" dir="ltr">سفارش {orderLabel}</p>
             <p className="text-xs text-gray-500 mt-0.5">
               {new Date(order.createdAt).toLocaleDateString('fa-IR')}
             </p>

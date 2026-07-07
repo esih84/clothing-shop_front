@@ -28,7 +28,9 @@ export default async function OrdersTab() {
               <Package className="w-5 h-5 text-[#1473E6]" />
             </div>
             <div className="text-right">
-              <p className="font-medium text-gray-800 text-sm">سفارش #{order.id}</p>
+              <p className="font-medium text-gray-800 text-sm" dir="ltr">
+                سفارش {order.orderNumber ?? `#${order.id.slice(0, 8)}`}
+              </p>
               <p className="text-xs text-gray-500 mt-0.5">
                 {new Date(order.createdAt).toLocaleDateString("fa-IR")}
               </p>

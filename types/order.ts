@@ -23,6 +23,7 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  orderNumber?: string | null;
 
   userId: string;
   user?: User;
