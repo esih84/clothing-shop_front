@@ -22,11 +22,23 @@ import { useAddresses } from "@/features/address/queries";
 import { useCreateAddress } from "@/features/address/mutations";
 import { usePets } from "@/features/pet/queries";
 import { useApplyCoupon, useRemoveCoupon } from "@/features/coupon/mutations";
+import { useCreatePayment } from "@/features/payment/mutations";
 import { formatToman } from "@/shared/lib/utils";
 import type { Address } from "@/features/address/address-api";
 
 /** فرم معلق سفارش برای کاربری که وسط checkout به لاگین فرستاده می‌شود */
 const PENDING_ORDER_KEY = "pending-order";
+
+/** روش‌های پرداخت (فعلاً فقط زرین‌پال؛ ساختار برای افزودن روش‌های بعدی آماده است). */
+const PAYMENT_METHODS = [
+  {
+    id: "zarinpal",
+    label: "پرداخت آنلاین (زرین‌پال)",
+    desc: "انتقال به درگاه امن زرین‌پال",
+  },
+] as const;
+
+type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
 
 interface PendingOrder {
   firstName: string;
@@ -51,6 +63,7 @@ export default function CheckoutPage() {
   const { lines: cartItems } = useCart();
   const applyCoupon = useApplyCoupon();
   const removeCouponMutation = useRemoveCoupon();
+  const createPayment = useCreatePayment();
   const { data: currentUser } = useCurrentUser();
   const { data: addresses = [] } = useAddresses();
   const { data: pets = [] } = usePets();
@@ -74,6 +87,10 @@ export default function CheckoutPage() {
     discount: number;
   } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
+
+  // روش پرداخت
+  const [paymentMethod, setPaymentMethod] =
+    useState<PaymentMethodId>("zarinpal");
 
   // Saved addresses
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -139,14 +156,17 @@ export default function CheckoutPage() {
           });
         } catch {}
       }
+      // شروع پرداخت آنلاین: ساخت تراکنش و انتقال به درگاه زرین‌پال
+      const { gatewayUrl } = await createPayment.mutateAsync({
+        orderId: order.id,
+      });
       dispatch(clearCart());
-      router.push(`/order/${order.id}`);
+      window.location.href = gatewayUrl;
     } catch {
       setSubmitError(
-        "ثبت سفارش با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید."
+        "ثبت سفارش یا اتصال به درگاه پرداخت با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید."
       );
       setFinalizing(false);
-    } finally {
       setSubmitting(false);
     }
   };
@@ -214,6 +234,11 @@ export default function CheckoutPage() {
   const handleApplyCoupon = async () => {
     const code = couponInput.trim();
     if (!code) return;
+    // کد تخفیف به سبد سرور گره خورده؛ مهمان باید ابتدا وارد شود.
+    if (!isLoggedIn) {
+      setCouponError("برای استفاده از کد تخفیف ابتدا وارد شوید.");
+      return;
+    }
     setCouponError(null);
     try {
       const res = await applyCoupon.mutateAsync(code);
@@ -659,6 +684,18 @@ export default function CheckoutPage() {
                 {couponError && (
                   <p className="text-xs text-red-600 mt-1.5">{couponError}</p>
                 )}
+                {!isLoggedIn && !appliedCoupon && (
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    برای استفاده از کد تخفیف{" "}
+                    <Link
+                      href="/login?redirect=/checkout"
+                      className="text-[#1473E6] hover:underline"
+                    >
+                      وارد شوید
+                    </Link>
+                    .
+                  </p>
+                )}
               </div>
 
               <div className="space-y-3 mb-6">
@@ -683,6 +720,41 @@ export default function CheckoutPage() {
                     <span>جمع کل</span>
                     <span>{formatToman(total)}</span>
                   </div>
+                </div>
+              </div>
+              {/* روش پرداخت */}
+              <div className="mb-5">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  روش پرداخت
+                </h3>
+                <div className="space-y-2">
+                  {PAYMENT_METHODS.map((m) => (
+                    <label
+                      key={m.id}
+                      className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
+                        paymentMethod === m.id
+                          ? "border-[#1473E6] bg-[#1473E6]/5"
+                          : "border-[#A9CBF5]/40 hover:border-[#A9CBF5]/70"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment-method"
+                        value={m.id}
+                        checked={paymentMethod === m.id}
+                        onChange={() => setPaymentMethod(m.id)}
+                        className="mt-0.5 accent-[#1473E6]"
+                      />
+                      <span className="text-sm">
+                        <span className="font-medium text-gray-800">
+                          {m.label}
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-0.5">
+                          {m.desc}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
               {submitError && (
