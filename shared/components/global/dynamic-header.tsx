@@ -255,7 +255,7 @@ export function DynamicHeader() {
   };
 
   const matchedKey = Object.keys(namedPages).find(
-    (key) => pathname === key || pathname.startsWith(key + "/")
+    (key) => pathname === key || pathname.startsWith(key + "/"),
   );
 
   const pageTitle = matchedKey ? namedPages[matchedKey] : brand.name;
