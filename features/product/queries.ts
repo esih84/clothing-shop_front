@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { productService } from "./product-api";
+import { productService, type ProductFilters } from "./product-api";
 import { queryKeys } from "@/features/query-keys";
 import type { Product } from "@/types/product";
 
@@ -10,18 +10,32 @@ export type ProductsPage = {
   hasMore: boolean;
 };
 
-/** فهرست محصولات با اسکرول بی‌نهایت (سمت کلاینت). */
-export function useInfiniteProducts(initial: ProductsPage) {
+/**
+ * فهرست محصولات با اسکرول بی‌نهایت (سمت کلاینت).
+ * با filters و limit پارامتری شده تا هم صفحه‌ی خانه (۱۰تایی، سقف‌دار)
+ * و هم صفحه‌ی `/products` (۱۰تایی، فیلتردار) از همین استفاده کنند.
+ */
+export function useInfiniteProducts({
+  filters,
+  limit = 10,
+  initial,
+}: {
+  filters?: ProductFilters;
+  limit?: number;
+  initial: ProductsPage;
+}) {
   return useInfiniteQuery({
-    queryKey: queryKeys.products,
+    // کلید شامل فیلترها + limit است تا کش هر ترکیب فیلتر جدا بماند.
+    queryKey: [...queryKeys.products, { ...filters, limit }],
     queryFn: async ({ pageParam }) => {
-      const { data, total, limit } = await productService.findAll({
+      const { data, total, limit: pageLimit } = await productService.findAll({
+        ...filters,
         page: pageParam as number,
-        limit: 12,
+        limit,
       });
       return {
         products: data,
-        hasMore: (pageParam as number) * limit < total,
+        hasMore: (pageParam as number) * pageLimit < total,
       } satisfies ProductsPage;
     },
     initialPageParam: 1,

@@ -2,11 +2,11 @@ import { Products } from "@/shared/components/product/products";
 import { getProducts } from "@/features/product/product-api";
 
 export default async function ProductsSection() {
-  const { data: response } = await getProducts({ page: 1, limit: 12 });
+  const { data: response } = await getProducts({ page: 1, limit: 10 });
   const products = response?.data ?? [];
   const total = response?.total ?? 0;
   const page = response?.page ?? 1;
-  const limit = response?.limit ?? 12;
+  const limit = response?.limit ?? 10;
 
   const hasMore = page * limit < total;
   if (!products.length) return null;
@@ -20,7 +20,13 @@ export default async function ProductsSection() {
         </h2>
       </div>
 
-      <Products initialProducts={products} initialHasMore={hasMore} />
+      <Products
+        initialProducts={products}
+        initialHasMore={hasMore}
+        limit={10}
+        maxItems={20}
+        moreHref="/products"
+      />
     </div>
   );
 }
