@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Mail, Phone, Instagram, Twitter, Send } from "lucide-react";
 import { brand } from "@/shared/config/brand";
 
@@ -18,9 +19,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pb-10 border-b border-white/15">
           {/* Brand */}
           <div className="flex flex-col gap-3">
-            <span className="text-3xl font-extrabold tracking-wide text-primary">
-              {brand.name}
-            </span>
+            <div className="rounded-2xl bg-white/95 px-4 py-3 w-fit">
+              <Image
+                src="/logo.png"
+                alt={brand.name}
+                width={180}
+                height={50}
+                className="h-11 w-auto object-contain"
+              />
+            </div>
             <span className="text-sm text-background/70 leading-relaxed">
               {brand.tagline}
             </span>

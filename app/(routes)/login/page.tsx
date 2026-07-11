@@ -2,7 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PawPrint, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { Loader2 } from "lucide-react";
 import { useSendOtp, useVerifyOtp } from "@/features/auth/mutations";
 import { useMergeGuestCart } from "@/features/cart/mutations";
 import { normalizeDigits } from "@/shared/lib/digits";
@@ -62,9 +63,14 @@ function LoginForm() {
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-border p-8">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-3">
-            <PawPrint className="w-7 h-7 text-primary-foreground" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt={brand.name}
+            width={180}
+            height={50}
+            priority
+            className="h-12 w-auto object-contain mb-3"
+          />
           <h1 className="text-xl font-bold text-foreground">
             ورود به {brand.name}
           </h1>
@@ -87,9 +93,16 @@ function LoginForm() {
               type="tel"
               inputMode="numeric"
               dir="ltr"
+              maxLength={11}
               placeholder="09123456789"
               value={phone}
-              onChange={(e) => setPhone(normalizeDigits(e.target.value))}
+              onChange={(e) =>
+                setPhone(
+                  normalizeDigits(e.target.value)
+                    .replace(/\D/g, "")
+                    .slice(0, 11),
+                )
+              }
               className="w-full text-center tracking-widest rounded-2xl border border-border bg-muted px-4 py-3 focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15"
             />
             <button

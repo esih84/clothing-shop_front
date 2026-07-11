@@ -69,7 +69,7 @@ export function CategorySelector({
               <Link
                 prefetch
                 key={category.id}
-                href={`/categories/${category.slug}`}
+                href={`/products?categorySlug=${category.slug}`}
                 className={[
                   "flex flex-col group rounded-2xl border border-transparent hover:border-secondary/30 transition-colors p-1 sm:flex-1",
                   index === 4 ? "hidden sm:flex" : "",

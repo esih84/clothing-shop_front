@@ -39,6 +39,13 @@ interface AppSliderProps<T> {
   pagination?: boolean;
   spaceBetween?: number;
   slidesPerView?: number | "auto";
+  /** جهت اسلایدر؛ برای چیدمان درست در RTL صریح ست می‌شود */
+  dir?: "rtl" | "ltr";
+  /** نقاط شکست ریسپانسیو (مثلاً موبایل ۲ کارت، دسکتاپ ۵ کارت) */
+  breakpoints?: Record<
+    number,
+    { slidesPerView?: number | "auto"; spaceBetween?: number }
+  >;
   className?: string;
   slideClassName?: string;
   wrapperClassName?: string;
@@ -56,6 +63,8 @@ export function AppSlider<T>({
   pagination = false,
   spaceBetween = 0,
   slidesPerView = 1,
+  dir,
+  breakpoints,
   className,
   slideClassName,
   wrapperClassName,
@@ -80,6 +89,8 @@ export function AppSlider<T>({
   return (
     <Swiper
       modules={[Autoplay, Navigation, Pagination]}
+      dir={dir}
+      breakpoints={breakpoints}
       spaceBetween={spaceBetween}
       slidesPerView={slidesPerView}
       navigation={navigation}

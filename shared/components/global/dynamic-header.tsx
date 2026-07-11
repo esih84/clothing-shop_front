@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Filter, ArrowRight, X, PawPrint } from "lucide-react";
+import { Search, Filter, ArrowRight, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { FilterModal } from "./filter-modal";
 import { brand } from "@/shared/config/brand";
@@ -54,7 +55,7 @@ function SearchBar({
 
   const submitSearch = (value: string) => {
     const q = value.trim();
-    router.push(q ? `/search?search=${encodeURIComponent(q)}` : "/search");
+    router.push(q ? `/products?search=${encodeURIComponent(q)}` : "/products");
     onClose();
   };
 
@@ -183,17 +184,14 @@ export function DynamicHeader() {
             <div className="flex flex-row items-center gap-4 justify-between">
               {/* Brand */}
               <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-                <div className="w-9 h-9 rounded-2xl bg-primary flex items-center justify-center shadow-sm">
-                  <PawPrint className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-lg font-bold text-foreground leading-none">
-                    {brand.name}
-                  </h1>
-                  <p className="text-[10px] text-secondary mt-0.5 tracking-wide">
-                    {brand.tagline}
-                  </p>
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt={brand.name}
+                  width={160}
+                  height={44}
+                  priority
+                  className="h-9 sm:h-10 w-auto object-contain"
+                />
               </Link>
 
               {/* Search — icon on mobile, full bar on sm+ */}
@@ -244,6 +242,8 @@ export function DynamicHeader() {
 
   // ── Named pages ──
   const namedPages: Record<string, string> = {
+    "/products": "محصولات",
+    "/offers": "پیشنهادهای ویژه",
     "/product": "جزئیات محصول",
     "/wishlist": "علاقه‌مندی‌ها",
     "/cart": "سبد خرید",
