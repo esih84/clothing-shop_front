@@ -6,6 +6,7 @@ export const BANNER_POSITIONS = {
   HOME_MAIN: "home_main",
   HOME_SIDE_TOP: "home_side_top",
   HOME_SIDE_BOTTOM: "home_side_bottom",
+  BRANDS: "brands",
 } as const;
 
 export type BannerPosition =

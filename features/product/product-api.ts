@@ -6,6 +6,8 @@ import type { ApiResponse, ApiListResponse } from "@/types/api";
 export type ProductFilters = {
   categoryId?: string;
   categorySlug?: string;
+  brandId?: string;
+  brandSlug?: string;
   minPrice?: number;
   maxPrice?: number;
   search?: string;

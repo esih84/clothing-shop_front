@@ -198,12 +198,19 @@ export function ProductDetails({
 
           {/* RIGHT: Product info */}
           <div className="space-y-5">
-            {/* Category badge */}
-            {product.category && (
-              <div className="flex items-center gap-2">
-                <span className="border border-[#A9CBF5]/60 px-2.5 py-0.5 text-xs text-[#1473E6] font-medium rounded-full">
-                  {product.category.name}
-                </span>
+            {/* Category / Brand badges */}
+            {(product.category || product.brand) && (
+              <div className="flex flex-wrap items-center gap-2">
+                {product.category && (
+                  <span className="border border-[#A9CBF5]/60 px-2.5 py-0.5 text-xs text-[#1473E6] font-medium rounded-full">
+                    {product.category.name}
+                  </span>
+                )}
+                {product.brand && (
+                  <span className="border border-[#A9CBF5]/60 bg-[#FDE68A]/30 px-2.5 py-0.5 text-xs text-[#1473E6] font-medium rounded-full">
+                    برند: {product.brand.name}
+                  </span>
+                )}
               </div>
             )}
 

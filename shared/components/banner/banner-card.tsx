@@ -32,7 +32,7 @@ export function BannerCard({
         {image}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10" />
         <div className="absolute bottom-6 right-6 z-20 text-white">
-          <h2 className="text-xl font-bold">{banner.title}</h2>
+          <h2 className="text-xl md:text-3xl font-bold">{banner.title}</h2>
           {banner.description && (
             <p className="text-sm opacity-80">{banner.description}</p>
           )}
@@ -48,10 +48,7 @@ export function BannerCard({
   }
 
   return (
-    <Link
-      href={banner.link || "#"}
-      className="relative block w-full h-full"
-    >
+    <Link href={banner.link || "#"} className="relative block w-full h-full">
       {image}
       <div className="absolute inset-0 bg-black/40" />
       <div className="absolute bottom-4 right-4 text-white z-10">

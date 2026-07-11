@@ -1,4 +1,5 @@
 import type { Category } from "./category";
+import type { Brand } from "./brand";
 import type { Review } from "./review";
 
 export type DiscountType = "percentage" | "fixed";
@@ -45,6 +46,9 @@ export type Product = {
 
   categoryId?: string;
   category?: Category | null;
+
+  brandId?: string;
+  brand?: Brand | null;
 
   images?: ProductImage[];
   attributes?: ProductAttribute[];

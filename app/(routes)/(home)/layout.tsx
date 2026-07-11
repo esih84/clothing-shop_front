@@ -5,6 +5,7 @@ export default function HomeLayout({
   banner,
   categories,
   offers,
+  brands,
   products,
   blogs,
 }: {
@@ -12,6 +13,7 @@ export default function HomeLayout({
   banner: React.ReactNode
   categories: React.ReactNode
   offers: React.ReactNode
+  brands: React.ReactNode
   products: React.ReactNode
   blogs: React.ReactNode
 }) {
@@ -20,6 +22,7 @@ export default function HomeLayout({
       {banner}
       {categories}
       {offers}
+      {brands}
       {products}
       {blogs}
       {children}
