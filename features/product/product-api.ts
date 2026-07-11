@@ -48,6 +48,24 @@ export async function getProducts(filters: ProductFilters) {
   }
 }
 
+/**
+ * محصولات دارای تخفیف فعال (بخش «پیشنهادهای ویژه»).
+ * فعال‌بودن تخفیف کاملاً سمت بک‌اند تعیین می‌شود؛ اینجا فقط لیست را می‌گیریم.
+ */
+export async function getDiscountedProducts(
+  filters: ProductFilters = {},
+) {
+  try {
+    const data = await serverFetch<ProductListResponse>(
+      `/products/discounted?${buildQuery(filters)}`,
+      { revalidate: 60, tags: ["products", "offers"] },
+    );
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
 export async function getProductBySlug(slug: string) {
   try {
     const data = await serverFetch<Product>(`/products/${slug}`, {

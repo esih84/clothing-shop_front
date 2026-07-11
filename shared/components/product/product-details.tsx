@@ -19,6 +19,7 @@ import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import { toggleWishlist } from "@/shared/store/slices/wishlistSlice";
 import { useCart } from "@/features/cart/queries";
 import { formatToman } from "@/shared/lib/utils";
+import { getDiscountInfo } from "@/shared/lib/discount";
 import { useTransition } from "react";
 import Image from "next/image";
 import { ProductCard } from "@/shared/components/product/product-card";
@@ -48,16 +49,13 @@ export function ProductDetails({
   const { lines: cartLines, add, updateQty, remove } = useCart();
   const isInWishlist = wishlistItems.some((item) => item.id === product.id);
 
-  const activePrice = product.basePrice;
-
-  // Active discount (first active one)
-  const activeDiscount = product.discounts?.find((d) => d.isActive);
-  const discountedPrice = activeDiscount
-    ? activeDiscount.type === "percentage"
-      ? activePrice * (1 - activeDiscount.value / 100)
-      : activePrice - activeDiscount.value
-    : null;
-  const displayPrice = discountedPrice ?? activePrice;
+  // تخفیف فعال و قیمت مؤثر از بک‌اند می‌آیند (بدون منطق تاریخ/فعال‌بودن در فرانت)
+  const {
+    hasDiscount,
+    finalPrice: displayPrice,
+    originalPrice: activePrice,
+  } = getDiscountInfo(product);
+  const activeDiscount = product.activeDiscount ?? null;
 
   const inStock = product.stock > 0;
 
@@ -244,7 +242,7 @@ export function ProductDetails({
               <span className="text-3xl font-bold text-[#1473E6]">
                 {formatToman(displayPrice)}
               </span>
-              {discountedPrice !== null && (
+              {hasDiscount && (
                 <span className="text-lg text-gray-400 line-through">
                   {formatToman(activePrice)}
                 </span>

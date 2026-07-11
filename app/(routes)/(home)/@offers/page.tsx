@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { SwiperWrapper } from "@/shared/components/swiper-wrapper";
-import { getProducts } from "@/features/product/product-api";
+import { getDiscountedProducts } from "@/features/product/product-api";
 
 export default async function OffersSection() {
-  const { data: response } = await getProducts({
+  // بک‌اند فقط محصولات دارای تخفیف فعال را برمی‌گرداند.
+  const { data: response } = await getDiscountedProducts({
     page: 1,
     limit: 10,
-    sortBy: "discount",
-    sortOrder: "DESC",
   });
   const products = response?.data ?? [];
 
+  // اگر محصول تخفیف‌داری نبود، بخش کلاً نمایش داده نمی‌شود.
   if (!products.length) return null;
 
   return (

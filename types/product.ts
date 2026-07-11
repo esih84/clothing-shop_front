@@ -51,6 +51,14 @@ export type Product = {
   discounts?: Discount[];
   reviews?: Review[];
 
+  /**
+   * قیمت مؤثر پس از اعمال تخفیف فعال — توسط بک‌اند محاسبه می‌شود.
+   * اگر تخفیف فعالی نباشد برابر basePrice است.
+   */
+  discountedPrice?: number;
+  /** تخفیف فعالِ همین‌الان (توسط بک‌اند تعیین می‌شود) یا null. */
+  activeDiscount?: Discount | null;
+
   createdAt: string;
   updatedAt: string;
 };

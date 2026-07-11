@@ -4,6 +4,7 @@
 import { AppSlider } from "@/shared/components/app-slider";
 import { OfferCard } from "@/shared/components/offer-card";
 import type { Product } from "@/types/product";
+import { getDiscountInfo } from "@/shared/lib/discount";
 
 interface SwiperWrapperProps {
   products: Product[];
@@ -14,6 +15,7 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
     <AppSlider
       items={products}
       getKey={(product) => product.id}
+      dir="rtl"
       navigation
       loop={products.length > 4}
       spaceBetween={12}
@@ -22,25 +24,8 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
       wrapperClassName="items-center"
       slideClassName="!w-auto"
       renderItem={(product) => {
-        // پیدا کردن تخفیف فعال (اگر وجود داشته باشد)
-        const activeDiscount = product.discounts?.find((d) => d.isActive);
-
-        let finalPrice = product.basePrice;
-        let discountPercent = 0;
-
-        if (activeDiscount) {
-          if (activeDiscount.type === "percentage") {
-            discountPercent = activeDiscount.value;
-            finalPrice =
-              product.basePrice -
-              (product.basePrice * activeDiscount.value) / 100;
-          } else {
-            finalPrice = product.basePrice - activeDiscount.value;
-            discountPercent = Math.round(
-              (activeDiscount.value / product.basePrice) * 100,
-            );
-          }
-        }
+        // اطلاعات تخفیف از فیلدهای محاسبه‌شده‌ی بک‌اند
+        const { finalPrice, originalPrice, percent } = getDiscountInfo(product);
 
         return (
           <OfferCard
@@ -48,8 +33,8 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
             slug={product.slug}
             title={product.name}
             price={finalPrice}
-            originalPrice={product.basePrice}
-            discount={discountPercent}
+            originalPrice={originalPrice}
+            discount={percent}
             imageUrl={product.images?.[0]?.url || "/placeholder.png"}
           />
         );
