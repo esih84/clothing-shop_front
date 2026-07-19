@@ -19,6 +19,9 @@ export type OrderItem = {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+
+  /** تصویر شاخص محصول؛ بک‌اند هنگام خواندن جزئیات سفارش پُر می‌کند. */
+  productImage?: string;
 };
 
 export type Order = {
@@ -39,6 +42,7 @@ export type Order = {
 
   status: OrderStatus;
   shippingAddress?: Record<string, unknown>;
+  shippingMethod?: string;
 
   createdAt: string;
   updatedAt: string;

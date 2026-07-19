@@ -9,3 +9,15 @@ export function cn(...inputs: ClassValue[]) {
 export function formatToman(value: number): string {
   return `${Math.round(value).toLocaleString("fa-IR")} تومان`
 }
+
+/** تاریخ را به تقویم جلالی (شمسی) با نام ماه فارسی قالب‌بندی می‌کند. */
+export function formatJalaliDate(value: string | number | Date): string {
+  const date = new Date(value)
+  if (isNaN(date.getTime())) return ""
+  return new Intl.DateTimeFormat("fa-IR", {
+    calendar: "persian",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date)
+}

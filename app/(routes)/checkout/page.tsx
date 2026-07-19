@@ -12,17 +12,15 @@ import {
   ChevronDown,
   Loader2,
   PawPrint,
+  ArrowLeft,
 } from "lucide-react";
-import { useAppDispatch } from "@/shared/store/hooks";
-import { clearCart } from "@/shared/store/slices/cartSlice";
 import { useCurrentUser, useIsLoggedIn } from "@/features/auth/queries";
 import { useCart } from "@/features/cart/queries";
-import { useCreateOrder } from "@/features/order/mutations";
 import { useAddresses } from "@/features/address/queries";
 import { useCreateAddress } from "@/features/address/mutations";
 import { usePets } from "@/features/pet/queries";
 import { useApplyCoupon, useRemoveCoupon } from "@/features/coupon/mutations";
-import { useCreatePayment } from "@/features/payment/mutations";
+import { useCheckout } from "@/features/payment/mutations";
 import { formatToman } from "@/shared/lib/utils";
 import type { Address } from "@/features/address/address-api";
 
@@ -40,6 +38,22 @@ const PAYMENT_METHODS = [
 
 type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
 
+/** روش‌های ارسال. افزودن روش جدید = یک آیتم اینجا + یک خط در enum ShippingMethod بک‌اند. */
+const SHIPPING_METHODS = [
+  {
+    id: "tipax",
+    label: "تیپاکس",
+    desc: "پس‌کرایه (هزینه هنگام تحویل)",
+  },
+  {
+    id: "post",
+    label: "پست",
+    desc: "پس‌کرایه (هزینه هنگام تحویل)",
+  },
+] as const;
+
+type ShippingMethodId = (typeof SHIPPING_METHODS)[number]["id"];
+
 interface PendingOrder {
   firstName: string;
   lastName: string;
@@ -52,18 +66,17 @@ interface PendingOrder {
   saveNewAddress: boolean;
   addressLabel: string;
   couponCode: string | null;
+  shippingMethod: ShippingMethodId;
 }
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const isLoggedIn = useIsLoggedIn();
-  const createOrder = useCreateOrder();
+  const checkout = useCheckout();
   const createAddress = useCreateAddress();
   const { lines: cartItems } = useCart();
   const applyCoupon = useApplyCoupon();
   const removeCouponMutation = useRemoveCoupon();
-  const createPayment = useCreatePayment();
   const { data: currentUser } = useCurrentUser();
   const { data: addresses = [] } = useAddresses();
   const { data: pets = [] } = usePets();
@@ -92,9 +105,13 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethodId>("zarinpal");
 
+  // روش ارسال
+  const [shippingMethod, setShippingMethod] =
+    useState<ShippingMethodId>("tipax");
+
   // Saved addresses
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
-    null
+    null,
   );
   const [showAddressDropdown, setShowAddressDropdown] = useState(false);
   const [useNewAddress, setUseNewAddress] = useState(false);
@@ -134,7 +151,9 @@ export default function CheckoutPage() {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      const order = await createOrder.mutateAsync({
+      // یک درخواست: سفارش را از روی سبد می‌سازد، تراکنش پرداخت را ایجاد می‌کند و
+      // آدرس درگاه را برمی‌گرداند. سبد تا موفقیت پرداخت خالی نمی‌شود (جریان ACID).
+      const { gatewayUrl } = await checkout.mutateAsync({
         shippingAddress: {
           firstName: payload.firstName,
           lastName: payload.lastName,
@@ -144,8 +163,9 @@ export default function CheckoutPage() {
           plaque: payload.plaque,
           note: payload.note,
         },
+        shippingMethod: payload.shippingMethod,
       });
-      // ذخیره‌ی آدرس جدید در دفترچه‌ی آدرس (خطای آن ثبت سفارش را خراب نمی‌کند)
+      // ذخیره‌ی آدرس جدید در دفترچه‌ی آدرس (خطای آن جریان پرداخت را خراب نمی‌کند)
       if (!payload.selectedAddressId && payload.saveNewAddress) {
         try {
           await createAddress.mutateAsync({
@@ -156,15 +176,10 @@ export default function CheckoutPage() {
           });
         } catch {}
       }
-      // شروع پرداخت آنلاین: ساخت تراکنش و انتقال به درگاه زرین‌پال
-      const { gatewayUrl } = await createPayment.mutateAsync({
-        orderId: order.id,
-      });
-      dispatch(clearCart());
       window.location.href = gatewayUrl;
     } catch {
       setSubmitError(
-        "ثبت سفارش یا اتصال به درگاه پرداخت با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید."
+        "ثبت سفارش یا اتصال به درگاه پرداخت با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید.",
       );
       setFinalizing(false);
       setSubmitting(false);
@@ -191,6 +206,7 @@ export default function CheckoutPage() {
       setNote(pending.note);
       setSaveNewAddress(pending.saveNewAddress);
       setAddressLabel(pending.addressLabel);
+      setShippingMethod(pending.shippingMethod ?? "tipax");
       void (async () => {
         // کوپن باید دوباره روی سبد سرورِ merge‌شده اعمال شود تا هنگام ثبت سفارش لحاظ گردد
         if (pending.couponCode) {
@@ -261,7 +277,7 @@ export default function CheckoutPage() {
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.price * item.quantity,
-    0
+    0,
   );
   const shipping = 0;
   const discount = appliedCoupon?.discount ?? 0;
@@ -281,6 +297,7 @@ export default function CheckoutPage() {
       saveNewAddress,
       addressLabel,
       couponCode: appliedCoupon?.code ?? null,
+      shippingMethod,
     };
     if (!isLoggedIn) {
       // فرم را نگه می‌داریم تا بعد از لاگین خودکار ثبت شود
@@ -331,34 +348,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
-      <div className="mb-6">
-        <Link
-          href="/cart"
-          className="inline-flex items-center gap-2 text-[#1473E6] text-sm md:text-base hover:underline"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5" />
-            <path d="m12 19-7-7 7-7" />
-          </svg>
-          بازگشت به سبد خرید
-        </Link>
-      </div>
-
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left: Checkout Form */}
           <div className="lg:col-span-2 space-y-6">
-
             {/* Recipient Info */}
             <div className="bg-white p-4 md:p-6 shadow-sm border border-[#A9CBF5]/30 rounded-2xl">
               <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
@@ -458,8 +451,8 @@ export default function CheckoutPage() {
                           ? addresses.find((a) => a.id === selectedAddressId)
                               ?.label
                           : useNewAddress
-                          ? "آدرس جدید"
-                          : "انتخاب آدرس"}
+                            ? "آدرس جدید"
+                            : "انتخاب آدرس"}
                       </span>
                       <ChevronDown
                         className={`w-4 h-4 text-gray-400 transition-transform ${
@@ -608,7 +601,7 @@ export default function CheckoutPage() {
                 {cartItems.map((item) => (
                   <div
                     key={item.productId}
-                    className="flex items-center gap-3 py-3 border-b border-[#A9CBF5]/20 last:border-0"
+                    className="flex items-start gap-3 py-3 border-b border-[#A9CBF5]/20 last:border-0"
                   >
                     <div className="w-14 h-14 md:w-16 md:h-16 bg-[#FDE68A]/20 flex-shrink-0 overflow-hidden rounded-xl">
                       <Image
@@ -620,16 +613,18 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm md:text-base truncate">
+                      <p className="font-normal text-sm md:text-base leading-snug break-words">
                         {item.name}
                       </p>
-                      <div className="flex flex-wrap gap-x-3 text-xs md:text-sm text-gray-500 mt-0.5">
-                        <span>تعداد: {item.quantity}</span>
+                      <div className="mt-1.5 flex items-center justify-between gap-3">
+                        <p className="font-bold text-sm md:text-base text-[#1473E6] whitespace-nowrap">
+                          {formatToman(item.price * item.quantity)}
+                        </p>
+                        <span className="text-xs md:text-sm text-gray-500 whitespace-nowrap">
+                          تعداد: {item.quantity}
+                        </span>
                       </div>
                     </div>
-                    <p className="font-bold text-sm md:text-base text-[#1473E6] flex-shrink-0">
-                      {formatToman(item.price * item.quantity)}
-                    </p>
                   </div>
                 ))}
               </div>
@@ -639,10 +634,6 @@ export default function CheckoutPage() {
           {/* Right: Order Summary */}
           <div className="space-y-4">
             <div className="bg-white p-6 shadow-sm border border-[#A9CBF5]/30 h-fit rounded-2xl sticky top-20">
-              <h2 className="text-xl md:text-2xl font-bold mb-4">
-                خلاصه سفارش
-              </h2>
-
               {/* کد تخفیف */}
               <div className="mb-5">
                 {appliedCoupon ? (
@@ -703,10 +694,10 @@ export default function CheckoutPage() {
                   <span className="text-gray-600">جمع جزء</span>
                   <span className="font-medium">{formatToman(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-base md:text-lg">
+                {/* <div className="flex justify-between text-base md:text-lg">
                   <span className="text-gray-600">ارسال</span>
-                  <span className="font-medium text-green-600">رایگان</span>
-                </div>
+                  <span className="font-medium text-gray-500">پس‌کرایه</span>
+                </div> */}
                 {discount > 0 && (
                   <div className="flex justify-between text-base md:text-lg">
                     <span className="text-gray-600">تخفیف</span>
@@ -720,6 +711,41 @@ export default function CheckoutPage() {
                     <span>جمع کل</span>
                     <span>{formatToman(total)}</span>
                   </div>
+                </div>
+              </div>
+              {/* روش ارسال */}
+              <div className="mb-5">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  روش ارسال
+                </h3>
+                <div className="space-y-2">
+                  {SHIPPING_METHODS.map((m) => (
+                    <label
+                      key={m.id}
+                      className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
+                        shippingMethod === m.id
+                          ? "border-[#1473E6] bg-[#1473E6]/5"
+                          : "border-[#A9CBF5]/40 hover:border-[#A9CBF5]/70"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="shipping-method"
+                        value={m.id}
+                        checked={shippingMethod === m.id}
+                        onChange={() => setShippingMethod(m.id)}
+                        className="mt-0.5 accent-[#1473E6]"
+                      />
+                      <span className="text-sm">
+                        <span className="font-medium text-gray-800">
+                          {m.label}
+                        </span>
+                        <span className="block text-xs text-gray-500 mt-0.5">
+                          {m.desc}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
               {/* روش پرداخت */}
@@ -769,20 +795,7 @@ export default function CheckoutPage() {
               >
                 {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
                 {isLoggedIn ? "تأیید و پرداخت" : "ورود و ادامه"}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14" />
-                  <path d="m12 5 7 7-7 7" />
-                </svg>
+                <ArrowLeft className="h-6 w-6" />
               </button>
             </div>
 

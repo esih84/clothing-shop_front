@@ -10,6 +10,8 @@ export async function getMyOrders(page = 1) {
   try {
     const res = await serverFetch<OrderListResponse>(`/orders?page=${page}`, {
       auth: true,
+      revalidate: 300, // کش ۵ دقیقه‌ای (per-user via cookie in cache key)
+      tags: ["orders"], // با ثبت سفارش جدید باطل می‌شود (revalidateOrders)
     });
     return { data: res.data, total: res.total, error: null };
   } catch (error) {
@@ -27,9 +29,7 @@ export async function getOrderDetails(id: string) {
 }
 
 export const orderService = {
-  create: async (data: { shippingAddress?: any }) =>
-    await api.post<ApiResponse<Order>>("/orders", data),
-
+  // ساخت سفارش از مسیر چک‌اوت پرداخت انجام می‌شود (features/payment)؛ اینجا فقط خواندن.
   getMyOrders: async (page = 1) => {
     const res = await api.get<ApiResponse<OrderListResponse>>(
       `/orders?page=${page}`,

@@ -1,26 +1,8 @@
-"use client";
-
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { orderService } from "./order-api";
-import { CART_KEY, CURRENT_USER_KEY, queryKeys } from "@/features/query-keys";
+// ثبت سفارش دیگر به‌صورت مستقل انجام نمی‌شود؛ ساخت سفارش از روی سبد اکنون بخشی از
+// چک‌اوت پرداخت است (features/payment → useCheckout). این فایل فقط نوع ورودی مشترک
+// را نگه می‌دارد.
 
 export type CreateOrderInput = {
   shippingAddress?: Record<string, unknown>;
+  shippingMethod?: string;
 };
-
-/** ثبت سفارش از روی سبد سرور؛ پس از موفقیت سبد را باطل می‌کند. */
-export function useCreateOrder() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (data: CreateOrderInput) => {
-      const res = await orderService.create(data);
-      return res.data.data;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: CART_KEY });
-      // نام کاربر و پت‌ها ممکن است هنگام ثبت سفارش به‌روز شده باشند
-      qc.invalidateQueries({ queryKey: CURRENT_USER_KEY });
-      qc.invalidateQueries({ queryKey: queryKeys.pets });
-    },
-  });
-}

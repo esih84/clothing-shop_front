@@ -32,8 +32,7 @@ export default function CartPage() {
   };
 
   const shipping = 0; // Free shipping
-  const tax = subtotal * 0.1;
-  const total = subtotal + shipping + tax;
+  const total = subtotal + shipping;
 
   return (
     <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
@@ -62,9 +61,9 @@ export default function CartPage() {
             {cartItems.map((item) => (
               <div
                 key={item.productId}
-                className="bg-white rounded-2xl p-4 md:p-6 flex items-center gap-4 shadow-sm border border-[#A9CBF5]/30"
+                className="bg-white rounded-2xl p-3 md:p-6 flex items-stretch gap-3 md:gap-4 shadow-sm border border-[#A9CBF5]/30"
               >
-                <div className="w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-2xl bg-[#FDE68A]/20 flex-shrink-0 overflow-hidden">
+                <div className="w-20 h-20 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-2xl bg-[#FDE68A]/20 flex-shrink-0 overflow-hidden self-start">
                   <Image
                     src={item.imageUrl || "/placeholder.svg"}
                     alt={item.name}
@@ -73,39 +72,36 @@ export default function CartPage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex-1">
-                  <div className="flex justify-between">
-                    <h3 className="font-medium text-base md:text-lg lg:text-xl">
+                <div className="flex-1 min-w-0 flex flex-col">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="min-w-0 font-normal text-sm sm:text-base md:text-lg lg:text-xl leading-snug break-words">
                       {item.name}
                     </h3>
                     <button
                       onClick={() => openRemoveModal(item)}
-                      className="text-gray-400"
+                      className="flex-shrink-0 -m-1 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                      aria-label="حذف از سبد خرید"
                     >
                       <Trash2 className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
                   </div>
-                  <div className="flex justify-between items-center mt-3">
-                    <p className="font-bold text-base md:text-lg lg:text-xl">
+                  <div className="flex items-center justify-between gap-2 mt-auto pt-3">
+                    <p className="font-bold text-sm sm:text-base md:text-lg lg:text-xl whitespace-nowrap text-[#1473E6] md:text-current">
                       {formatToman(item.price)}
                     </p>
-                    <div className="flex items-center rounded-xl border border-[#A9CBF5]/50 overflow-hidden">
+                    <div className="flex items-center rounded-xl border border-[#A9CBF5]/50 overflow-hidden flex-shrink-0">
                       <button
-                        onClick={() =>
-                          void updateQty(item, item.quantity - 1)
-                        }
-                        className="px-3 py-1 md:px-4 md:py-2 bg-[#FDE68A]/30 hover:bg-[#FDE68A]/60 text-[#1473E6]"
+                        onClick={() => void updateQty(item, item.quantity - 1)}
+                        className="px-2.5 py-1.5 md:px-4 md:py-2 bg-[#FDE68A]/30 hover:bg-[#FDE68A]/60 text-[#1473E6]"
                       >
                         <Minus className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
-                      <span className="px-3 md:px-4 text-base md:text-lg">
+                      <span className="px-3 md:px-4 text-base md:text-lg tabular-nums">
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() =>
-                          void updateQty(item, item.quantity + 1)
-                        }
-                        className="px-3 py-1 md:px-4 md:py-2 bg-[#FDE68A]/30 hover:bg-[#FDE68A]/60 text-[#1473E6]"
+                        onClick={() => void updateQty(item, item.quantity + 1)}
+                        className="px-2.5 py-1.5 md:px-4 md:py-2 bg-[#FDE68A]/30 hover:bg-[#FDE68A]/60 text-[#1473E6]"
                       >
                         <Plus className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
@@ -117,30 +113,18 @@ export default function CartPage() {
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#A9CBF5]/30 h-fit sticky top-20">
-            <h2 className="text-xl md:text-2xl font-bold mb-4">
-              خلاصه سفارش
-            </h2>
+            {/* <h2 className="text-xl md:text-2xl font-bold mb-4">خلاصه سفارش</h2> */}
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-base md:text-lg">
-                <span className="text-gray-600">جمع جزء</span>
-                <span className="font-medium">{formatToman(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-base md:text-lg">
-                <span className="text-gray-600">ارسال</span>
-                <span className="font-medium text-green-600">رایگان</span>
-              </div>
-              <div className="flex justify-between text-base md:text-lg">
-                <span className="text-gray-600">مالیات</span>
-                <span className="font-medium">{formatToman(tax)}</span>
-              </div>
-              <div className="border-t pt-3 mt-3">
-                <div className="flex justify-between font-bold text-lg md:text-xl">
-                  <span>جمع کل</span>
-                  <span>{formatToman(total)}</span>
-                </div>
+              <div className="flex justify-between font-bold text-lg md:text-xl">
+                <span>جمع کل</span>
+                <span>{formatToman(total)}</span>
               </div>
             </div>
-            <Link prefetch href="/checkout" className="w-full bg-secondary text-secondary-foreground rounded-2xl py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center hover:bg-secondary/90 transition-colors">
+            <Link
+              prefetch
+              href="/checkout"
+              className="w-full bg-secondary text-secondary-foreground rounded-2xl py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center hover:bg-secondary/90 transition-colors"
+            >
               پرداخت نهایی
             </Link>
           </div>
