@@ -4,24 +4,23 @@
  */
 export const brand = {
   /** نام فارسی برند (در هدر، فوتر و عنوان صفحات استفاده می‌شود) */
-  name: "پت‌لند",
+  name: "پت میل",
   /** نام لاتین برند (برای کپی‌رایت، دامنه و SEO لاتین) */
-  nameEn: "PetLand",
+  nameEn: "Petmeal",
   /** شعار کوتاه */
   tagline: "هر چیزی که حیوون خونگیت لازم داره",
   /** توضیح بلندتر برای metadata و فوتر */
   description:
     "فروشگاه آنلاین لوازم و غذای حیوانات خانگی — غذا، اسباب‌بازی و لوازم نگهداری برای سگ، گربه و دوستان کوچولوت.",
   /** آدرس کامل سایت (برای canonical / OG / sitemap) */
-  url: "https://petland.example",
+  url: "https://petmeal.ir",
   contact: {
-    email: "info@petland.example",
-    phone: "۰۲۱-۱۲۳۴۵۶۷۸",
+    // email: "info@petland.example",
+    phone: "09330581953",
   },
   social: {
     instagram: "https://instagram.com/",
     telegram: "https://t.me/",
-    twitter: "https://twitter.com/",
   },
 } as const;
 

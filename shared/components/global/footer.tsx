@@ -5,7 +5,7 @@ import { brand } from "@/shared/config/brand";
 export function Footer() {
   const socials = [
     { Icon: Instagram, href: brand.social.instagram },
-    { Icon: Twitter, href: brand.social.twitter },
+
     { Icon: Send, href: brand.social.telegram },
   ];
 
@@ -73,13 +73,13 @@ export function Footer() {
             <span className="font-bold text-background/90 uppercase tracking-widest text-xs mb-2">
               ارتباط با ما
             </span>
-            <a
+            {/* <a
               href={`mailto:${brand.contact.email}`}
               className="flex items-center gap-2 text-background/70 hover:text-primary transition-colors duration-200"
             >
               <Mail size={15} />
               {brand.contact.email}
-            </a>
+            </a> */}
             <span className="flex items-center gap-2 text-background/70">
               <Phone size={15} />
               {brand.contact.phone}
@@ -88,7 +88,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-5 text-center text-xs text-background/50">
+        <div className="pt-5 text-right text-xs text-background/50">
           © {new Date().getFullYear()} {brand.nameEn}. همه حقوق محفوظ است.
         </div>
       </div>

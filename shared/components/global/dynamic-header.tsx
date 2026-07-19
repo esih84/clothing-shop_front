@@ -11,25 +11,37 @@ import { brand } from "@/shared/config/brand";
 // ─── Shared sub-components ───────────────────────────────────────────────────
 
 function BackHeader({
-  href,
+  fallbackHref = "/",
   title,
   right,
 }: {
-  href: string;
+  fallbackHref?: string;
   title: string;
   right?: React.ReactNode;
 }) {
+  const router = useRouter();
+
+  const goBack = () => {
+    // Navigate to the previous page when there is history within the app,
+    // otherwise fall back to a sensible default (home).
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(fallbackHref);
+    }
+  };
+
   return (
     <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-border">
       <div className="px-4 py-3 flex items-center justify-between max-w-7xl mx-auto">
-        <Link
-          prefetch
-          href={href}
+        <button
+          type="button"
+          onClick={goBack}
           className="flex items-center gap-1.5 text-muted-foreground hover:text-secondary transition-colors"
         >
           <ArrowRight className="w-5 h-5" />
           <span className="text-sm font-medium">بازگشت</span>
-        </Link>
+        </button>
         <h1 className="text-lg md:text-2xl font-bold text-foreground">
           {title}
         </h1>
@@ -260,5 +272,5 @@ export function DynamicHeader() {
 
   const pageTitle = matchedKey ? namedPages[matchedKey] : brand.name;
 
-  return <BackHeader href="/" title={pageTitle} />;
+  return <BackHeader title={pageTitle} />;
 }
