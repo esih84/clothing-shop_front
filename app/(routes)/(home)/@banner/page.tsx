@@ -23,27 +23,33 @@ export default async function BannerSection() {
 
   return (
     <div className="px-4 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      {/*
+        موبایل: بنر اصلی تمام‌عرض، دو بنر کناری کنار هم در یک ردیف.
+        دسکتاپ: ارتفاع گرید از aspect خودش می‌آید (نه ارتفاع ثابت) تا نسبت
+        تصاویر در همه‌ی عرض‌ها ثابت بماند — با aspect-[4/1] روی گرید،
+        بنر اصلی ≈ ۳:۱ و بنرهای کناری ≈ ۲:۱ می‌شوند.
+      */}
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:grid-rows-2 md:aspect-[4/1]">
         {/* اسلایدر اصلی */}
         <BannerStrip
           banners={mainBanners}
           variant="hero"
           autoplay={5}
-          className="md:col-span-2 md:row-span-2 h-[200px] sm:h-[250px] md:h-[350px] lg:h-[450px]"
+          className="col-span-2 aspect-[5/2] md:col-span-3 md:row-span-2 md:aspect-auto md:h-full"
         />
 
-        {/* دو ردیف بنر کناری — autoplay متفاوت تا هم‌زمان نپرند */}
+        {/* دو بنر کناری — autoplay متفاوت تا هم‌زمان نپرند */}
         <BannerStrip
           banners={sideTopBanners}
           variant="card"
           autoplay={7}
-          className="h-[140px] md:h-auto"
+          className="aspect-[2/1] md:aspect-auto md:h-full"
         />
         <BannerStrip
           banners={sideBottomBanners}
           variant="card"
           autoplay={9}
-          className="h-[140px] md:h-auto"
+          className="aspect-[2/1] md:aspect-auto md:h-full"
         />
       </div>
     </div>

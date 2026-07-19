@@ -16,9 +16,12 @@ export default async function BrandsSection() {
         {items.map((banner) => (
           <div
             key={banner.id}
-            className="relative overflow-hidden rounded-2xl h-[120px] sm:h-[160px] md:h-[200px]"
+            // موبایل: هم‌اندازه‌ی بنرهای کناری (۲:۱). دسکتاپ: پهن‌تر (۵:۲).
+            className="relative overflow-hidden rounded-2xl aspect-[2/1] md:aspect-[5/2]"
           >
-            <BannerCard banner={banner} variant="card" />
+            {/* variant=hero تا متن در دسکتاپ عمودی وسط بنشیند مثل بنر اصلی؛
+                compact چون کارت نصف‌عرض است و جای کمی دارد */}
+            <BannerCard banner={banner} variant="hero" compact />
           </div>
         ))}
       </div>

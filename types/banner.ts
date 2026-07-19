@@ -19,6 +19,8 @@ export type Banner = {
   imageUrl: string;
   mobileImageUrl?: string;
   link?: string;
+  /** متن دکمه‌ی روی بنر؛ خالی باشد دکمه رندر نمی‌شود */
+  buttonText?: string;
   // string می‌ماند تا به داده‌ی قدیمی با جایگاه‌های حذف‌شده حساس نباشد
   position: string;
   order: number;
