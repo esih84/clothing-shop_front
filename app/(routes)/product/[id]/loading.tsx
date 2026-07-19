@@ -1,6 +1,6 @@
 import { Skeleton } from "@/shared/ui/skeleton";
 
-export  default function ProductDetailsSkeleton() {
+export default function ProductDetailsSkeleton() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 py-6">
@@ -17,14 +17,14 @@ export  default function ProductDetailsSkeleton() {
             </div>
 
             {/* Thumbnail strip */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
+            {/* <div className="flex gap-2 overflow-x-auto pb-1">
               {[...Array(4)].map((_, idx) => (
                 <Skeleton
                   key={idx}
                   className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-none border-2 border-[#A9CBF5]/30"
                 />
               ))}
-            </div>
+            </div> */}
           </div>
 
           {/* RIGHT: Product info */}

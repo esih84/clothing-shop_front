@@ -44,8 +44,17 @@ export type Product = {
   sku?: string;
   isActive: boolean;
 
+  /** ترتیب نمایش دستی (عدد بزرگ‌تر = بالاتر). */
+  displayOrder?: number;
+
   categoryId?: string;
   category?: Category | null;
+
+  /**
+   * دسته‌های محصول (چند‌مقداری، رابطه‌ی M2M در بک‌اند). معمولاً کل مسیر
+   * دسته‌ی محصول (والد + برگ) را دربر می‌گیرد. برای پیشنهاد محصولات مرتبط.
+   */
+  categories?: Category[] | null;
 
   brandId?: string;
   brand?: Brand | null;

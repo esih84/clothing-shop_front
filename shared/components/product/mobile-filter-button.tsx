@@ -3,9 +3,17 @@
 import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { FilterModal } from "@/shared/components/global/filter-modal";
+import type { Category } from "@/types/category";
+import type { Brand } from "@/types/brand";
 
 /** دکمه‌ی فیلتر مخصوص موبایل/تبلت که Drawer فیلتر را باز می‌کند (در دسکتاپ مخفی است). */
-export function MobileFilterButton() {
+export function MobileFilterButton({
+  initialCategories,
+  initialBrands,
+}: {
+  initialCategories?: Category[];
+  initialBrands?: Brand[];
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -19,7 +27,12 @@ export function MobileFilterButton() {
         <SlidersHorizontal className="w-4 h-4" />
         فیلتر
       </button>
-      <FilterModal isOpen={open} onClose={() => setOpen(false)} />
+      <FilterModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        initialCategories={initialCategories}
+        initialBrands={initialBrands}
+      />
     </>
   );
 }

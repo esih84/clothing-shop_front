@@ -3,14 +3,37 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, PackageSearch, Search } from "lucide-react";
+import { Loader2, PackageSearch, Percent, Search } from "lucide-react";
 import { categoryService } from "@/features/category/category-api";
 import { brandService } from "@/features/brand/brand-api";
+import type { Category } from "@/types/category";
+import type { Brand } from "@/types/brand";
 
 /** بیشینه‌ی بازه‌ی قیمت اسلایدر (تومان) */
 const PRICE_MIN = 0;
 const PRICE_MAX = 5_000_000;
 const PRICE_STEP = 50_000;
+
+/**
+ * خواندن چند slug از URL: کلید جمع (CSV) + کلید تکیِ قدیمی (سازگاری با لینک‌های موجود).
+ */
+function readSlugs(
+  params: URLSearchParams | { get: (k: string) => string | null },
+  pluralKey: string,
+  singularKey: string,
+): string[] {
+  const out = new Set<string>();
+  const csv = params.get(pluralKey);
+  if (csv)
+    csv
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((s) => out.add(s));
+  const single = params.get(singularKey);
+  if (single) out.add(single);
+  return [...out];
+}
 
 // اسلایدر بازه‌ی قیمت (دو دسته) — RTL: سمت راست = کمینه، سمت چپ = بیشینه
 function PriceSlider({
@@ -68,7 +91,10 @@ function PriceSlider({
       window.removeEventListener("mouseup", handleUp);
       window.removeEventListener("touchend", handleUp);
     };
-  });
+    // فقط با شروع/پایان درگ لیسنرها را ببند/بازکن؛ در هر درگ تنها همان thumb تغییر
+    // می‌کند، پس بستن value در شروع درگ کافی است و نیازی به وابستگی handleDrag نیست.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragging]);
 
   return (
     <div className="w-full px-2 py-4">
@@ -106,35 +132,119 @@ function PriceSlider({
 }
 
 /**
+ * یک گره‌ی دسته‌بندی به‌همراه زیردسته‌هایش (بازگشتی، چند‌انتخابی) — زیردسته‌ها تودرتو و
+ * کمی تورفته زیر دسته‌ی والد نمایش داده می‌شوند تا سلسله‌مراتب مشخص باشد.
+ */
+function CategoryNode({
+  category,
+  selected,
+  onToggle,
+}: {
+  category: Category;
+  selected: string[];
+  onToggle: (slug: string) => void;
+}) {
+  const isSelected = selected.includes(category.slug);
+  const children = category.children ?? [];
+
+  return (
+    <div className="space-y-0.5">
+      <button
+        type="button"
+        onClick={() => onToggle(category.slug)}
+        className={`flex w-full items-center gap-2 rounded-xl py-2 px-3 text-sm text-right transition-colors ${
+          isSelected
+            ? "bg-[#1473E6] text-white font-semibold shadow"
+            : "text-gray-700 hover:bg-gray-100"
+        }`}
+      >
+        <span
+          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+            isSelected ? "border-white bg-white/20" : "border-gray-300"
+          }`}
+        >
+          {isSelected && (
+            <svg viewBox="0 0 12 12" className="h-3 w-3 fill-white">
+              <path
+                d="M10 3L4.5 8.5 2 6"
+                stroke="white"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </span>
+        <span className="flex-1">{category.name}</span>
+      </button>
+      {children.length > 0 && (
+        <div className="mr-3 border-r border-gray-200/80 pr-1 space-y-0.5">
+          {children.map((child) => (
+            <CategoryNode
+              key={child.id}
+              category={child}
+              selected={selected}
+              onToggle={onToggle}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * پنل جستجو/فیلتر محصولات — از URL مقداردهی اولیه می‌شود و با اعمال به `/products` می‌رود.
  * در موبایل داخل Drawer (FilterModal) و در لپ‌تاپ/تبلت به‌صورت ستون کناری استفاده می‌شود.
  */
-export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
+export function ProductFilters({
+  onApplied,
+  initialCategories,
+  initialBrands,
+}: {
+  onApplied?: () => void;
+  /** دسته‌ها/برندهای گرفته‌شده در سرور — به‌عنوان initialData تا کلاینت دوباره fetch نکند. */
+  initialCategories?: Category[];
+  initialBrands?: Brand[];
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const spKey = searchParams.toString();
 
+  // با seed کردن initialData از داده‌ی سرور، React Query در staleTime دوباره fetch نمی‌کند
+  // (رفع fetch تکراری در هر ری‌لود). اگر داده‌ی سرور نبود، طبق روال کلاینت‌ساید می‌گیرد.
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: () => categoryService.findAll(),
     staleTime: 1000 * 60 * 5,
+    initialData: initialCategories,
   });
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({
     queryKey: ["brands"],
     queryFn: () => brandService.findAll(),
     staleTime: 1000 * 60 * 5,
+    initialData: initialBrands,
   });
 
   const [searchText, setSearchText] = useState(
     () => searchParams.get("search") ?? "",
   );
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(
-    () => searchParams.get("categorySlug"),
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() =>
+    readSlugs(searchParams, "categorySlugs", "categorySlug"),
   );
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(
-    () => searchParams.get("brandSlug"),
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(() =>
+    readSlugs(searchParams, "brandSlugs", "brandSlug"),
   );
+  const toggleCategory = (slug: string) =>
+    setSelectedCategories((prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
+    );
+  const toggleBrand = (slug: string) =>
+    setSelectedBrands((prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
+    );
   const [priceRange, setPriceRange] = useState<[number, number]>(() => [
     searchParams.get("minPrice")
       ? Number(searchParams.get("minPrice"))
@@ -146,12 +256,17 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
   const [inStock, setInStock] = useState(
     () => searchParams.get("inStock") === "true",
   );
+  const [hasDiscount, setHasDiscount] = useState(
+    () => searchParams.get("hasDiscount") === "true",
+  );
 
   // هم‌گام‌سازی با URL هنگام ناوبری (چیپ‌ها/مرتب‌سازی/پاک‌کردن فیلتر).
   useEffect(() => {
     setSearchText(searchParams.get("search") ?? "");
-    setSelectedCategory(searchParams.get("categorySlug"));
-    setSelectedBrand(searchParams.get("brandSlug"));
+    setSelectedCategories(
+      readSlugs(searchParams, "categorySlugs", "categorySlug"),
+    );
+    setSelectedBrands(readSlugs(searchParams, "brandSlugs", "brandSlug"));
     setPriceRange([
       searchParams.get("minPrice")
         ? Number(searchParams.get("minPrice"))
@@ -161,15 +276,17 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
         : PRICE_MAX,
     ]);
     setInStock(searchParams.get("inStock") === "true");
+    setHasDiscount(searchParams.get("hasDiscount") === "true");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spKey]);
 
   const handleReset = () => {
     setSearchText("");
-    setSelectedCategory(null);
-    setSelectedBrand(null);
+    setSelectedCategories([]);
+    setSelectedBrands([]);
     setPriceRange([PRICE_MIN, PRICE_MAX]);
     setInStock(false);
+    setHasDiscount(false);
   };
 
   const handleApply = () => {
@@ -178,11 +295,14 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
 
     const params = new URLSearchParams();
     if (searchText.trim()) params.set("search", searchText.trim());
-    if (selectedCategory) params.set("categorySlug", selectedCategory);
-    if (selectedBrand) params.set("brandSlug", selectedBrand);
+    if (selectedCategories.length)
+      params.set("categorySlugs", selectedCategories.join(","));
+    if (selectedBrands.length)
+      params.set("brandSlugs", selectedBrands.join(","));
     if (lo > PRICE_MIN) params.set("minPrice", String(lo));
     if (hi < PRICE_MAX) params.set("maxPrice", String(hi));
     if (inStock) params.set("inStock", "true");
+    if (hasDiscount) params.set("hasDiscount", "true");
 
     // مرتب‌سازی فعلی حفظ شود.
     const sortBy = searchParams.get("sortBy");
@@ -190,7 +310,14 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
     if (sortBy) params.set("sortBy", sortBy);
     if (sortOrder) params.set("sortOrder", sortOrder);
 
-    router.push(`/products?${params.toString()}`);
+    // اگر کوئری با URL فعلی یکی باشد، router.push بی‌اثر است (باگ «دکمه عمل نمی‌کند»).
+    // در آن حالت با refresh داده‌ی سرور را تازه می‌کنیم تا اعمالِ فیلتر همیشه بازخورد بدهد.
+    const query = params.toString();
+    if (query === searchParams.toString()) {
+      router.refresh();
+    } else {
+      router.push(query ? `/products?${query}` : "/products");
+    }
     onApplied?.();
   };
 
@@ -214,6 +341,49 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
           />
         </div>
       </div>
+      {/* موجودی */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={inStock}
+            onChange={(e) => setInStock(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 accent-[#1473E6]"
+          />
+          <span className="flex items-center gap-1.5 text-gray-700">
+            <PackageSearch className="w-4 h-4 text-[#1473E6]" />
+            فقط کالاهای موجود
+          </span>
+        </label>
+      </div>
+
+      {/* تخفیف‌دار */}
+      <div>
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={hasDiscount}
+            onChange={(e) => setHasDiscount(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 accent-[#1473E6]"
+          />
+          <span className="flex items-center gap-1.5 text-gray-700">
+            <Percent className="w-4 h-4 text-[#1473E6]" />
+            فقط کالاهای تخفیف‌دار
+          </span>
+        </label>
+      </div>
+      {/* قیمت */}
+      <div>
+        <h3 className="font-semibold text-[#1473E6] text-base mb-1">
+          محدوده‌ی قیمت
+        </h3>
+        <PriceSlider
+          min={PRICE_MIN}
+          max={PRICE_MAX}
+          value={priceRange}
+          onChange={setPriceRange}
+        />
+      </div>
 
       {/* دسته‌بندی */}
       <div className="pb-1">
@@ -227,31 +397,25 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
         ) : categories.length === 0 ? (
           <p className="text-sm text-gray-400">دسته‌بندی‌ای یافت نشد.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="max-h-72 overflow-y-auto pl-1 space-y-0.5">
             <button
               type="button"
-              onClick={() => setSelectedCategory(null)}
-              className={`px-4 py-2 rounded-full text-sm border transition-colors font-medium ${
-                selectedCategory === null
-                  ? "bg-[#1473E6] text-white border-[#1473E6] shadow"
-                  : "bg-gray-100 text-gray-700 border-gray-200 hover:border-[#A9CBF5]"
+              onClick={() => setSelectedCategories([])}
+              className={`w-full rounded-xl py-2 px-3 text-sm text-right transition-colors ${
+                selectedCategories.length === 0
+                  ? "bg-[#1473E6] text-white font-semibold shadow"
+                  : "text-gray-700 hover:bg-gray-100"
               }`}
             >
-              همه
+              همه‌ی دسته‌ها
             </button>
             {categories.map((cat) => (
-              <button
+              <CategoryNode
                 key={cat.id}
-                type="button"
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={`px-4 py-2 rounded-full text-sm border transition-colors font-medium ${
-                  selectedCategory === cat.slug
-                    ? "bg-[#1473E6] text-white border-[#1473E6] shadow"
-                    : "bg-gray-100 text-gray-700 border-gray-200 hover:border-[#A9CBF5]"
-                }`}
-              >
-                {cat.name}
-              </button>
+                category={cat}
+                selected={selectedCategories}
+                onToggle={toggleCategory}
+              />
             ))}
           </div>
         )}
@@ -267,12 +431,12 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
         ) : brands.length === 0 ? (
           <p className="text-sm text-gray-400">برندی یافت نشد.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pl-1">
             <button
               type="button"
-              onClick={() => setSelectedBrand(null)}
+              onClick={() => setSelectedBrands([])}
               className={`px-4 py-2 rounded-full text-sm border transition-colors font-medium ${
-                selectedBrand === null
+                selectedBrands.length === 0
                   ? "bg-[#1473E6] text-white border-[#1473E6] shadow"
                   : "bg-gray-100 text-gray-700 border-gray-200 hover:border-[#A9CBF5]"
               }`}
@@ -283,9 +447,9 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
               <button
                 key={b.id}
                 type="button"
-                onClick={() => setSelectedBrand(b.slug)}
+                onClick={() => toggleBrand(b.slug)}
                 className={`px-4 py-2 rounded-full text-sm border transition-colors font-medium ${
-                  selectedBrand === b.slug
+                  selectedBrands.includes(b.slug)
                     ? "bg-[#1473E6] text-white border-[#1473E6] shadow"
                     : "bg-gray-100 text-gray-700 border-gray-200 hover:border-[#A9CBF5]"
                 }`}
@@ -295,35 +459,6 @@ export function ProductFilters({ onApplied }: { onApplied?: () => void }) {
             ))}
           </div>
         )}
-      </div>
-
-      {/* قیمت */}
-      <div>
-        <h3 className="font-semibold text-[#1473E6] text-base mb-1">
-          محدوده‌ی قیمت
-        </h3>
-        <PriceSlider
-          min={PRICE_MIN}
-          max={PRICE_MAX}
-          value={priceRange}
-          onChange={setPriceRange}
-        />
-      </div>
-
-      {/* موجودی */}
-      <div>
-        <label className="flex items-center gap-2 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={inStock}
-            onChange={(e) => setInStock(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 accent-[#1473E6]"
-          />
-          <span className="flex items-center gap-1.5 text-gray-700">
-            <PackageSearch className="w-4 h-4 text-[#1473E6]" />
-            فقط کالاهای موجود
-          </span>
-        </label>
       </div>
 
       {/* اقدام‌ها */}

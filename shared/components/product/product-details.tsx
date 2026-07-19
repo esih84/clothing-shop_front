@@ -4,12 +4,13 @@ import { useRef, useState } from "react";
 import {
   Star,
   Shield,
-  Truck,
+  Headphones,
   Trash2,
   Minus,
   Plus,
   ShoppingBag,
   RefreshCw,
+  ChevronDown,
 } from "lucide-react";
 import {
   AppSlider,
@@ -22,17 +23,21 @@ import { formatToman } from "@/shared/lib/utils";
 import { getDiscountInfo } from "@/shared/lib/discount";
 import { useTransition } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ProductCard } from "@/shared/components/product/product-card";
 import type { Product } from "@/types/product";
 
 interface ProductDetailsProps {
   product: Product;
   relatedProducts?: Product[];
+  /** لینک «مشاهده محصولات بیشتر» — صفحه‌ی /products با فیلتر دسته‌های همین صفحه. */
+  moreHref?: string;
 }
 
 export function ProductDetails({
   product,
   relatedProducts = [],
+  moreHref,
 }: ProductDetailsProps) {
   const images = product.images ?? [];
 
@@ -41,6 +46,11 @@ export function ProductDetails({
   const [activeTab, setActiveTab] = useState<"details" | "care" | "specs">(
     "details",
   );
+  const [descExpanded, setDescExpanded] = useState(false);
+
+  // توضیحات محصول؛ اگر طولانی باشد در موبایل جمع می‌شود و با دکمه باز می‌شود.
+  const description = product.description?.trim() || "توضیحاتی ثبت نشده است.";
+  const isLongDescription = (product.description?.trim().length ?? 0) > 160;
 
   const dispatch = useAppDispatch();
   const [isPending, startTransition] = useTransition();
@@ -215,7 +225,7 @@ export function ProductDetails({
             )}
 
             {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 leading-snug">
               {product.name}
             </h1>
 
@@ -246,7 +256,7 @@ export function ProductDetails({
 
             {/* Price */}
             <div className="flex items-center gap-3 pb-4 border-b border-[#A9CBF5]/30">
-              <span className="text-3xl font-bold text-[#1473E6]">
+              <span className=" text-md md:text-3xl font-bold text-[#1473E6]">
                 {formatToman(displayPrice)}
               </span>
               {hasDiscount && (
@@ -261,7 +271,7 @@ export function ProductDetails({
               {inStock ? (
                 <span className="text-green-600 font-medium">
                   موجود در انبار
-                  {product.stock <= 10 &&
+                  {product.stock <= 3 &&
                     ` — تنها ${product.stock} عدد باقی مانده`}
                 </span>
               ) : (
@@ -320,10 +330,10 @@ export function ProductDetails({
             {/* Features strip */}
             <div className="grid grid-cols-3 gap-2 py-4 border-t border-b border-[#A9CBF5]/30">
               <div className="flex flex-col items-center text-center gap-1.5 p-2">
-                <Truck className="w-5 h-5 text-[#1473E6]" />
-                <p className="text-xs font-medium">ارسال رایگان</p>
+                <Headphones className="w-5 h-5 text-[#1473E6]" />
+                <p className="text-xs font-medium">پشتیبانی ۲۴ ساعته</p>
                 <p className="text-[10px] text-gray-400">
-                  سفارش‌های بالای ۵۰۰ هزار تومان
+                  پاسخ‌گویی در تمام ساعات شبانه‌روز
                 </p>
               </div>
               <div className="flex flex-col items-center text-center gap-1.5 p-2 border-x border-[#A9CBF5]/30">
@@ -346,7 +356,7 @@ export function ProductDetails({
             {(
               [
                 { key: "details", label: "جزئیات محصول" },
-                { key: "care", label: "نکات نگهداری و مصرف" },
+                // { key: "care", label: "نکات نگهداری و مصرف" },
                 // { key: "specs", label: "مشخصات" },
               ] as const
             ).map((tab) => (
@@ -367,10 +377,39 @@ export function ProductDetails({
           <div className="p-6">
             {activeTab === "details" && (
               <div className="space-y-4">
-                <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-                  {product.description ?? "توضیحاتی ثبت نشده است."}
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+                <div className="relative">
+                  <p
+                    className={`text-gray-600 leading-relaxed text-sm md:text-base whitespace-pre-line ${
+                      isLongDescription && !descExpanded
+                        ? "line-clamp-5 md:line-clamp-none"
+                        : ""
+                    }`}
+                  >
+                    {description}
+                  </p>
+                  {/* محو تدریجی پایین متن هنگام جمع‌بودن (فقط موبایل) */}
+                  {isLongDescription && !descExpanded && (
+                    <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent" />
+                  )}
+                </div>
+
+                {isLongDescription && (
+                  <button
+                    type="button"
+                    onClick={() => setDescExpanded((v) => !v)}
+                    className="md:hidden w-full flex items-center justify-center gap-1.5 rounded-xl border border-[#A9CBF5]/40 bg-[#FDE68A]/10 py-2.5 text-sm font-medium text-[#1473E6] active:scale-[0.99] transition-transform"
+                    aria-expanded={descExpanded}
+                  >
+                    {descExpanded ? "بستن جزئیات" : "مشاهده‌ی جزئیات بیشتر"}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        descExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
                   {product.category && (
                     <div className="bg-[#FDE68A]/15 border border-[#A9CBF5]/30 p-3 rounded-xl">
                       <p className="text-xs text-gray-400 mb-0.5">دسته‌بندی</p>
@@ -395,6 +434,7 @@ export function ProductDetails({
               </div>
             )}
 
+            {/* تب «نکات نگهداری و مصرف» فعلاً کامنت شده است.
             {activeTab === "care" && (
               <ul className="space-y-2 text-sm text-gray-600">
                 <li className="flex items-start gap-2">
@@ -419,6 +459,7 @@ export function ProductDetails({
                 </li>
               </ul>
             )}
+            */}
 
             {/* {activeTab === "specs" && (
               <div className="space-y-3 text-sm">
@@ -495,6 +536,15 @@ export function ProductDetails({
                   />
                 );
               })}
+            </div>
+
+            <div className="flex justify-center mt-8">
+              <Link
+                href={moreHref ?? "/products"}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-secondary text-secondary-foreground font-semibold shadow-sm hover:bg-secondary/90 active:scale-95 transition-all"
+              >
+                مشاهده محصولات بیشتر
+              </Link>
             </div>
           </div>
         )}

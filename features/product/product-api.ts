@@ -6,12 +6,19 @@ import type { ApiResponse, ApiListResponse } from "@/types/api";
 export type ProductFilters = {
   categoryId?: string;
   categorySlug?: string;
+  categoryIds?: string[];
+  categorySlugs?: string[];
   brandId?: string;
   brandSlug?: string;
+  brandIds?: string[];
+  brandSlugs?: string[];
   minPrice?: number;
   maxPrice?: number;
   search?: string;
   inStock?: boolean;
+  stockStatus?: "in_stock" | "out_of_stock" | "low_stock";
+  hasDiscount?: boolean;
+  isActive?: boolean;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -24,9 +31,13 @@ function buildQuery(filters: ProductFilters): string {
   return new URLSearchParams(
     Object.entries(filters).reduce(
       (acc, [key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          acc[key] = String(value);
+        if (value === undefined || value === null || value === "") return acc;
+        // آرایه‌ها به‌صورت CSV؛ آرایه‌ی خالی نادیده گرفته می‌شود.
+        if (Array.isArray(value)) {
+          if (value.length) acc[key] = value.join(",");
+          return acc;
         }
+        acc[key] = String(value);
         return acc;
       },
       {} as Record<string, string>,
