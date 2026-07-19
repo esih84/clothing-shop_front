@@ -50,13 +50,13 @@ export function CategorySelector({
             </h2>
           </div>
 
-          <Link
+          {/* <Link
             prefetch
             href="/categories"
             className="text-xs text-secondary border-b border-secondary/40 pb-0.5 hover:border-secondary transition-colors"
           >
             مشاهده همه
-          </Link>
+          </Link> */}
         </div>
       )}
 

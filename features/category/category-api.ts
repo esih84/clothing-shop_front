@@ -16,6 +16,19 @@ export async function getCategories() {
   }
 }
 
+/** دسته‌های منتخب (لیست تخت، هر سطح) برای بخش دسته‌بندی صفحه‌ی اصلی. */
+export async function getFeaturedCategories() {
+  try {
+    const data = await serverFetch<Category[]>("/categories/featured", {
+      revalidate: 300,
+      tags: ["categories"],
+    });
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
 export async function getCategoryBySlug(slug: string) {
   try {
     const data = await serverFetch<Category>(`/categories/${slug}`, {

@@ -47,13 +47,13 @@ export function CategorySlider({
             </h2>
           </div>
 
-          <Link
+          {/* <Link
             prefetch
             href="/categories"
             className="text-xs text-secondary border-b border-secondary/40 pb-0.5 hover:border-secondary transition-colors"
           >
             مشاهده همه
-          </Link>
+          </Link> */}
         </div>
       )}
 
@@ -101,8 +101,8 @@ export function CategorySlider({
                 <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
               </div>
 
-              <div className="flex items-center justify-center pt-1.5 pb-0.5">
-                <p className="text-[11px] sm:text-xs font-semibold text-secondary text-center leading-tight line-clamp-1">
+              <div className="flex items-start justify-center pt-1.5 pb-0.5 min-h-[2.4em]">
+                <p className="text-[11px] sm:text-xs font-semibold text-secondary text-center leading-tight line-clamp-2">
                   {category.name}
                 </p>
               </div>

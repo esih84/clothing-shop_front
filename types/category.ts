@@ -6,6 +6,7 @@ export type Category = {
   description?: string;
   order: number;
   isActive: boolean;
+  isFeatured?: boolean;
 
   parentId?: string;
   parent?: Category | null;
