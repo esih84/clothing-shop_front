@@ -67,7 +67,7 @@ export function useCart() {
           productId: it.productId,
           serverItemId: it.id,
           name: product?.name ?? "محصول",
-          price: product?.basePrice ?? 0,
+          price: product?.discountedPrice ?? product?.basePrice ?? 0,
           quantity: it.quantity,
           imageUrl: image,
         };
