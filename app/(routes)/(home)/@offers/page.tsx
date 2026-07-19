@@ -16,20 +16,21 @@ export default async function OffersSection() {
   return (
     <div className="mb-6 mx-auto">
       {/* Section header */}
-      <div className="px-4 flex justify-between items-center mb-3">
+      <div className="px-3 sm:px-4 flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 bg-[#1473E6]" />
+          <div className="w-1 h-5 rounded-full bg-[#1473E6]" />
           <h3 className="text-base font-bold tracking-wide">پیشنهادات ویژه</h3>
         </div>
         <Link
-          href="/offers"
-          className="text-xs text-[#1473E6] border-b border-[#1473E6]/40 pb-0.5"
+          href="products?hasDiscount=true"
+          className="text-xs text-[#1473E6] border-b border-[#1473E6]/40 pb-0.5 hover:border-[#1473E6] transition-colors"
         >
           مشاهده همه
         </Link>
       </div>
 
-      <div className="px-4">
+      {/* کارت‌بندی مشابه بخش دسته‌بندی */}
+      <div className="mx-3 sm:mx-4 rounded-3xl border bg-white/60 p-3">
         <SwiperWrapper products={products} />
       </div>
     </div>

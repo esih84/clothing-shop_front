@@ -51,7 +51,7 @@ export function OfferCard({
     <Link
       prefetch
       href={`/product/${slug ?? id}`}
-      className="block group w-[150px] sm:w-[170px] md:w-[190px] flex-shrink-0"
+      className="block group w-full min-w-0"
     >
       {/* Image container */}
       <div className="relative overflow-hidden aspect-[3/4] bg-[#FDE68A]/20 border border-[#A9CBF5]/30 rounded-2xl">
@@ -59,7 +59,7 @@ export function OfferCard({
           src={imageUrl || "/placeholder.svg"}
           alt={title}
           fill
-          sizes="190px"
+          sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {/* Discount badge */}
@@ -85,10 +85,19 @@ export function OfferCard({
 
       {/* Info */}
       <div className="pt-2 px-0.5">
-        <p className="text-xs text-gray-500 line-clamp-1 mb-1.5 leading-tight">{title}</p>
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-bold text-[#1473E6]">{formatToman(price)}</span>
-          <span className="text-xs text-gray-400 line-through">{formatToman(originalPrice)}</span>
+        <p className="text-xs text-gray-600 line-clamp-2 min-h-[2rem] mb-1 leading-tight">
+          {title}
+        </p>
+        {/* قیمت‌ها عمودی چیده می‌شوند تا در عرض کم کارت، «تومان» زیر عدد نیفتد */}
+        <div className="flex flex-col gap-0.5">
+          {discount > 0 && (
+            <span className="text-[11px] text-gray-400 line-through leading-none whitespace-nowrap">
+              {formatToman(originalPrice)}
+            </span>
+          )}
+          <span className="text-sm font-bold text-[#1473E6] leading-tight whitespace-nowrap">
+            {formatToman(price)}
+          </span>
         </div>
       </div>
     </Link>
