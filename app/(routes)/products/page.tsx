@@ -17,7 +17,7 @@ type ProductsPromise = ReturnType<typeof getProducts>;
 
 const formatToman = (n: number) => `${n.toLocaleString("fa-IR")} تومان`;
 
-/** ادغام کلید جمع (CSV) و کلید تکیِ قدیمی به آرایه‌ی slugها؛ خالی → undefined. */
+/** Merge the plural key (CSV) and the legacy single key into an array of slugs; empty → undefined. */
 function mergeSlugs(csv?: string, single?: string): string[] | undefined {
   const out = new Set<string>();
   if (csv)
@@ -30,7 +30,7 @@ function mergeSlugs(csv?: string, single?: string): string[] | undefined {
   return out.size ? [...out] : undefined;
 }
 
-/** تعداد محصولات — داخل Suspense تا هنگام واکشی، اسکلت نشان داده شود نه صفحه‌ی خالی. */
+/** Product count — inside Suspense so a skeleton shows during fetch, not an empty page. */
 async function ProductsCount({ promise }: { promise: ProductsPromise }) {
   const { data: response } = await promise;
   const total = response?.total ?? 0;
@@ -41,7 +41,7 @@ async function ProductsCount({ promise }: { promise: ProductsPromise }) {
   );
 }
 
-/** خودِ لیست محصولات — داخل Suspense؛ با تغییر فیلتر، اسکلت فوری دیده می‌شود. */
+/** The product list itself — inside Suspense; on filter change the skeleton appears immediately. */
 async function ProductsSection({
   promise,
   filters,
@@ -58,7 +58,7 @@ async function ProductsSection({
 
   if (products.length === 0) {
     return (
-      <div className="text-gray-500 text-center py-16 rounded-2xl bg-muted/40 border border-border">
+      <div className="text-muted-foreground text-center py-16 rounded-2xl bg-muted/40 border border-border">
         محصولی با این مشخصات پیدا نشد.
       </div>
     );
@@ -75,20 +75,20 @@ async function ProductsSection({
   );
 }
 
-/** جای‌گیرِ عددِ تعداد محصول هنگام لود. */
+/** Placeholder for the product-count number while loading. */
 function CountSkeleton() {
-  return <div className="h-7 w-28 rounded-lg bg-gray-100 animate-pulse" />;
+  return <div className="h-7 w-28 rounded-lg bg-muted animate-pulse" />;
 }
 
-/** اسکلت گرید محصولات — بلافاصله بعد از اعمال فیلتر دیده می‌شود. */
+/** Product grid skeleton — shown immediately after applying a filter. */
 function ProductsGridSkeleton() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-5">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="rounded-2xl border border-border bg-white p-3">
-          <div className="aspect-square rounded-xl bg-gray-100 animate-pulse" />
-          <div className="mt-3 h-4 w-3/4 rounded bg-gray-100 animate-pulse" />
-          <div className="mt-2 h-4 w-1/2 rounded bg-gray-100 animate-pulse" />
+        <div key={i} className="rounded-2xl border border-border bg-card p-3">
+          <div className="aspect-square rounded-xl bg-muted animate-pulse" />
+          <div className="mt-3 h-4 w-3/4 rounded bg-muted animate-pulse" />
+          <div className="mt-2 h-4 w-1/2 rounded bg-muted animate-pulse" />
         </div>
       ))}
     </div>
@@ -113,8 +113,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     sortOrder: (sp.sortOrder as "ASC" | "DESC" | undefined) || undefined,
   };
 
-  // واکشی محصولات را همین‌جا شروع می‌کنیم (بدون await) تا با categories/brands موازی بماند،
-  // اما مصرفش داخل <Suspense> است تا با تغییر فیلتر، اسکلت لودینگ فوری نمایش داده شود.
+  // We start fetching products here (without await) so it runs in parallel with categories/brands,
+  // but it is consumed inside <Suspense> so the loading skeleton appears immediately on filter change.
   const productsPromise = getProducts({ ...filters, page: 1, limit: 10 });
 
   const [{ data: categories }, { data: brands }] = await Promise.all([
@@ -122,7 +122,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     getBrands(),
   ]);
 
-  // نام دسته‌ها/برندهای انتخاب‌شده (برای چیپ‌ها و عنوان)
+  // Names of the selected categories/brands (for the chips and the title)
   const activeCategoryNames = (categorySlugs ?? [])
     .map((slug) => categories?.find((c) => c.slug === slug)?.name)
     .filter((n): n is string => !!n);
@@ -130,7 +130,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     .map((slug) => brands?.find((b) => b.slug === slug)?.name)
     .filter((n): n is string => !!n);
 
-  // برچسب‌های فیلتر فعال
+  // Active filter labels
   const activeChips: string[] = [];
   activeCategoryNames.forEach((name) => activeChips.push(`دسته: ${name}`));
   activeBrandNames.forEach((name) => activeChips.push(`برند: ${name}`));
@@ -151,8 +151,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       ? `جستجو: «${filters.search}»`
       : "همه‌ی محصولات";
 
-  // کلید یکتا: با تغییر فیلتر، مرزهای Suspense از نو mount می‌شوند و اسکلت فوری دیده می‌شود؛
-  // همچنین لیست بی‌نهایت با داده‌ی سرور از نو شروع می‌گردد.
+  // Unique key: on filter change the Suspense boundaries remount and the skeleton is shown immediately;
+  // the infinite list also restarts from the server data.
   const productsKey = JSON.stringify(filters);
 
   return (
@@ -161,14 +161,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         <Link href="/" className="text-secondary hover:underline">
           خانه
         </Link>
-        <span className="text-gray-400">/</span>
+        <span className="text-muted-foreground">/</span>
         <span className="font-bold text-secondary">{heading}</span>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* ستون کناری فیلتر — فقط لپ‌تاپ/تبلت */}
+        {/* Filter sidebar — laptop/tablet only */}
         <aside className="hidden lg:block w-72 shrink-0">
-          <div className="sticky top-24 flex max-h-[calc(100vh-7rem)] flex-col rounded-2xl border border-border bg-white">
+          <div className="sticky top-24 flex max-h-[calc(100vh-7rem)] flex-col rounded-2xl border border-border bg-card">
             <h2 className="flex items-center gap-2 text-lg font-bold text-foreground px-5 pt-5 pb-4 border-b border-border">
               <SlidersHorizontal className="w-4 h-4 text-secondary" />
               فیلترها
@@ -182,14 +182,14 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           </div>
         </aside>
 
-        {/* محتوا */}
+        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <Suspense key={`count:${productsKey}`} fallback={<CountSkeleton />}>
               <ProductsCount promise={productsPromise} />
             </Suspense>
             <div className="flex items-center gap-2">
-              {/* دکمه‌ی فیلتر موبایل → Drawer */}
+              {/* Mobile filter button → Drawer */}
               <MobileFilterButton
                 initialCategories={categories ?? []}
                 initialBrands={brands ?? []}
@@ -198,24 +198,24 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             </div>
           </div>
 
-          {/* برچسب‌های فیلتر فعال */}
+          {/* Active filter labels */}
           {activeChips.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 mb-6">
-              <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 فیلترها:
               </span>
               {activeChips.map((chip) => (
                 <span
                   key={chip}
-                  className="text-xs bg-[#FDE68A]/40 text-[#1473E6] px-3 py-1 rounded-full border border-[#A9CBF5]/30"
+                  className="text-xs bg-primary/20 text-secondary px-3 py-1 rounded-full border border-border"
                 >
                   {chip}
                 </span>
               ))}
               <Link
                 href="/products"
-                className="text-xs text-gray-500 hover:text-red-500 underline underline-offset-4"
+                className="text-xs text-muted-foreground hover:text-red-500 underline underline-offset-4"
               >
                 پاک کردن فیلترها
               </Link>

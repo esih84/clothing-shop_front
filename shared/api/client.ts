@@ -1,23 +1,23 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
-// 1. تنظیمات اولیه
+// 1. Initial setup
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 const api = axios.create({
   baseURL,
-  withCredentials: true, // برای ارسال کوکی‌ها
+  withCredentials: true, // To send cookies
   timeout: 30_000,
   headers: { "Content-Type": "application/json" },
 });
 
-// 2. Request Interceptor (هوشمند برای سرور و کلاینت)
+// 2. Request Interceptor (smart for server and client)
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  // اگر در سرور هستیم (SSR/Server Actions)
+  // If we are on the server (SSR/Server Actions)
   if (typeof window === "undefined") {
-    // داینامیک ایمپورت برای جلوگیری از خطا در کلاینت
+    // Dynamic import to avoid an error on the client
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
 
-    // تبدیل کوکی‌ها به استرینگ (Cookie: a=1; b=2)
+    // Convert cookies to a string (Cookie: a=1; b=2)
     const cookieString = cookieStore
       .getAll()
       .map((c) => `${c.name}=${c.value}`)
@@ -28,8 +28,8 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// 3. Response Interceptor (مدیریت 401 و Refresh)
-// این بخش همان منطق قبلی است ولی در همین فایل قرار می‌گیرد
+// 3. Response Interceptor (handles 401 and Refresh)
+// This is the same logic as before but placed in this file
 let isRefreshing = false;
 let refreshQueue: Array<(token: string | null) => void> = [];
 
@@ -49,7 +49,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/auth/refresh"); // با withCredentials: true کوکی‌ها فرستاده می‌شوند
+        await api.post("/auth/refresh"); // With withCredentials: true the cookies are sent
         isRefreshing = false;
         refreshQueue.forEach((cb) => cb(null));
         refreshQueue = [];
@@ -57,7 +57,7 @@ api.interceptors.response.use(
       } catch (err) {
         isRefreshing = false;
         refreshQueue = [];
-        // هدایت به لاگین در صورت نیاز
+        // Redirect to login if needed
         return Promise.reject(err);
       }
     }

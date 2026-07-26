@@ -19,7 +19,7 @@ export const bannerService = {
   },
 };
 
-/* خواندن سمت سرور — برای استفاده در Server Componentها */
+/* Server-side reads — for use in Server Components */
 export async function getBanners(positions?: string | string[]) {
   try {
     const data = await bannerService.findAll(positions);

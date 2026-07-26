@@ -3,7 +3,7 @@ import { serverFetch } from "@/shared/api/server-fetch";
 import type { Brand } from "@/types/brand";
 import type { ApiResponse } from "@/types/api";
 
-/* خواندن‌های سمت سرور (native fetch + revalidate) — برای SEO و سرعت */
+/* Server-side reads (native fetch + revalidate) — for SEO and speed */
 export async function getBrands() {
   try {
     const data = await serverFetch<Brand[]>("/brands", {
@@ -28,7 +28,7 @@ export async function getBrandBySlug(slug: string) {
   }
 }
 
-/* سرویس سمت کلاینت (axios) */
+/* Client-side service (axios) */
 export const brandService = {
   findAll: async () => {
     const res = await api.get<ApiResponse<Brand[]>>("/brands", {

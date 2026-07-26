@@ -17,7 +17,7 @@ export async function serverFetch<T>(
   let cookieHeader = "";
 
   if (auth) {
-    // ایمپورت داینامیک تا `next/headers` وارد bundle کلاینت نشود
+    // Dynamic import so `next/headers` is not pulled into the client bundle
     const { cookies } = await import("next/headers");
     const cookieStore = await cookies();
 

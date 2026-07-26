@@ -32,7 +32,7 @@ function buildQuery(filters: ProductFilters): string {
     Object.entries(filters).reduce(
       (acc, [key, value]) => {
         if (value === undefined || value === null || value === "") return acc;
-        // آرایه‌ها به‌صورت CSV؛ آرایه‌ی خالی نادیده گرفته می‌شود.
+        // Arrays as CSV; an empty array is ignored.
         if (Array.isArray(value)) {
           if (value.length) acc[key] = value.join(",");
           return acc;
@@ -46,8 +46,8 @@ function buildQuery(filters: ProductFilters): string {
 }
 
 /* ----------------------------------------------------------------
- * خواندن‌های سمت سرور (native fetch + revalidate) — برای SEO و سرعت.
- * در Server Componentها استفاده می‌شوند و قابل کش‌اند.
+ * Server-side reads (native fetch + revalidate) — for SEO and speed.
+ * Used in Server Components and cacheable.
  * ---------------------------------------------------------------- */
 export async function getProducts(filters: ProductFilters) {
   try {
@@ -62,8 +62,8 @@ export async function getProducts(filters: ProductFilters) {
 }
 
 /**
- * محصولات دارای تخفیف فعال (بخش «پیشنهادهای ویژه»).
- * فعال‌بودن تخفیف کاملاً سمت بک‌اند تعیین می‌شود؛ اینجا فقط لیست را می‌گیریم.
+ * Products with an active discount (the "special offers" section).
+ * Whether a discount is active is determined entirely on the backend; here we just fetch the list.
  */
 export async function getDiscountedProducts(
   filters: ProductFilters = {},
@@ -93,7 +93,7 @@ export async function getProductBySlug(slug: string) {
 }
 
 /* ----------------------------------------------------------------
- * سرویس سمت کلاینت (axios) — برای infinite-scroll و فراخوانی‌های کلاینت.
+ * Client-side service (axios) — for infinite-scroll and client-side calls.
  * ---------------------------------------------------------------- */
 export const productService = {
   findAll: async (filters: ProductFilters) => {

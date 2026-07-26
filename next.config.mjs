@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // خروجی standalone برای ایمیج سبک Docker (server.js مستقل، PORT/HOSTNAME را می‌خواند)
+  // standalone output for a lightweight Docker image (self-contained server.js, reads PORT/HOSTNAME)
   output: "standalone",
-  // اجازه‌ی دسترسی dev-server از IP شبکه/WSL (رفع هشدار cross-origin)
-  allowedDevOrigins: ["172.18.192.1"],
+  // Allow dev-server access from the network/WSL IP (fixes the cross-origin warning)
+  allowedDevOrigins: ["localhost"],
   experimental: {
     viewTransition: true,
   },
@@ -13,6 +13,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

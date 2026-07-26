@@ -1,13 +1,13 @@
 // types/api.ts
 
-/** ساختار کلی پاسخ‌های موفق بک‌انـد */
+/** General shape of successful backend responses */
 export type ApiResponse<T> = {
   success: boolean;
   data: T;
   timestamp: string;
 };
 
-/** ساختار لیست‌ها با کلید داینامیک */
+/** Shape of lists with a dynamic key */
 export type ApiListResponse<T, K extends string> = {
   [P in K]: T[];
 } & {
@@ -16,7 +16,7 @@ export type ApiListResponse<T, K extends string> = {
   limit: number;
 };
 
-/** ساختار خطا مطابق HttpExceptionFilter */
+/** Error shape matching HttpExceptionFilter */
 export type ApiErrorResponse = {
   statusCode: number;
   timestamp: string;

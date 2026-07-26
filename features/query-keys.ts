@@ -1,6 +1,6 @@
 /**
- * کلیدهای متمرکز React Query برای کل فروشگاه.
- * هر feature از این‌جا کلید می‌گیرد تا invalidate/کش یکدست بماند.
+ * Centralized React Query keys for the whole storefront.
+ * Each feature gets its keys from here so invalidation/caching stays consistent.
  */
 export const queryKeys = {
   currentUser: ["current-user"] as const,
@@ -12,6 +12,6 @@ export const queryKeys = {
   pets: ["pets"] as const,
 } as const;
 
-// نام‌های مستعار پرکاربرد
+// Commonly used aliases
 export const CURRENT_USER_KEY = queryKeys.currentUser;
 export const CART_KEY = queryKeys.cart;

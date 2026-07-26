@@ -5,7 +5,7 @@ import { addressService } from "./address-api";
 import { queryKeys } from "@/features/query-keys";
 import { useIsLoggedIn } from "@/features/auth/queries";
 
-/** آدرس‌های ذخیره‌شده‌ی کاربر (فقط وقتی وارد شده باشد). */
+/** The user's saved addresses (only when logged in). */
 export function useAddresses() {
   const isLoggedIn = useIsLoggedIn();
   return useQuery({

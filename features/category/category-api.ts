@@ -3,7 +3,7 @@ import { serverFetch } from "@/shared/api/server-fetch";
 import type { Category } from "@/types/category";
 import type { ApiResponse } from "@/types/api";
 
-/* خواندن‌های سمت سرور (native fetch + revalidate) — برای SEO و سرعت */
+/* Server-side reads (native fetch + revalidate) — for SEO and speed */
 export async function getCategories() {
   try {
     const data = await serverFetch<Category[]>("/categories", {
@@ -16,7 +16,7 @@ export async function getCategories() {
   }
 }
 
-/** دسته‌های منتخب (لیست تخت، هر سطح) برای بخش دسته‌بندی صفحه‌ی اصلی. */
+/** Featured categories (flat list, any level) for the home page categories section. */
 export async function getFeaturedCategories() {
   try {
     const data = await serverFetch<Category[]>("/categories/featured", {
@@ -41,7 +41,7 @@ export async function getCategoryBySlug(slug: string) {
   }
 }
 
-/* سرویس سمت کلاینت (axios) */
+/* Client-side service (axios) */
 export const categoryService = {
   findAll: async () => {
     const res = await api.get<ApiResponse<Category[]>>("/categories", {

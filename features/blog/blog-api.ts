@@ -5,7 +5,7 @@ import type { ApiResponse, ApiListResponse } from "@/types/api";
 
 export type BlogListResponse = ApiListResponse<Blog, "data">;
 
-/* خواندن‌های سمت سرور (native fetch + revalidate) — برای SEO و سرعت */
+/* Server-side reads (native fetch + revalidate) — for SEO and speed */
 export async function getBlogs(page = 1, limit = 20) {
   try {
     const data = await serverFetch<BlogListResponse>(
@@ -30,7 +30,7 @@ export async function getBlogBySlug(slug: string) {
   }
 }
 
-/* سرویس سمت کلاینت (axios) */
+/* Client-side service (axios) */
 export const blogService = {
   findAll: async (page = 1, limit = 20) => {
     const res = await api.get<ApiResponse<BlogListResponse>>("/blogs", {

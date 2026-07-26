@@ -11,9 +11,9 @@ export type ProductsPage = {
 };
 
 /**
- * فهرست محصولات با اسکرول بی‌نهایت (سمت کلاینت).
- * با filters و limit پارامتری شده تا هم صفحه‌ی خانه (۱۰تایی، سقف‌دار)
- * و هم صفحه‌ی `/products` (۱۰تایی، فیلتردار) از همین استفاده کنند.
+ * Product list with infinite scroll (client-side).
+ * Parameterized with filters and limit so both the home page (10 items, capped)
+ * and the `/products` page (10 items, filtered) can use it.
  */
 export function useInfiniteProducts({
   filters,
@@ -25,7 +25,7 @@ export function useInfiniteProducts({
   initial: ProductsPage;
 }) {
   return useInfiniteQuery({
-    // کلید شامل فیلترها + limit است تا کش هر ترکیب فیلتر جدا بماند.
+    // The key includes the filters + limit so each filter combination is cached separately.
     queryKey: [...queryKeys.products, { ...filters, limit }],
     queryFn: async ({ pageParam }) => {
       const { data, total, limit: pageLimit } = await productService.findAll({

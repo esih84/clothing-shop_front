@@ -2,17 +2,17 @@ import type { Product } from "@/types/product";
 import type { Category } from "@/types/category";
 
 /**
- * مجموعه‌ی یکتای slug دسته‌هایی که برای پیشنهاد «شاید دوست داشته باشید» استفاده
- * می‌شوند: دسته‌های خودِ محصول + دسته‌ی والد + زیردسته‌ها (فرزندان).
+ * The unique set of category slugs used for the "you might also like" suggestions:
+ * the product's own categories + the parent category + subcategories (children).
  *
- * @param product محصول جاری (با `category` تکی و/یا `categories` چند‌مقداری)
- * @param tree    درخت دسته‌ها از `getCategories()` (ریشه‌ها با `children` تودرتو)
+ * @param product the current product (with a single `category` and/or multi-valued `categories`)
+ * @param tree    the category tree from `getCategories()` (roots with nested `children`)
  */
 export function collectRelatedCategorySlugs(
   product: Pick<Product, "category" | "categories">,
   tree: Category[] | null | undefined,
 ): string[] {
-  // ایندکس گره‌ها بر اساس id + نگاشت هر گره به والدش (حین پیمایش درخت).
+  // Index nodes by id + map each node to its parent (while traversing the tree).
   const byId = new Map<string, Category>();
   const parentOf = new Map<string, Category | undefined>();
 
@@ -25,7 +25,7 @@ export function collectRelatedCategorySlugs(
   };
   walk(tree ?? []);
 
-  // دسته‌های seed از خودِ محصول (تکی + چند‌مقداری).
+  // Seed categories from the product itself (single + multi-valued).
   const seeds: Category[] = [];
   if (product.category) seeds.push(product.category);
   if (product.categories?.length) seeds.push(...product.categories);
@@ -34,7 +34,7 @@ export function collectRelatedCategorySlugs(
   for (const seed of seeds) {
     if (seed?.slug) slugs.add(seed.slug);
 
-    // گره‌ی متناظر در درخت را پیدا کن تا والد/فرزندان دقیق باشند.
+    // Find the corresponding node in the tree so the parent/children are accurate.
     const node = byId.get(seed.id);
     if (!node) continue;
 

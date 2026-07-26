@@ -5,12 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** قیمت را به‌صورت فارسی همراه واحد «تومان» قالب‌بندی می‌کند. */
+/** Formats a price in Persian with the "Toman" unit. */
 export function formatToman(value: number): string {
   return `${Math.round(value).toLocaleString("fa-IR")} تومان`
 }
 
-/** تاریخ را به تقویم جلالی (شمسی) با نام ماه فارسی قالب‌بندی می‌کند. */
+/** Formats a date in the Jalali (Persian) calendar with the Persian month name. */
 export function formatJalaliDate(value: string | number | Date): string {
   const date = new Date(value)
   if (isNaN(date.getTime())) return ""

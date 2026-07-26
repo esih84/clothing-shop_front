@@ -1,18 +1,18 @@
 /**
- * تنظیمات مرکزی برند فروشگاه.
- * برای تغییر نام/شعار/اطلاعات تماس فقط همین فایل را ویرایش کنید.
+ * Central brand configuration for the store.
+ * To change the name/slogan/contact info, edit only this file.
  */
 export const brand = {
-  /** نام فارسی برند (در هدر، فوتر و عنوان صفحات استفاده می‌شود) */
+  /** Persian brand name (used in the header, footer, and page titles) */
   name: "پت میل",
-  /** نام لاتین برند (برای کپی‌رایت، دامنه و SEO لاتین) */
+  /** Latin brand name (for copyright, domain, and Latin SEO) */
   nameEn: "Petmeal",
-  /** شعار کوتاه */
+  /** Short slogan */
   tagline: "هر چیزی که حیوون خونگیت لازم داره",
-  /** توضیح بلندتر برای metadata و فوتر */
+  /** Longer description for metadata and the footer */
   description:
     "فروشگاه آنلاین لوازم و غذای حیوانات خانگی — غذا، اسباب‌بازی و لوازم نگهداری برای سگ، گربه و دوستان کوچولوت.",
-  /** آدرس کامل سایت (برای canonical / OG / sitemap) */
+  /** Full site URL (for canonical / OG / sitemap) */
   url: "https://petmeal.ir",
   contact: {
     // email: "info@petland.example",
