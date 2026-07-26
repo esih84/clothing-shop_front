@@ -6,16 +6,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2, PackageSearch, Percent, Search } from "lucide-react";
 import { categoryService } from "@/features/category/category-api";
 import { brandService } from "@/features/brand/brand-api";
+import { normalizeDigits } from "@/shared/lib/digits";
 import type { Category } from "@/types/category";
 import type { Brand } from "@/types/brand";
 
-/** بیشینه‌ی بازه‌ی قیمت اسلایدر (تومان) */
+/** Maximum of the slider's price range (Toman) */
 const PRICE_MIN = 0;
 const PRICE_MAX = 5_000_000;
 const PRICE_STEP = 50_000;
 
 /**
- * خواندن چند slug از URL: کلید جمع (CSV) + کلید تکیِ قدیمی (سازگاری با لینک‌های موجود).
+ * Read multiple slugs from the URL: the plural key (CSV) + the legacy single key (compat with existing links).
  */
 function readSlugs(
   params: URLSearchParams | { get: (k: string) => string | null },
@@ -35,7 +36,10 @@ function readSlugs(
   return [...out];
 }
 
-// اسلایدر بازه‌ی قیمت (دو دسته) — RTL: سمت راست = کمینه، سمت چپ = بیشینه
+// Price range slider (two handles) — RTL: right = min, left = max.
+// Uses Pointer Events (+ touch-action:none and data-vaul-no-drag) so dragging is reliable
+// on touch inside the mobile drawer; the thumbs are pointer-events-none visuals and the
+// track owns the gesture (with capture), and numeric inputs let the range be typed directly.
 function PriceSlider({
   min,
   max,
@@ -48,59 +52,78 @@ function PriceSlider({
   onChange: (val: [number, number]) => void;
 }) {
   const [dragging, setDragging] = useState<null | 0 | 1>(null);
+  const draggingRef = useRef<null | 0 | 1>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
   const minValue = Math.min(value[0], value[1]);
   const maxValue = Math.max(value[0], value[1]);
-  const getPercent = (val: number) => ((val - min) / (max - min)) * 100;
+  const getPercent = (val: number) =>
+    max === min ? 0 : ((val - min) / (max - min)) * 100;
 
-  const handleDrag = (idx: 0 | 1, clientX: number) => {
-    if (!trackRef.current) return;
-    const rect = trackRef.current.getBoundingClientRect();
-    let percent = (rect.right - clientX) / rect.width;
-    percent = Math.max(0, Math.min(1, percent));
-    const raw = min + percent * (max - min);
+  const clampStep = (raw: number) => {
     const stepped = Math.round(raw / PRICE_STEP) * PRICE_STEP;
-    const newRange: [number, number] = [...value] as [number, number];
-    newRange[idx] = stepped;
-    onChange(newRange);
+    return Math.max(min, Math.min(max, stepped));
   };
 
-  const handleThumbDown =
-    (idx: 0 | 1) => (e: React.MouseEvent | React.TouchEvent) => {
-      setDragging(idx);
-      e.stopPropagation();
-    };
+  const posToValue = (clientX: number) => {
+    const rect = trackRef.current!.getBoundingClientRect();
+    let percent = (rect.right - clientX) / rect.width;
+    percent = Math.max(0, Math.min(1, percent));
+    return clampStep(min + percent * (max - min));
+  };
 
-  useEffect(() => {
-    if (dragging === null) return;
-    const handleMove = (e: MouseEvent | TouchEvent) => {
-      let clientX = (e as MouseEvent).clientX;
-      if ((e as TouchEvent).touches)
-        clientX = (e as TouchEvent).touches[0].clientX;
-      handleDrag(dragging, clientX);
-    };
-    const handleUp = () => setDragging(null);
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("touchmove", handleMove);
-    window.addEventListener("mouseup", handleUp);
-    window.addEventListener("touchend", handleUp);
-    return () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("touchmove", handleMove);
-      window.removeEventListener("mouseup", handleUp);
-      window.removeEventListener("touchend", handleUp);
-    };
-    // فقط با شروع/پایان درگ لیسنرها را ببند/بازکن؛ در هر درگ تنها همان thumb تغییر
-    // می‌کند، پس بستن value در شروع درگ کافی است و نیازی به وابستگی handleDrag نیست.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dragging]);
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!trackRef.current) return;
+    e.preventDefault();
+    const tapped = posToValue(e.clientX);
+    // Grab the handle nearest to the tapped position.
+    const idx: 0 | 1 =
+      Math.abs(tapped - value[0]) <= Math.abs(tapped - value[1]) ? 0 : 1;
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    draggingRef.current = idx;
+    setDragging(idx);
+    const next: [number, number] = [...value] as [number, number];
+    next[idx] = tapped;
+    onChange(next);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const idx = draggingRef.current;
+    if (idx === null) return;
+    const next: [number, number] = [...value] as [number, number];
+    next[idx] = posToValue(e.clientX);
+    onChange(next);
+  };
+
+  const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (draggingRef.current === null) return;
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+    draggingRef.current = null;
+    setDragging(null);
+  };
+
+  // Typed entry — the tuple is normalized to [low, high] on every change.
+  const setLow = (digits: string) => {
+    const parsed = digits === "" ? min : Number(digits);
+    onChange([Math.max(min, Math.min(max, parsed)), maxValue]);
+  };
+  const setHigh = (digits: string) => {
+    const parsed = digits === "" ? max : Number(digits);
+    onChange([minValue, Math.max(min, Math.min(max, parsed))]);
+  };
 
   return (
-    <div className="w-full px-2 py-4">
-      <div ref={trackRef} className="relative h-2 bg-gray-200 rounded-full">
+    <div className="w-full px-1 pt-1" data-vaul-no-drag>
+      <div
+        ref={trackRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        className="relative h-2 mx-2.5 my-5 bg-muted rounded-full touch-none cursor-pointer select-none"
+      >
         <div
-          className="absolute h-2 bg-[#1473E6] rounded-full"
+          className="absolute h-2 bg-secondary rounded-full pointer-events-none"
           style={{
             right: `${getPercent(minValue)}%`,
             width: `${getPercent(maxValue) - getPercent(minValue)}%`,
@@ -110,30 +133,53 @@ function PriceSlider({
         {[0, 1].map((idx) => (
           <div
             key={idx}
-            className={`absolute w-5 h-5 bg-white border-2 border-[#1473E6] rounded-full shadow -top-1.5 z-10 cursor-pointer transition-transform ${
+            className={`absolute w-5 h-5 bg-card border-2 border-secondary rounded-full shadow -top-1.5 z-10 pointer-events-none transition-transform ${
               dragging === idx ? "scale-110" : ""
             }`}
             style={{ right: `calc(${getPercent(value[idx])}% - 10px)` }}
-            onMouseDown={handleThumbDown(idx as 0 | 1)}
-            onTouchStart={handleThumbDown(idx as 0 | 1)}
           />
         ))}
       </div>
-      <div className="flex justify-between mt-4 text-sm">
-        <span>
-          از <b>{minValue.toLocaleString("fa-IR")}</b> تومان
-        </span>
-        <span>
-          تا <b>{maxValue.toLocaleString("fa-IR")}</b> تومان
-        </span>
+
+      {/* Numeric entry so the range can always be defined even without dragging. */}
+      <div className="flex items-end gap-2 mt-1">
+        <div className="flex-1">
+          <label className="block text-xs text-muted-foreground mb-1">
+            از (تومان)
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            dir="ltr"
+            value={minValue ? minValue.toLocaleString("fa-IR") : ""}
+            onChange={(e) => setLow(normalizeDigits(e.target.value))}
+            placeholder="۰"
+            className="w-full px-3 py-2 rounded-xl bg-muted border border-border text-sm text-foreground text-center focus:outline-none focus:border-secondary/60 focus:bg-card focus:ring-2 focus:ring-secondary/15 transition-all"
+          />
+        </div>
+        <span className="pb-2 text-sm text-muted-foreground">تا</span>
+        <div className="flex-1">
+          <label className="block text-xs text-muted-foreground mb-1">
+            تا (تومان)
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            dir="ltr"
+            value={maxValue ? maxValue.toLocaleString("fa-IR") : ""}
+            onChange={(e) => setHigh(normalizeDigits(e.target.value))}
+            placeholder={max.toLocaleString("fa-IR")}
+            className="w-full px-3 py-2 rounded-xl bg-muted border border-border text-sm text-foreground text-center focus:outline-none focus:border-secondary/60 focus:bg-card focus:ring-2 focus:ring-secondary/15 transition-all"
+          />
+        </div>
       </div>
     </div>
   );
 }
 
 /**
- * یک گره‌ی دسته‌بندی به‌همراه زیردسته‌هایش (بازگشتی، چند‌انتخابی) — زیردسته‌ها تودرتو و
- * کمی تورفته زیر دسته‌ی والد نمایش داده می‌شوند تا سلسله‌مراتب مشخص باشد.
+ * A category node together with its subcategories (recursive, multi-select) — subcategories are nested and
+ * shown slightly indented under the parent so the hierarchy is clear.
  */
 function CategoryNode({
   category,
@@ -154,13 +200,13 @@ function CategoryNode({
         onClick={() => onToggle(category.slug)}
         className={`flex w-full items-center gap-2 rounded-xl py-2 px-3 text-sm text-right transition-colors ${
           isSelected
-            ? "bg-[#1473E6] text-white font-semibold shadow"
-            : "text-gray-700 hover:bg-gray-100"
+            ? "bg-secondary text-white font-semibold shadow"
+            : "text-foreground hover:bg-muted"
         }`}
       >
         <span
           className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-            isSelected ? "border-white bg-white/20" : "border-gray-300"
+            isSelected ? "border-white bg-card/20" : "border-border"
           }`}
         >
           {isSelected && (
@@ -179,7 +225,7 @@ function CategoryNode({
         <span className="flex-1">{category.name}</span>
       </button>
       {children.length > 0 && (
-        <div className="mr-3 border-r border-gray-200/80 pr-1 space-y-0.5">
+        <div className="mr-3 border-r border-border/80 pr-1 space-y-0.5">
           {children.map((child) => (
             <CategoryNode
               key={child.id}
@@ -195,8 +241,8 @@ function CategoryNode({
 }
 
 /**
- * پنل جستجو/فیلتر محصولات — از URL مقداردهی اولیه می‌شود و با اعمال به `/products` می‌رود.
- * در موبایل داخل Drawer (FilterModal) و در لپ‌تاپ/تبلت به‌صورت ستون کناری استفاده می‌شود.
+ * Product search/filter panel — initialized from the URL and, on apply, navigates to `/products`.
+ * Used inside a Drawer (FilterModal) on mobile and as a sidebar on laptop/tablet.
  */
 export function ProductFilters({
   onApplied,
@@ -204,7 +250,7 @@ export function ProductFilters({
   initialBrands,
 }: {
   onApplied?: () => void;
-  /** دسته‌ها/برندهای گرفته‌شده در سرور — به‌عنوان initialData تا کلاینت دوباره fetch نکند. */
+  /** Categories/brands fetched on the server — as initialData so the client does not re-fetch. */
   initialCategories?: Category[];
   initialBrands?: Brand[];
 }) {
@@ -212,8 +258,8 @@ export function ProductFilters({
   const searchParams = useSearchParams();
   const spKey = searchParams.toString();
 
-  // با seed کردن initialData از داده‌ی سرور، React Query در staleTime دوباره fetch نمی‌کند
-  // (رفع fetch تکراری در هر ری‌لود). اگر داده‌ی سرور نبود، طبق روال کلاینت‌ساید می‌گیرد.
+  // By seeding initialData from the server data, React Query does not re-fetch within staleTime
+  // (fixes a duplicate fetch on every reload). If there is no server data, it fetches client-side as usual.
   const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: () => categoryService.findAll(),
@@ -260,7 +306,7 @@ export function ProductFilters({
     () => searchParams.get("hasDiscount") === "true",
   );
 
-  // هم‌گام‌سازی با URL هنگام ناوبری (چیپ‌ها/مرتب‌سازی/پاک‌کردن فیلتر).
+  // Sync with the URL on navigation (chips/sorting/clearing filters).
   useEffect(() => {
     setSearchText(searchParams.get("search") ?? "");
     setSelectedCategories(
@@ -304,14 +350,14 @@ export function ProductFilters({
     if (inStock) params.set("inStock", "true");
     if (hasDiscount) params.set("hasDiscount", "true");
 
-    // مرتب‌سازی فعلی حفظ شود.
+    // Keep the current sorting.
     const sortBy = searchParams.get("sortBy");
     const sortOrder = searchParams.get("sortOrder");
     if (sortBy) params.set("sortBy", sortBy);
     if (sortOrder) params.set("sortOrder", sortOrder);
 
-    // اگر کوئری با URL فعلی یکی باشد، router.push بی‌اثر است (باگ «دکمه عمل نمی‌کند»).
-    // در آن حالت با refresh داده‌ی سرور را تازه می‌کنیم تا اعمالِ فیلتر همیشه بازخورد بدهد.
+    // If the query equals the current URL, router.push has no effect (the "button does nothing" bug).
+    // In that case we refresh to update the server data so applying the filter always gives feedback.
     const query = params.toString();
     if (query === searchParams.toString()) {
       router.refresh();
@@ -323,11 +369,11 @@ export function ProductFilters({
 
   return (
     <div className="space-y-7">
-      {/* جستجو */}
+      {/* Search */}
       <div>
-        <h3 className="font-semibold text-[#1473E6] text-base mb-3">جستجو</h3>
+        <h3 className="font-semibold text-secondary text-base mb-3">جستجو</h3>
         <div className="relative">
-          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <input
             type="text"
             value={searchText}
@@ -337,44 +383,44 @@ export function ProductFilters({
             }}
             placeholder="نام محصول..."
             dir="rtl"
-            className="w-full pr-10 pl-3 py-2.5 rounded-2xl bg-muted border border-border text-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:border-secondary/60 focus:bg-white focus:ring-2 focus:ring-secondary/15 transition-all"
+            className="w-full pr-10 pl-3 py-2.5 rounded-2xl bg-muted border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-secondary/60 focus:bg-card focus:ring-2 focus:ring-secondary/15 transition-all"
           />
         </div>
       </div>
-      {/* موجودی */}
+      {/* Availability */}
       <div>
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={inStock}
             onChange={(e) => setInStock(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 accent-[#1473E6]"
+            className="w-4 h-4 rounded border-border accent-secondary"
           />
-          <span className="flex items-center gap-1.5 text-gray-700">
-            <PackageSearch className="w-4 h-4 text-[#1473E6]" />
+          <span className="flex items-center gap-1.5 text-foreground">
+            <PackageSearch className="w-4 h-4 text-secondary" />
             فقط کالاهای موجود
           </span>
         </label>
       </div>
 
-      {/* تخفیف‌دار */}
+      {/* Discounted */}
       <div>
         <label className="flex items-center gap-2 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={hasDiscount}
             onChange={(e) => setHasDiscount(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 accent-[#1473E6]"
+            className="w-4 h-4 rounded border-border accent-secondary"
           />
-          <span className="flex items-center gap-1.5 text-gray-700">
-            <Percent className="w-4 h-4 text-[#1473E6]" />
+          <span className="flex items-center gap-1.5 text-foreground">
+            <Percent className="w-4 h-4 text-secondary" />
             فقط کالاهای تخفیف‌دار
           </span>
         </label>
       </div>
-      {/* قیمت */}
+      {/* Price */}
       <div>
-        <h3 className="font-semibold text-[#1473E6] text-base mb-1">
+        <h3 className="font-semibold text-secondary text-base mb-1">
           محدوده‌ی قیمت
         </h3>
         <PriceSlider
@@ -385,17 +431,17 @@ export function ProductFilters({
         />
       </div>
 
-      {/* دسته‌بندی */}
+      {/* Category */}
       <div className="pb-1">
-        <h3 className="font-semibold text-[#1473E6] text-base mb-3">
+        <h3 className="font-semibold text-secondary text-base mb-3">
           دسته‌بندی
         </h3>
         {categoriesLoading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="w-5 h-5 text-[#1473E6] animate-spin" />
+            <Loader2 className="w-5 h-5 text-secondary animate-spin" />
           </div>
         ) : categories.length === 0 ? (
-          <p className="text-sm text-gray-400">دسته‌بندی‌ای یافت نشد.</p>
+          <p className="text-sm text-muted-foreground">دسته‌بندی‌ای یافت نشد.</p>
         ) : (
           <div className="max-h-72 overflow-y-auto pl-1 space-y-0.5">
             <button
@@ -403,8 +449,8 @@ export function ProductFilters({
               onClick={() => setSelectedCategories([])}
               className={`w-full rounded-xl py-2 px-3 text-sm text-right transition-colors ${
                 selectedCategories.length === 0
-                  ? "bg-[#1473E6] text-white font-semibold shadow"
-                  : "text-gray-700 hover:bg-gray-100"
+                  ? "bg-secondary text-white font-semibold shadow"
+                  : "text-foreground hover:bg-muted"
               }`}
             >
               همه‌ی دسته‌ها
@@ -421,15 +467,15 @@ export function ProductFilters({
         )}
       </div>
 
-      {/* برند */}
+      {/* Brand */}
       <div className="pb-1">
-        <h3 className="font-semibold text-[#1473E6] text-base mb-3">برند</h3>
+        <h3 className="font-semibold text-secondary text-base mb-3">برند</h3>
         {brandsLoading ? (
           <div className="flex justify-center py-4">
-            <Loader2 className="w-5 h-5 text-[#1473E6] animate-spin" />
+            <Loader2 className="w-5 h-5 text-secondary animate-spin" />
           </div>
         ) : brands.length === 0 ? (
-          <p className="text-sm text-gray-400">برندی یافت نشد.</p>
+          <p className="text-sm text-muted-foreground">برندی یافت نشد.</p>
         ) : (
           <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto pl-1">
             <button
@@ -437,8 +483,8 @@ export function ProductFilters({
               onClick={() => setSelectedBrands([])}
               className={`px-4 py-2 rounded-full text-sm border transition-colors font-medium ${
                 selectedBrands.length === 0
-                  ? "bg-[#1473E6] text-white border-[#1473E6] shadow"
-                  : "bg-gray-100 text-gray-700 border-gray-200 hover:border-[#A9CBF5]"
+                  ? "bg-secondary text-white border-secondary shadow"
+                  : "bg-muted text-foreground border-border hover:border-border"
               }`}
             >
               همه
@@ -450,8 +496,8 @@ export function ProductFilters({
                 onClick={() => toggleBrand(b.slug)}
                 className={`px-4 py-2 rounded-full text-sm border transition-colors font-medium ${
                   selectedBrands.includes(b.slug)
-                    ? "bg-[#1473E6] text-white border-[#1473E6] shadow"
-                    : "bg-gray-100 text-gray-700 border-gray-200 hover:border-[#A9CBF5]"
+                    ? "bg-secondary text-white border-secondary shadow"
+                    : "bg-muted text-foreground border-border hover:border-border"
                 }`}
               >
                 {b.name}
@@ -461,19 +507,19 @@ export function ProductFilters({
         )}
       </div>
 
-      {/* اقدام‌ها */}
+      {/* Actions */}
       <div className="flex flex-col gap-2 pt-2">
         <button
           type="button"
           onClick={handleApply}
-          className="px-4 py-2.5 bg-[#1473E6] hover:bg-[#1473E6]/90 text-white rounded-2xl text-base font-semibold shadow transition-colors"
+          className="px-4 py-2.5 bg-secondary hover:bg-secondary/90 text-white rounded-2xl text-base font-semibold shadow transition-colors"
         >
           اعمال فیلتر
         </button>
         <button
           type="button"
           onClick={handleReset}
-          className="px-4 py-2.5 border border-gray-300 rounded-2xl text-base font-medium hover:bg-gray-100 transition-colors"
+          className="px-4 py-2.5 border border-border rounded-2xl text-base font-medium hover:bg-muted transition-colors"
         >
           بازنشانی
         </button>
