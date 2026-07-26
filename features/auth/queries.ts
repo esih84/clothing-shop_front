@@ -5,7 +5,7 @@ import { authService } from "./auth-api";
 import { CURRENT_USER_KEY } from "@/features/query-keys";
 import type { User } from "@/types/user";
 
-/** کاربر فعلی را از /users/me می‌خواند (مبتنی بر کوکی httpOnly). */
+/** Reads the current user from /users/me (based on the httpOnly cookie). */
 export function useCurrentUser() {
   return useQuery<User | null>({
     queryKey: CURRENT_USER_KEY,

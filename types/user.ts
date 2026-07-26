@@ -1,4 +1,4 @@
-export type Role = "USER" | "ADMIN" | string; // چون Role از بک‌اند کاملش را نداریم
+export type Role = "USER" | "ADMIN" | string; // Since we don't have the full Role from the backend
 
 export type User = {
   id: string;
@@ -6,7 +6,7 @@ export type User = {
   email?: string;
   firstName?: string;
   lastName?: string;
-  birthDate?: string; // type: 'date' => معمولاً "YYYY-MM-DD"
+  birthDate?: string; // type: 'date' => usually "YYYY-MM-DD"
   role: Role;
   isActive: boolean;
   referralCode?: string;

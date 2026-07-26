@@ -5,7 +5,7 @@ import { petService } from "./pet-api";
 import { queryKeys } from "@/features/query-keys";
 import { useIsLoggedIn } from "@/features/auth/queries";
 
-/** پت‌های ذخیره‌شده‌ی کاربر (فقط وقتی وارد شده باشد). */
+/** The user's saved pets (only when logged in). */
 export function usePets() {
   const isLoggedIn = useIsLoggedIn();
   return useQuery({

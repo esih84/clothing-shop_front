@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authService } from "./auth-api";
+import { toast } from "sonner";
+import { authService, UpdateProfileInput } from "./auth-api";
 import { CURRENT_USER_KEY } from "@/features/query-keys";
 
 export function useSendOtp() {
@@ -16,10 +17,26 @@ export function useVerifyOtp() {
     mutationFn: ({ phone, code }: { phone: string; code: string }) =>
       authService.verifyOtp(phone, code),
     onSuccess: (res) => {
-      // کوکی‌ها توسط بک‌اند ست شده‌اند؛ کاربر را در کش قرار می‌دهیم
+      // The cookies are set by the backend; we place the user in the cache
       qc.setQueryData(CURRENT_USER_KEY, res.data.data.user);
       qc.invalidateQueries({ queryKey: CURRENT_USER_KEY });
     },
+  });
+}
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: UpdateProfileInput) => {
+      const res = await authService.updateProfile(data);
+      return res.data.data;
+    },
+    onSuccess: (user) => {
+      qc.setQueryData(CURRENT_USER_KEY, user);
+      qc.invalidateQueries({ queryKey: CURRENT_USER_KEY });
+      toast.success("پروفایل به‌روزرسانی شد.");
+    },
+    onError: () => toast.error("به‌روزرسانی پروفایل با خطا مواجه شد."),
   });
 }
 
