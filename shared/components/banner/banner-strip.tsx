@@ -3,21 +3,22 @@
 import { AppSlider } from "@/shared/components/app-slider";
 import { cn } from "@/shared/lib/utils";
 import type { Banner } from "@/types/banner";
-import { BannerCard, type BannerVariant } from "./banner-card";
+import { BannerCard, type BannerType } from "./banner-card";
 
 interface BannerStripProps {
   banners: Banner[];
-  variant?: BannerVariant;
-  /** true = هر ۵ ثانیه، عدد = ثانیه، false = خاموش */
+  /** main = large hero banner; side = compact half-width banner */
+  type?: BannerType;
+  /** true = every 5 seconds, a number = seconds, false = off */
   autoplay?: boolean | number;
-  /** ارتفاع/چیدمان از بیرون داده می‌شود */
+  /** Height/layout is provided from outside */
   className?: string;
 }
 
-/** اسلایدر یک دسته بنر؛ با یک بنر بدون اسلاید رندر می‌شود */
+/** Slider for a group of banners; with a single banner it renders without sliding */
 export function BannerStrip({
   banners,
-  variant = "card",
+  type = "side",
   autoplay = 5,
   className,
 }: BannerStripProps) {
@@ -37,8 +38,8 @@ export function BannerStrip({
         renderItem={(banner, idx) => (
           <BannerCard
             banner={banner}
-            variant={variant}
-            priority={variant === "hero" && idx === 0}
+            type={type}
+            priority={type === "main" && idx === 0}
           />
         )}
       />

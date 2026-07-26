@@ -1,39 +1,79 @@
 import Link from "next/link";
 import type { Banner } from "@/types/banner";
 
-export type BannerVariant = "hero" | "card";
+/**
+ * Banner type — controls only the overlay sizing (the overlay markup is shared):
+ * - `main`  = large prominent banner (the home hero / main slider).
+ * - `side`  = compact narrow banner (the home side banners) — text & padding shrink hard.
+ * - `brand` = half-width brand banner — medium sizing (roomier than `side`, smaller than `main`).
+ */
+export type BannerType = "main" | "side" | "brand";
 
 interface BannerCardProps {
   banner: Banner;
-  variant: BannerVariant;
+  type: BannerType;
   priority?: boolean;
-  /**
-   * فشرده: برای بنرهای نصف‌عرض (مثل برندها) که جای کمی دارند —
-   * متن و padding در موبایل/دسکتاپ کوچک‌تر می‌شود تا سرریز نکند.
-   */
-  compact?: boolean;
 }
 
 /**
- * رندر یک بنر: hero (بزرگ با متن و دکمه) یا card (کوچک).
- * کل بنر لینک است؛ متن دکمه از خود بنر (`buttonText`) می‌آید و اگر خالی
- * باشد دکمه رندر نمی‌شود. اگر عنوان/توضیح/دکمه هیچ‌کدام نباشند، هیچ لایه‌ای
- * روی تصویر نمی‌آید تا بنرهای صرفاً تصویری تمیز دیده شوند.
+ * Per-type overlay classes. `main`/`side` reproduce the original hero/compact styles exactly;
+ * `brand` is its own style because the very small `side` sizing does not suit brand banners.
+ */
+const STYLES: Record<
+  BannerType,
+  { wrap: string; box: string; title: string; desc: string; button: string }
+> = {
+  main: {
+    wrap: "absolute inset-0 z-20 flex flex-col justify-end p-3 md:justify-center md:p-10 lg:p-14",
+    box: "max-w-[60%] md:max-w-[50%] my-auto mr-1",
+    title:
+      "text-[11px] font-semibold lg:font-extrabold lg:leading-tight leading-none text-[#0F73E6]  md:text-2xl lg:text-4xl",
+    desc: "mt-2 line-clamp-2 text-[8px] font-thin md:font-normal leading-none md:leading-snug text-[#1a2433] sm:text-xs md:mt-3 lg:mt-4 md:text-xs lg:text-base",
+    button:
+      "mt-4  inline-block rounded-[0.25rem] bg-[#0F73E6] px-1.5 py-1 text-[0.5rem] lg:font-semibold text-white shadow-md sm:mt-3 sm:px-2 sm:py-1.5 sm:text-[0.6rem] md: px-4 md:py-2 md:mt-8 md:text-base lg:mt-6 lg:rounded-xl lg:px-6 lg:py-3 lg:text-base",
+  },
+  side: {
+    wrap: "absolute inset-0 z-20 flex flex-col justify-end p-2.5 md:justify-center md:p-4 lg:p-4",
+    box: "max-w-[60%] md:max-w-[50%] my-auto ",
+    title:
+      "line-clamp-2 text-[0.55rem] font-semibold lg:font-extrabold lg:leading-tight leading-none text-[#0F73E6] sm:text-xs md:text-base lg:text-lg",
+    desc: "mt-2 line-clamp-2 hidden  text-[8px] font-thin  leading-none lg:leading-snug text-[#1a2433] lg:font-light md:block md:text-tiny",
+    button:
+      "mt-6  inline-block rounded-[0.25rem] bg-[#0F73E6] px-1 py-0.5 text-[0.5rem]  md:text-tiny lg:font-semibold text-white shadow-md sm:mt-3 sm:px-1 sm:py-0.5  md:px-2 md:mt-4 md:py-1 lg:mt-6 lg:rounded-[0.5rem] lg:px-2 lg:py-1.5 lg:text-xs",
+  },
+  brand: {
+    wrap: "absolute inset-0 z-20 flex flex-col justify-end p-2.5 md:justify-center md:p-6 lg:p-8",
+    box: "max-w-[60%] md:max-w-[50%] my-auto mr-1",
+    title:
+      "line-clamp-2 text-tiny font-semibold md:font-bold lg:font-extrabold lg:leading-tight leading-none text-[#0F73E6] sm:text-xs md:text-xs lg:text-2xl",
+    desc: "mt-2 line-clamp-2 text-[8px] font-thin md:font-light leading-none lg:leading-snug text-[#1a2433]  md:text-tiny lg:text-base",
+    button:
+      "mt-3  inline-block rounded-[0.25rem] bg-[#0F73E6] px-1.5 py-1 text-[0.5rem] lg:font-semibold text-white shadow-md sm:mt-3 sm:px-2 sm:py-1.5 sm:text-[0.6rem] lg:mt-6 lg:rounded-xl lg:px-6 lg:py-3 lg:text-base",
+  },
+};
+
+/**
+ * Render a single banner. All types share the same overlay markup (title center-right on desktop,
+ * bottom on mobile, with an optional button); `type` only picks the sizing preset above.
+ * The whole banner is a link; the button text comes from the banner itself (`buttonText`) and if empty
+ * the button is not rendered. If there is no title/description/button at all, no layer
+ * is placed over the image, so purely visual banners look clean.
  */
 export function BannerCard({
   banner,
-  variant,
+  type,
   priority = false,
-  compact = false,
 }: BannerCardProps) {
+  const styles = STYLES[type];
+
   const desktopSrc = banner.imageUrl || "/placeholder.svg";
-  // اگر ادمین تصویر موبایل ثبت نکرده باشد، همان تصویر دسکتاپ نمایش داده می‌شود
+  // If the admin did not set a mobile image, the desktop image is shown instead
   const mobileSrc = banner.mobileImageUrl || desktopSrc;
   const buttonText = banner.buttonText?.trim();
   const hasOverlay = Boolean(banner.title || banner.description || buttonText);
 
-  // <picture> به‌جای next/image: بهینه‌سازی تصویر غیرفعال است (next.config: unoptimized)
-  // و این‌طور مرورگر فقط همان تصویری را می‌گیرد که به بریک‌پوینت می‌خورد.
+  // <picture> instead of next/image: image optimization is disabled (next.config: unoptimized)
+  // and this way the browser fetches only the image that matches the breakpoint.
   const image = (
     <picture>
       <source media="(max-width: 767px)" srcSet={mobileSrc} />
@@ -48,77 +88,29 @@ export function BannerCard({
     </picture>
   );
 
-  const overlay =
-    variant === "hero" ? (
-      <>
-        {/*
-          بدون گرادیان — پس‌زمینهٔ عکس آبیِ کم‌رنگ است، پس متن مستقیم روی عکس
-          می‌نشیند. عنوان با آبیِ پررنگِ سایت و توضیح با سرمه‌ایِ متنِ سایت
-          (#1a2433 ~ --foreground) تا روی آبیِ روشن خوانا بماند.
-          موبایل: متن پایینِ کادر. دسکتاپ: وسط-راست (RTL).
-        */}
-        <div
-          className={
-            compact
-              ? "absolute inset-0 z-20 flex flex-col justify-end p-2.5 md:justify-center md:p-6 lg:p-8"
-              : "absolute inset-0 z-20 flex flex-col justify-end p-3 md:justify-center md:p-10 lg:p-14"
-          }
-        >
-          {/* موبایل عرض بیشتری می‌گیرد تا متن جا شود؛ دسکتاپ باریک‌تر و کنارِ راست */}
-          <div className={compact ? "max-w-[92%] md:max-w-[70%]" : "max-w-[88%] md:max-w-[55%]"}>
-            {banner.title && (
-              <h2
-                className={
-                  compact
-                    ? "line-clamp-2 text-[11px] font-extrabold leading-tight text-[#0F73E6] sm:text-sm md:text-xl lg:text-2xl"
-                    : "text-base font-extrabold leading-tight text-[#0F73E6] sm:text-lg md:text-4xl lg:text-5xl"
-                }
-              >
-                {banner.title}
-              </h2>
-            )}
-            {banner.description && (
-              <p
-                className={
-                  compact
-                    ? "mt-0.5 line-clamp-1 text-[10px] font-medium leading-snug text-[#1a2433] sm:text-[11px] md:mt-2 md:line-clamp-2 md:text-sm"
-                    : "mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-[#1a2433] sm:text-xs md:mt-4 md:text-lg"
-                }
-              >
-                {banner.description}
-              </p>
-            )}
-            {buttonText && (
-              // span نه Link — کل بنر خودش لینک است و <a> تودرتو نامعتبر است
-              <span className="mt-2 inline-block rounded-lg bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-md sm:mt-3 sm:px-6 sm:py-3 sm:text-sm md:mt-6 md:rounded-xl md:px-8 md:py-4 md:text-base">
-                {buttonText}
-              </span>
-            )}
-          </div>
-        </div>
-      </>
-    ) : (
-      <>
-        {/* بدون گرادیان — پس‌زمینهٔ آبیِ کم‌رنگِ عکس، متن مستقیم رویش */}
-        <div className="absolute inset-x-3 bottom-2.5 z-20">
-          {banner.title && (
-            <h3 className="text-sm font-extrabold leading-tight text-[#0F73E6] md:text-2xl lg:text-3xl">
-              {banner.title}
-            </h3>
-          )}
+  const overlay = (
+    <>
+      {/*
+        No gradient — the image background is light blue, so the text sits directly on the
+        image. The title uses the site's bold blue and the description uses the site's navy text
+        (#1a2433 ~ --foreground) so it stays readable on light blue.
+        Mobile: text at the bottom of the box. Desktop: center-right (RTL).
+      */}
+      <div className={styles.wrap}>
+        {/* Mobile takes more width so the text fits; desktop is narrower and on the right */}
+        <div className={styles.box}>
+          {banner.title && <h2 className={styles.title}>{banner.title}</h2>}
           {banner.description && (
-            <p className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug text-[#1a2433] md:mt-3 md:text-sm lg:text-base">
-              {banner.description}
-            </p>
+            <p className={styles.desc}>{banner.description}</p>
           )}
           {buttonText && (
-            <span className="mt-2 inline-block rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow md:text-sm">
-              {buttonText}
-            </span>
+            // span, not Link — the whole banner is already a link and a nested <a> is invalid
+            <span className={styles.button}>{buttonText}</span>
           )}
         </div>
-      </>
-    );
+      </div>
+    </>
+  );
 
   const content = (
     <>
@@ -127,12 +119,18 @@ export function BannerCard({
     </>
   );
 
-  // کل بنر لینک است؛ بدون لینک، عنصر غیرقابل‌کلیک رندر می‌شود
+  // The whole banner is a link; without a link, a non-clickable element is rendered
   return banner.link ? (
-    <Link href={banner.link} className="relative block h-full w-full">
+    <Link
+      href={banner.link}
+      data-banner-type={type}
+      className="relative block h-full w-full"
+    >
       {content}
     </Link>
   ) : (
-    <div className="relative h-full w-full">{content}</div>
+    <div data-banner-type={type} className="relative h-full w-full">
+      {content}
+    </div>
   );
 }
