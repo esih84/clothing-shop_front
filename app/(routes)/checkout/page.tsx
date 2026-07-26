@@ -19,15 +19,19 @@ import { useCart } from "@/features/cart/queries";
 import { useAddresses } from "@/features/address/queries";
 import { useCreateAddress } from "@/features/address/mutations";
 import { usePets } from "@/features/pet/queries";
-import { useApplyCoupon, useRemoveCoupon } from "@/features/coupon/mutations";
+import {
+  useApplyCoupon,
+  useRemoveCoupon,
+  useValidateCoupon,
+} from "@/features/coupon/mutations";
 import { useCheckout } from "@/features/payment/mutations";
 import { formatToman } from "@/shared/lib/utils";
 import type { Address } from "@/features/address/address-api";
 
-/** فرم معلق سفارش برای کاربری که وسط checkout به لاگین فرستاده می‌شود */
+/** Pending order form for a user who is sent to login mid-checkout */
 const PENDING_ORDER_KEY = "pending-order";
 
-/** روش‌های پرداخت (فعلاً فقط زرین‌پال؛ ساختار برای افزودن روش‌های بعدی آماده است). */
+/** Payment methods (currently only Zarinpal; the structure is ready for adding more). */
 const PAYMENT_METHODS = [
   {
     id: "zarinpal",
@@ -38,7 +42,7 @@ const PAYMENT_METHODS = [
 
 type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
 
-/** روش‌های ارسال. افزودن روش جدید = یک آیتم اینجا + یک خط در enum ShippingMethod بک‌اند. */
+/** Shipping methods. Adding a new method = one item here + one line in the backend's ShippingMethod enum. */
 const SHIPPING_METHODS = [
   {
     id: "tipax",
@@ -77,6 +81,7 @@ export default function CheckoutPage() {
   const { lines: cartItems } = useCart();
   const applyCoupon = useApplyCoupon();
   const removeCouponMutation = useRemoveCoupon();
+  const validateCoupon = useValidateCoupon();
   const { data: currentUser } = useCurrentUser();
   const { data: addresses = [] } = useAddresses();
   const { data: pets = [] } = usePets();
@@ -93,7 +98,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // کد تخفیف
+  // Discount code
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
@@ -101,11 +106,11 @@ export default function CheckoutPage() {
   } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
 
-  // روش پرداخت
+  // Payment method
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethodId>("zarinpal");
 
-  // روش ارسال
+  // Shipping method
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethodId>("tipax");
 
@@ -118,7 +123,7 @@ export default function CheckoutPage() {
   const [saveNewAddress, setSaveNewAddress] = useState(true);
   const [addressLabel, setAddressLabel] = useState("خانه");
 
-  // ثبت خودکار سفارش معلق پس از برگشت از لاگین
+  // Automatically submit the pending order after returning from login
   const [finalizing, setFinalizing] = useState(false);
   const autoSubmitted = useRef(false);
 
@@ -129,17 +134,17 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  // پر کردن نام از پروفایل وقتی کاربر لود شد
+  // Fill the name from the profile once the user is loaded
   useEffect(() => {
     if (!currentUser) return;
     setFirstName((v) => v || currentUser.firstName || "");
     setLastName((v) => v || currentUser.lastName || "");
   }, [currentUser]);
 
-  // انتخاب خودکار آدرس پیش‌فرض وقتی آدرس‌ها لود شدند
+  // Auto-select the default address once addresses are loaded
   useEffect(() => {
     if (addresses.length === 0 || selectedAddressId || useNewAddress) return;
-    if (city || address) return; // کاربر خودش چیزی وارد کرده
+    if (city || address) return; // The user has already entered something
     const def = addresses.find((a) => a.isDefault) ?? addresses[0];
     setSelectedAddressId(def.id);
     setCity(def.city);
@@ -151,8 +156,8 @@ export default function CheckoutPage() {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      // یک درخواست: سفارش را از روی سبد می‌سازد، تراکنش پرداخت را ایجاد می‌کند و
-      // آدرس درگاه را برمی‌گرداند. سبد تا موفقیت پرداخت خالی نمی‌شود (جریان ACID).
+      // One request: builds the order from the cart, creates the payment transaction, and
+      // returns the gateway URL. The cart is not cleared until payment succeeds (ACID flow).
       const { gatewayUrl } = await checkout.mutateAsync({
         shippingAddress: {
           firstName: payload.firstName,
@@ -165,7 +170,7 @@ export default function CheckoutPage() {
         },
         shippingMethod: payload.shippingMethod,
       });
-      // ذخیره‌ی آدرس جدید در دفترچه‌ی آدرس (خطای آن جریان پرداخت را خراب نمی‌کند)
+      // Save the new address in the address book (its failure does not break the payment flow)
       if (!payload.selectedAddressId && payload.saveNewAddress) {
         try {
           await createAddress.mutateAsync({
@@ -186,12 +191,12 @@ export default function CheckoutPage() {
     }
   };
 
-  // پس از برگشت از لاگین: فرم ذخیره‌شده را بازیابی و سفارش را خودکار ثبت کن
+  // After returning from login: restore the saved form and submit the order automatically
   useEffect(() => {
     if (!mounted || !isLoggedIn || autoSubmitted.current) return;
     const raw = sessionStorage.getItem(PENDING_ORDER_KEY);
     if (!raw) return;
-    // صبر تا سبد سرور (پس از merge) برسد
+    // Wait until the server cart (after merge) arrives
     if (cartItems.length === 0) return;
     autoSubmitted.current = true;
     sessionStorage.removeItem(PENDING_ORDER_KEY);
@@ -208,7 +213,7 @@ export default function CheckoutPage() {
       setAddressLabel(pending.addressLabel);
       setShippingMethod(pending.shippingMethod ?? "tipax");
       void (async () => {
-        // کوپن باید دوباره روی سبد سرورِ merge‌شده اعمال شود تا هنگام ثبت سفارش لحاظ گردد
+        // The coupon must be re-applied to the merged server cart so it is counted when the order is placed
         if (pending.couponCode) {
           setCouponInput(pending.couponCode);
           try {
@@ -250,15 +255,35 @@ export default function CheckoutPage() {
   const handleApplyCoupon = async () => {
     const code = couponInput.trim();
     if (!code) return;
-    // کد تخفیف به سبد سرور گره خورده؛ مهمان باید ابتدا وارد شود.
-    if (!isLoggedIn) {
-      setCouponError("برای استفاده از کد تخفیف ابتدا وارد شوید.");
-      return;
-    }
     setCouponError(null);
     try {
-      const res = await applyCoupon.mutateAsync(code);
-      setAppliedCoupon({ code: res.coupon.code, discount: res.discount });
+      if (isLoggedIn) {
+        // Logged-in: apply against the real server cart (authoritative; stored on the cart).
+        const res = await applyCoupon.mutateAsync(code);
+        setAppliedCoupon({ code: res.coupon.code, discount: res.discount });
+      } else {
+        // Guest: validate the code publicly against the guest cart lines. The final, authoritative
+        // apply happens on the real cart right after login (see the auto-finalize effect below).
+        const res = await validateCoupon.mutateAsync({
+          code,
+          lines: cartItems.map((it) => ({
+            productId: it.productId,
+            unitPrice: it.price,
+            quantity: it.quantity,
+            hasProductDiscount: it.originalPrice > it.price,
+          })),
+        });
+        if (!res.valid || !res.coupon) {
+          setCouponError(
+            res.requiresLogin
+              ? "برای استفاده از این کد ابتدا وارد شوید."
+              : "کد تخفیف معتبر نیست.",
+          );
+          setAppliedCoupon(null);
+          return;
+        }
+        setAppliedCoupon({ code: res.coupon.code, discount: res.discount ?? 0 });
+      }
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string | string[] } } })
@@ -300,7 +325,7 @@ export default function CheckoutPage() {
       shippingMethod,
     };
     if (!isLoggedIn) {
-      // فرم را نگه می‌داریم تا بعد از لاگین خودکار ثبت شود
+      // We keep the form so it is submitted automatically after login
       sessionStorage.setItem(PENDING_ORDER_KEY, JSON.stringify(payload));
       router.push("/login?redirect=/checkout");
       return;
@@ -308,13 +333,13 @@ export default function CheckoutPage() {
     await submitOrder(payload);
   };
 
-  // در حال نهایی‌کردن سفارش معلق (بعد از لاگین)
+  // Finalizing the pending order (after login)
   if (finalizing && !submitError) {
     return (
       <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 className="w-10 h-10 text-[#1473E6] animate-spin" />
-          <p className="text-gray-600 text-base md:text-lg">
+          <Loader2 className="w-10 h-10 text-secondary animate-spin" />
+          <p className="text-muted-foreground text-base md:text-lg">
             در حال ثبت نهایی سفارش شما...
           </p>
         </div>
@@ -326,13 +351,13 @@ export default function CheckoutPage() {
     return (
       <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="bg-[#FDE68A]/30 p-4 mb-4 rounded-2xl">
-            <ShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-[#1473E6]" />
+          <div className="bg-primary/15 p-4 mb-4 rounded-2xl">
+            <ShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-secondary" />
           </div>
           <h2 className="text-xl md:text-2xl font-medium mb-2">
             سبد خرید شما خالی است
           </h2>
-          <p className="text-gray-500 text-center mb-6 text-base md:text-lg">
+          <p className="text-muted-foreground text-center mb-6 text-base md:text-lg">
             برای پرداخت ابتدا محصولی به سبد خرید اضافه کنید.
           </p>
           <Link
@@ -353,17 +378,17 @@ export default function CheckoutPage() {
           {/* Left: Checkout Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Recipient Info */}
-            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#A9CBF5]/30 rounded-2xl">
+            <div className="bg-card p-4 md:p-6 shadow-sm border border-border rounded-2xl">
               <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-[#1473E6] text-white text-sm flex items-center justify-center font-bold rounded-lg">
+                <span className="w-6 h-6 bg-secondary text-white text-sm flex items-center justify-center font-bold rounded-lg">
                   ۱
                 </span>
                 اطلاعات گیرنده
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm md:text-base text-gray-600 mb-1">
-                    نام <span className="text-[#1473E6]">*</span>
+                  <label className="block text-sm md:text-base text-muted-foreground mb-1">
+                    نام <span className="text-secondary">*</span>
                   </label>
                   <input
                     type="text"
@@ -371,12 +396,12 @@ export default function CheckoutPage() {
                     onChange={(e) => setFirstName(e.target.value)}
                     required
                     placeholder="نام خود را وارد کنید"
-                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                    className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm md:text-base text-gray-600 mb-1">
-                    نام خانوادگی <span className="text-[#1473E6]">*</span>
+                  <label className="block text-sm md:text-base text-muted-foreground mb-1">
+                    نام خانوادگی <span className="text-secondary">*</span>
                   </label>
                   <input
                     type="text"
@@ -384,20 +409,20 @@ export default function CheckoutPage() {
                     onChange={(e) => setLastName(e.target.value)}
                     required
                     placeholder="نام خانوادگی خود را وارد کنید"
-                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                    className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm md:text-base text-gray-600 mb-1">
+                  <label className="block text-sm md:text-base text-muted-foreground mb-1">
                     نام حیوان خانگی شما 🐾{" "}
-                    <span className="text-gray-400 text-xs">(اختیاری)</span>
+                    <span className="text-muted-foreground text-xs">(اختیاری)</span>
                   </label>
                   <input
                     type="text"
                     value={petName}
                     onChange={(e) => setPetName(e.target.value)}
                     placeholder="مثال: پوپک"
-                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                    className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                   />
                   {pets.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -409,7 +434,7 @@ export default function CheckoutPage() {
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs md:text-sm border transition-colors ${
                             petName === pet.name
                               ? "bg-secondary text-secondary-foreground border-secondary"
-                              : "bg-[#FDE68A]/20 text-gray-700 border-[#A9CBF5]/40 hover:border-[#1473E6]"
+                              : "bg-primary/15 text-foreground border-border hover:border-secondary"
                           }`}
                         >
                           <PawPrint className="w-3.5 h-3.5" />
@@ -423,9 +448,9 @@ export default function CheckoutPage() {
             </div>
 
             {/* Delivery Address */}
-            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#A9CBF5]/30 rounded-2xl">
+            <div className="bg-card p-4 md:p-6 shadow-sm border border-border rounded-2xl">
               <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-[#1473E6] text-white text-sm flex items-center justify-center font-bold rounded-lg">
+                <span className="w-6 h-6 bg-secondary text-white text-sm flex items-center justify-center font-bold rounded-lg">
                   ۲
                 </span>
                 آدرس تحویل
@@ -434,7 +459,7 @@ export default function CheckoutPage() {
               {/* Saved Addresses */}
               {hasSavedAddresses && (
                 <div className="mb-5">
-                  <p className="text-sm md:text-base text-gray-600 mb-2">
+                  <p className="text-sm md:text-base text-muted-foreground mb-2">
                     آدرس‌های ذخیره شده
                   </p>
                   <div className="relative">
@@ -443,10 +468,10 @@ export default function CheckoutPage() {
                       onClick={() =>
                         setShowAddressDropdown(!showAddressDropdown)
                       }
-                      className="w-full flex items-center justify-between border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                      className="w-full flex items-center justify-between border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                     >
                       <span className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-[#1473E6]" />
+                        <MapPin className="w-4 h-4 text-secondary" />
                         {selectedAddressId
                           ? addresses.find((a) => a.id === selectedAddressId)
                               ?.label
@@ -455,41 +480,41 @@ export default function CheckoutPage() {
                             : "انتخاب آدرس"}
                       </span>
                       <ChevronDown
-                        className={`w-4 h-4 text-gray-400 transition-transform ${
+                        className={`w-4 h-4 text-muted-foreground transition-transform ${
                           showAddressDropdown ? "rotate-180" : ""
                         }`}
                       />
                     </button>
 
                     {showAddressDropdown && (
-                      <div className="absolute top-full right-0 left-0 bg-white border border-[#A9CBF5]/50 border-t-0 z-10 shadow-md rounded-b-xl overflow-hidden">
+                      <div className="absolute top-full right-0 left-0 bg-card border border-border border-t-0 z-10 shadow-md rounded-b-xl overflow-hidden">
                         {addresses.map((saved) => (
                           <button
                             key={saved.id}
                             type="button"
                             onClick={() => handleSelectSavedAddress(saved)}
-                            className="w-full flex items-center justify-between px-3 py-3 text-sm md:text-base hover:bg-[#FDE68A]/20 text-right"
+                            className="w-full flex items-center justify-between px-3 py-3 text-sm md:text-base hover:bg-primary/15 text-right"
                           >
                             <span className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-[#1473E6] flex-shrink-0" />
+                              <MapPin className="w-4 h-4 text-secondary flex-shrink-0" />
                               <span>
                                 <span className="font-medium">
                                   {saved.label}
                                 </span>
-                                <span className="text-gray-500 mr-2">
+                                <span className="text-muted-foreground mr-2">
                                   {saved.city}، {saved.address}
                                 </span>
                               </span>
                             </span>
                             {selectedAddressId === saved.id && (
-                              <Check className="w-4 h-4 text-[#1473E6]" />
+                              <Check className="w-4 h-4 text-secondary" />
                             )}
                           </button>
                         ))}
                         <button
                           type="button"
                           onClick={handleUseNewAddress}
-                          className="w-full flex items-center gap-2 px-3 py-3 text-sm md:text-base hover:bg-[#FDE68A]/20 text-[#1473E6] border-t border-[#A9CBF5]/30"
+                          className="w-full flex items-center gap-2 px-3 py-3 text-sm md:text-base hover:bg-primary/15 text-secondary border-t border-border"
                         >
                           <Plus className="w-4 h-4" />
                           افزودن آدرس جدید
@@ -504,8 +529,8 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm md:text-base text-gray-600 mb-1">
-                      شهر <span className="text-[#1473E6]">*</span>
+                    <label className="block text-sm md:text-base text-muted-foreground mb-1">
+                      شهر <span className="text-secondary">*</span>
                     </label>
                     <input
                       type="text"
@@ -513,12 +538,12 @@ export default function CheckoutPage() {
                       onChange={(e) => setCity(e.target.value)}
                       required
                       placeholder="مثال: تهران"
-                      className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                      className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm md:text-base text-gray-600 mb-1">
-                      پلاک <span className="text-[#1473E6]">*</span>
+                    <label className="block text-sm md:text-base text-muted-foreground mb-1">
+                      پلاک <span className="text-secondary">*</span>
                     </label>
                     <input
                       type="text"
@@ -526,13 +551,13 @@ export default function CheckoutPage() {
                       onChange={(e) => setPlaque(e.target.value)}
                       required
                       placeholder="مثال: ۱۲"
-                      className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                      className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm md:text-base text-gray-600 mb-1">
-                    آدرس کامل <span className="text-[#1473E6]">*</span>
+                  <label className="block text-sm md:text-base text-muted-foreground mb-1">
+                    آدرس کامل <span className="text-secondary">*</span>
                   </label>
                   <textarea
                     value={address}
@@ -540,25 +565,25 @@ export default function CheckoutPage() {
                     required
                     rows={3}
                     placeholder="خیابان، کوچه، ..."
-                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white resize-none rounded-xl"
+                    className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card resize-none rounded-xl"
                   />
                 </div>
 
-                {/* ذخیره‌ی آدرس جدید در دفترچه‌ی آدرس */}
+                {/* Save the new address in the address book */}
                 {!selectedAddressId && (
                   <div className="space-y-3">
-                    <label className="flex items-center gap-2 text-sm md:text-base text-gray-600 cursor-pointer select-none">
+                    <label className="flex items-center gap-2 text-sm md:text-base text-muted-foreground cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={saveNewAddress}
                         onChange={(e) => setSaveNewAddress(e.target.checked)}
-                        className="w-4 h-4 accent-[#1473E6]"
+                        className="w-4 h-4 accent-secondary"
                       />
                       این آدرس در حساب من ذخیره شود
                     </label>
                     {saveNewAddress && (
                       <div>
-                        <label className="block text-sm md:text-base text-gray-600 mb-1">
+                        <label className="block text-sm md:text-base text-muted-foreground mb-1">
                           عنوان آدرس
                         </label>
                         <input
@@ -566,7 +591,7 @@ export default function CheckoutPage() {
                           value={addressLabel}
                           onChange={(e) => setAddressLabel(e.target.value)}
                           placeholder="مثال: خانه، محل کار"
-                          className="w-full sm:w-1/2 border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                          className="w-full sm:w-1/2 border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                         />
                       </div>
                     )}
@@ -574,25 +599,25 @@ export default function CheckoutPage() {
                 )}
 
                 <div>
-                  <label className="block text-sm md:text-base text-gray-600 mb-1">
+                  <label className="block text-sm md:text-base text-muted-foreground mb-1">
                     یادداشت{" "}
-                    <span className="text-gray-400 text-xs">(اختیاری)</span>
+                    <span className="text-muted-foreground text-xs">(اختیاری)</span>
                   </label>
                   <textarea
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     rows={2}
                     placeholder="توضیحات اضافه برای پیک یا فروشنده..."
-                    className="w-full border border-[#A9CBF5]/50 px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-[#1473E6] bg-white resize-none rounded-xl"
+                    className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card resize-none rounded-xl"
                   />
                 </div>
               </div>
             </div>
 
             {/* Order Items Summary (collapsed list) */}
-            <div className="bg-white p-4 md:p-6 shadow-sm border border-[#A9CBF5]/30 rounded-2xl">
+            <div className="bg-card p-4 md:p-6 shadow-sm border border-border rounded-2xl">
               <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-[#1473E6] text-white text-sm flex items-center justify-center font-bold rounded-lg">
+                <span className="w-6 h-6 bg-secondary text-white text-sm flex items-center justify-center font-bold rounded-lg">
                   ۳
                 </span>
                 اقلام سفارش
@@ -601,9 +626,9 @@ export default function CheckoutPage() {
                 {cartItems.map((item) => (
                   <div
                     key={item.productId}
-                    className="flex items-start gap-3 py-3 border-b border-[#A9CBF5]/20 last:border-0"
+                    className="flex items-start gap-3 py-3 border-b border-border/20 last:border-0"
                   >
-                    <div className="w-14 h-14 md:w-16 md:h-16 bg-[#FDE68A]/20 flex-shrink-0 overflow-hidden rounded-xl">
+                    <div className="w-14 h-14 md:w-16 md:h-16 bg-primary/15 flex-shrink-0 overflow-hidden rounded-xl">
                       <Image
                         src={item.imageUrl || "/placeholder.svg"}
                         alt={item.name}
@@ -616,11 +641,18 @@ export default function CheckoutPage() {
                       <p className="font-normal text-sm md:text-base leading-snug break-words">
                         {item.name}
                       </p>
-                      <div className="mt-1.5 flex items-center justify-between gap-3">
-                        <p className="font-bold text-sm md:text-base text-[#1473E6] whitespace-nowrap">
-                          {formatToman(item.price * item.quantity)}
-                        </p>
-                        <span className="text-xs md:text-sm text-gray-500 whitespace-nowrap">
+                      <div className="mt-1.5 flex items-center justify-between gap-2">
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          {item.originalPrice > item.price && (
+                            <span className="text-[11px] text-muted-foreground line-through">
+                              {formatToman(item.originalPrice * item.quantity)}
+                            </span>
+                          )}
+                          <p className="font-bold text-sm md:text-base text-secondary">
+                            {formatToman(item.price * item.quantity)}
+                          </p>
+                        </div>
+                        <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap flex-shrink-0">
                           تعداد: {item.quantity}
                         </span>
                       </div>
@@ -633,8 +665,8 @@ export default function CheckoutPage() {
 
           {/* Right: Order Summary */}
           <div className="space-y-4">
-            <div className="bg-white p-6 shadow-sm border border-[#A9CBF5]/30 h-fit rounded-2xl sticky top-20">
-              {/* کد تخفیف */}
+            <div className="bg-card p-6 shadow-sm border border-border h-fit rounded-2xl sticky top-20">
+              {/* Discount code */}
               <div className="mb-5">
                 {appliedCoupon ? (
                   <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
@@ -657,15 +689,19 @@ export default function CheckoutPage() {
                       value={couponInput}
                       onChange={(e) => setCouponInput(e.target.value)}
                       placeholder="کد تخفیف"
-                      className="flex-1 min-w-0 border border-[#A9CBF5]/50 px-3 py-2 text-sm focus:outline-none focus:border-[#1473E6] bg-white rounded-xl"
+                      className="flex-1 min-w-0 border border-border px-3 py-2 text-sm focus:outline-none focus:border-secondary bg-card rounded-xl"
                     />
                     <button
                       type="button"
                       onClick={handleApplyCoupon}
-                      disabled={applyCoupon.isPending || !couponInput.trim()}
-                      className="bg-[#1473E6] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#1473E6]/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
+                      disabled={
+                        applyCoupon.isPending ||
+                        validateCoupon.isPending ||
+                        !couponInput.trim()
+                      }
+                      className="bg-secondary text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-secondary/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
                     >
-                      {applyCoupon.isPending && (
+                      {(applyCoupon.isPending || validateCoupon.isPending) && (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       )}
                       اعمال
@@ -675,34 +711,27 @@ export default function CheckoutPage() {
                 {couponError && (
                   <p className="text-xs text-red-600 mt-1.5">{couponError}</p>
                 )}
-                {!isLoggedIn && !appliedCoupon && (
-                  <p className="text-xs text-gray-500 mt-1.5">
-                    برای استفاده از کد تخفیف{" "}
-                    <Link
-                      href="/login?redirect=/checkout"
-                      className="text-[#1473E6] hover:underline"
-                    >
-                      وارد شوید
-                    </Link>
-                    .
+                {!isLoggedIn && appliedCoupon && (
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    این کد پس از ورود روی سبد شما نهایی می‌شود.
                   </p>
                 )}
               </div>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-base md:text-lg">
-                  <span className="text-gray-600">جمع جزء</span>
+                  <span className="text-muted-foreground">جمع جزء</span>
                   <span className="font-medium">{formatToman(subtotal)}</span>
                 </div>
                 {/* <div className="flex justify-between text-base md:text-lg">
-                  <span className="text-gray-600">ارسال</span>
-                  <span className="font-medium text-gray-500">پس‌کرایه</span>
+                  <span className="text-muted-foreground">ارسال</span>
+                  <span className="font-medium text-muted-foreground">پس‌کرایه</span>
                 </div> */}
                 {discount > 0 && (
                   <div className="flex justify-between text-base md:text-lg">
-                    <span className="text-gray-600">تخفیف</span>
+                    <span className="text-muted-foreground">تخفیف</span>
                     <span className="font-medium text-green-600">
-                      −{formatToman(discount)}
+                      {formatToman(-discount)}
                     </span>
                   </div>
                 )}
@@ -713,9 +742,9 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </div>
-              {/* روش ارسال */}
+              {/* Shipping method */}
               <div className="mb-5">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                <h3 className="text-sm font-medium text-foreground mb-2">
                   روش ارسال
                 </h3>
                 <div className="space-y-2">
@@ -724,8 +753,8 @@ export default function CheckoutPage() {
                       key={m.id}
                       className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
                         shippingMethod === m.id
-                          ? "border-[#1473E6] bg-[#1473E6]/5"
-                          : "border-[#A9CBF5]/40 hover:border-[#A9CBF5]/70"
+                          ? "border-secondary bg-secondary/5"
+                          : "border-border hover:border-border/70"
                       }`}
                     >
                       <input
@@ -734,13 +763,13 @@ export default function CheckoutPage() {
                         value={m.id}
                         checked={shippingMethod === m.id}
                         onChange={() => setShippingMethod(m.id)}
-                        className="mt-0.5 accent-[#1473E6]"
+                        className="mt-0.5 accent-secondary"
                       />
                       <span className="text-sm">
-                        <span className="font-medium text-gray-800">
+                        <span className="font-medium text-foreground">
                           {m.label}
                         </span>
-                        <span className="block text-xs text-gray-500 mt-0.5">
+                        <span className="block text-xs text-muted-foreground mt-0.5">
                           {m.desc}
                         </span>
                       </span>
@@ -748,9 +777,9 @@ export default function CheckoutPage() {
                   ))}
                 </div>
               </div>
-              {/* روش پرداخت */}
+              {/* Payment method */}
               <div className="mb-5">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">
+                <h3 className="text-sm font-medium text-foreground mb-2">
                   روش پرداخت
                 </h3>
                 <div className="space-y-2">
@@ -759,8 +788,8 @@ export default function CheckoutPage() {
                       key={m.id}
                       className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
                         paymentMethod === m.id
-                          ? "border-[#1473E6] bg-[#1473E6]/5"
-                          : "border-[#A9CBF5]/40 hover:border-[#A9CBF5]/70"
+                          ? "border-secondary bg-secondary/5"
+                          : "border-border hover:border-border/70"
                       }`}
                     >
                       <input
@@ -769,13 +798,13 @@ export default function CheckoutPage() {
                         value={m.id}
                         checked={paymentMethod === m.id}
                         onChange={() => setPaymentMethod(m.id)}
-                        className="mt-0.5 accent-[#1473E6]"
+                        className="mt-0.5 accent-secondary"
                       />
                       <span className="text-sm">
-                        <span className="font-medium text-gray-800">
+                        <span className="font-medium text-foreground">
                           {m.label}
                         </span>
-                        <span className="block text-xs text-gray-500 mt-0.5">
+                        <span className="block text-xs text-muted-foreground mt-0.5">
                           {m.desc}
                         </span>
                       </span>
@@ -800,7 +829,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Security note */}
-            <div className="flex items-center gap-2 text-xs md:text-sm text-gray-500 px-1">
+            <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground px-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
