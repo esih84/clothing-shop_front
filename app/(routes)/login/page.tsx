@@ -1,18 +1,25 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { useSendOtp, useVerifyOtp } from "@/features/auth/mutations";
+import { useOtpTimer } from "@/features/auth/use-otp-timer";
 import { useMergeGuestCart } from "@/features/cart/mutations";
-import { normalizeDigits } from "@/shared/lib/digits";
+import { normalizeDigits, toPersianDigits } from "@/shared/lib/digits";
 import { brand } from "@/shared/config/brand";
+
+function formatCountdown(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return toPersianDigits(`${m}:${String(s).padStart(2, "0")}`);
+}
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // فقط مسیرهای داخلی مجازند تا open-redirect نشود
+  // Only internal paths are allowed to avoid an open redirect
   const redirectParam = searchParams.get("redirect");
   const redirectTo =
     redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
@@ -26,6 +33,17 @@ function LoginForm() {
   const sendOtp = useSendOtp();
   const verifyOtp = useVerifyOtp();
   const mergeGuestCart = useMergeGuestCart();
+  const otpTimer = useOtpTimer();
+
+  // Restore the code step after a refresh while an OTP session is still tracked,
+  // so the persisted countdown keeps running instead of resetting.
+  useEffect(() => {
+    if (otpTimer.session && step === "phone") {
+      setPhone(otpTimer.session.phone);
+      setStep("code");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otpTimer.session]);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +54,21 @@ function LoginForm() {
     }
     try {
       await sendOtp.mutateAsync(phone);
+      otpTimer.start(phone);
       setStep("code");
     } catch {
       setError("ارسال کد با خطا مواجه شد. دوباره تلاش کنید.");
+    }
+  };
+
+  const handleResend = async () => {
+    setError(null);
+    setCode("");
+    try {
+      await sendOtp.mutateAsync(phone);
+      otpTimer.start(phone);
+    } catch {
+      setError("ارسال مجدد کد با خطا مواجه شد. دوباره تلاش کنید.");
     }
   };
 
@@ -51,7 +81,8 @@ function LoginForm() {
     }
     try {
       await verifyOtp.mutateAsync({ phone, code });
-      // ادغام سبد مهمان با سبد سرور پس از ورود
+      otpTimer.clear();
+      // Merge the guest cart with the server cart after login
       await mergeGuestCart.mutateAsync();
       router.push(redirectTo);
     } catch {
@@ -61,7 +92,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-sm border border-border p-8">
+      <div className="w-full max-w-md bg-card rounded-3xl shadow-sm border border-border p-8">
         <div className="flex flex-col items-center mb-6">
           <Image
             src="/logo.png"
@@ -138,9 +169,33 @@ function LoginForm() {
               )}
               ورود
             </button>
+
+            {otpTimer.remaining > 0 ? (
+              <p className="text-center text-sm text-muted-foreground">
+                ارسال مجدد کد تا{" "}
+                <span className="font-medium text-foreground tabular-nums">
+                  {formatCountdown(otpTimer.remaining)}
+                </span>{" "}
+                دیگر
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={sendOtp.isPending}
+                className="w-full text-sm text-secondary hover:text-secondary/80 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {sendOtp.isPending && (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                )}
+                ارسال مجدد کد
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => {
+                otpTimer.clear();
                 setStep("phone");
                 setCode("");
                 setError(null);
@@ -157,7 +212,7 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  // useSearchParams نیازمند مرز Suspense است
+  // useSearchParams requires a Suspense boundary
   return (
     <Suspense fallback={null}>
       <LoginForm />
