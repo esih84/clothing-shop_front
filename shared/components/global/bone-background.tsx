@@ -4,9 +4,9 @@ import { Bone, Cat, Dog, PawPrint, type LucideIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 /**
- * پس‌زمینه‌ی تزئینی: چند آیکون (استخوان، سگ، گربه، ردپا) که هنگام اسکرول
- * با سرعت‌های متفاوت (parallax) حرکت می‌کنند. سبک و غیرمسدودکننده؛ روی موبایل و
- * در حالت prefers-reduced-motion غیرفعال می‌شود.
+ * Decorative background: a few icons (bone, dog, cat, paw) that move at different
+ * speeds (parallax) while scrolling. Lightweight and non-blocking; disabled on mobile
+ * and when prefers-reduced-motion is set.
  */
 
 type IconSpec = {
@@ -16,7 +16,7 @@ type IconSpec = {
   right?: string;
   size: number;
   rotate: number;
-  /** ضریب parallax: بزرگ‌تر = حرکت بیشتر با اسکرول */
+  /** Parallax factor: larger = more movement while scrolling */
   speed: number;
   opacity: number;
 };
@@ -28,7 +28,7 @@ const ICONS: IconSpec[] = [
     left: "14%",
     size: 56,
     rotate: -25,
-    speed: 0.18,
+    speed: 0.03,
     opacity: 0.1,
   },
   {
@@ -37,7 +37,7 @@ const ICONS: IconSpec[] = [
     right: "26%",
     size: 84,
     rotate: 12,
-    speed: 0.28,
+    speed: 0.04,
     opacity: 0.08,
   },
   {
@@ -46,7 +46,7 @@ const ICONS: IconSpec[] = [
     left: "28%",
     size: 40,
     rotate: -10,
-    speed: 0.44,
+    speed: 0.05,
     opacity: 0.09,
   },
   {
@@ -55,7 +55,7 @@ const ICONS: IconSpec[] = [
     right: "40%",
     size: 72,
     rotate: 18,
-    speed: 0.36,
+    speed: 0.055,
     opacity: 0.08,
   },
   {
@@ -64,7 +64,7 @@ const ICONS: IconSpec[] = [
     left: "32%",
     size: 48,
     rotate: 30,
-    speed: 0.5,
+    speed: 0.06,
     opacity: 0.09,
   },
   {
@@ -73,7 +73,7 @@ const ICONS: IconSpec[] = [
     right: "44%",
     size: 36,
     rotate: 25,
-    speed: 0.55,
+    speed: 0.065,
     opacity: 0.1,
   },
   {
@@ -82,7 +82,7 @@ const ICONS: IconSpec[] = [
     left: "6%",
     size: 68,
     rotate: -18,
-    speed: 0.4,
+    speed: 0.075,
     opacity: 0.07,
   },
   {
@@ -91,7 +91,7 @@ const ICONS: IconSpec[] = [
     right: "18%",
     size: 60,
     rotate: -22,
-    speed: 0.6,
+    speed: 0.08,
     opacity: 0.09,
   },
   {
@@ -100,7 +100,7 @@ const ICONS: IconSpec[] = [
     left: "66%",
     size: 44,
     rotate: 8,
-    speed: 0.66,
+    speed: 0.085,
     opacity: 0.08,
   },
 ];
@@ -145,7 +145,7 @@ export function BoneBackground() {
     <div
       ref={containerRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden hidden md:block"
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden "
     >
       {ICONS.map((b, i) => (
         <b.Icon

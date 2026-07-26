@@ -13,12 +13,12 @@ export default async function BlogsHomeSection() {
     <section className="px-4 py-6 mx-auto">
       <div className="flex items-center justify-between mb-4 ">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 bg-[#1473E6]" />
+          <div className="w-1 h-5 bg-secondary" />
           <h2 className="text-base font-bold tracking-wide">آخرین مقالات</h2>
         </div>
         <Link
           href="/blogs"
-          className="text-xs text-[#1473E6] border-b border-[#1473E6]/40 pb-0.5 hover:border-[#1473E6] transition-colors"
+          className="text-xs text-secondary border-b border-secondary/40 pb-0.5 hover:border-secondary transition-colors"
         >
           مشاهده همه
         </Link>

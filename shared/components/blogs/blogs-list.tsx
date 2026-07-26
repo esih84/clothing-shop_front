@@ -3,7 +3,7 @@ import type { Blog } from "@/types/blog";
 
 export function BlogsList({ blogs }: { blogs: Blog[] }) {
   if (!blogs.length) {
-    return <div className="text-gray-500 text-center py-12">هیچ بلاگی وجود ندارد.</div>;
+    return <div className="text-muted-foreground text-center py-12">هیچ بلاگی وجود ندارد.</div>;
   }
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">

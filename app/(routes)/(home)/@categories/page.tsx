@@ -5,8 +5,8 @@ import {
 } from "@/features/category/category-api";
 
 export default async function CategoriesSection() {
-  // اگر دسته‌های منتخبی تعیین شده باشند (شامل زیردسته‌ها)، همان‌ها را نشان می‌دهیم؛
-  // در غیر این صورت به دسته‌های سطح اول برمی‌گردیم.
+  // If featured categories are defined (including subcategories), we show those;
+  // otherwise we fall back to top-level categories.
   const { data: featured } = await getFeaturedCategories();
   if (featured && featured.length > 0) {
     return <CategorySlider categories={featured} showHeader />;

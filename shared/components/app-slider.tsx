@@ -15,7 +15,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-/** کنترل اسلایدر از بیرون (مثلاً کلیک روی thumbnail) */
+/** Control the slider from outside (e.g. clicking a thumbnail) */
 export interface AppSliderHandle {
   slideTo: (index: number) => void;
   next: () => void;
@@ -25,23 +25,23 @@ export interface AppSliderHandle {
 interface AppSliderProps<T> {
   items: T[];
   renderItem: (item: T, index: number) => ReactNode;
-  /** کلید یکتای هر اسلاید؛ پیش‌فرض index */
+  /** Unique key for each slide; defaults to index */
   getKey?: (item: T, index: number) => string | number;
   /**
-   * حرکت خودکار: `true` = هر ۵ ثانیه، عدد = فاصله بر حسب ثانیه،
-   * `false`/غایب = خاموش
+   * Autoplay: `true` = every 5 seconds, a number = interval in seconds,
+   * `false`/absent = off
    */
   autoplay?: boolean | number;
   loop?: boolean;
-  /** فلش‌های قبلی/بعدی */
+  /** Previous/next arrows */
   navigation?: boolean;
-  /** نقاط پایین اسلایدر */
+  /** Dots at the bottom of the slider */
   pagination?: boolean;
   spaceBetween?: number;
   slidesPerView?: number | "auto";
-  /** جهت اسلایدر؛ برای چیدمان درست در RTL صریح ست می‌شود */
+  /** Slider direction; set explicitly for correct RTL layout */
   dir?: "rtl" | "ltr";
-  /** نقاط شکست ریسپانسیو (مثلاً موبایل ۲ کارت، دسکتاپ ۵ کارت) */
+  /** Responsive breakpoints (e.g. mobile 2 cards, desktop 5 cards) */
   breakpoints?: Record<
     number,
     { slidesPerView?: number | "auto"; spaceBetween?: number }
@@ -74,7 +74,7 @@ export function AppSlider<T>({
   const swiperRef = useRef<SwiperType | null>(null);
 
   useImperativeHandle(ref, () => ({
-    // slideToLoop با ایندکس واقعی کار می‌کند (در حالت loop هم درست است)
+    // slideToLoop works with the real index (correct in loop mode too)
     slideTo: (index) => swiperRef.current?.slideToLoop(index),
     next: () => swiperRef.current?.slideNext(),
     prev: () => swiperRef.current?.slidePrev(),

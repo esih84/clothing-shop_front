@@ -11,9 +11,9 @@ interface SwiperWrapperProps {
 }
 
 export function SwiperWrapper({ products }: SwiperWrapperProps) {
-  // مثل بخش دسته‌بندی: فقط وقتی از ظرفیت بیشترین بریک‌پوینت (دسکتاپ=۵) بیشتر باشد
-  // اسلاید/autoplay فعال شود تا در تعداد کم کارت‌ها لرزش/پرش نداشته باشیم.
-  const canSlide = products.length > 5;
+  // Like the categories section: only when it exceeds the largest breakpoint's capacity (desktop = 5)
+  // enable sliding/autoplay, so we don't get jitter/jumps with few cards.
+  const canSlide = products.length >= 5;
 
   return (
     <AppSlider
@@ -32,7 +32,7 @@ export function SwiperWrapper({ products }: SwiperWrapperProps) {
       className="offers-swiper"
       wrapperClassName="items-stretch"
       renderItem={(product) => {
-        // اطلاعات تخفیف از فیلدهای محاسبه‌شده‌ی بک‌اند
+        // Discount info from the backend's computed fields
         const { finalPrice, originalPrice, percent } = getDiscountInfo(product);
 
         return (

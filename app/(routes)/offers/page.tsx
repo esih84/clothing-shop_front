@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function OffersPage() {
-  // بک‌اند فقط محصولات دارای تخفیف فعال را برمی‌گرداند.
+  // The backend returns only products with an active discount.
   const { data: response } = await getDiscountedProducts({ page: 1, limit: 48 });
   const products = response?.data ?? [];
 
@@ -19,7 +19,7 @@ export default async function OffersPage() {
       </h1>
 
       {products.length === 0 ? (
-        <div className="text-gray-500 text-center py-12">
+        <div className="text-muted-foreground text-center py-12">
           در حال حاضر محصول تخفیف‌داری وجود ندارد.
         </div>
       ) : (

@@ -11,7 +11,7 @@ import { formatToman } from "@/shared/lib/utils";
 
 interface ProductCardProps {
   id: string;
-  /** برای لینک صفحه‌ی محصول (بک‌اند با slug کار می‌کند) */
+  /** For the product page link (the backend works with slug) */
   slug?: string;
   title: string;
   price: number;
@@ -59,7 +59,7 @@ export function ProductCard({
       className="block group"
       style={{ viewTransitionName: `product-${id}` }}
     >
-      <div className="relative bg-[#FDE68A]/20 overflow-hidden aspect-square mb-3 rounded-2xl border border-[#A9CBF5]/30">
+      <div className="relative bg-primary/15 overflow-hidden aspect-square mb-3 rounded-2xl border border-border">
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={title}
@@ -69,22 +69,22 @@ export function ProductCard({
           style={{ viewTransitionName: `product-image-${id}` }}
         />
         {discount && (
-          <div className="absolute top-0 left-0 bg-[#1473E6] text-white text-[10px] font-bold px-2 py-1 tracking-wide">
+          <div className="absolute top-0 left-0 bg-secondary text-white text-[10px] font-bold px-2 py-1 tracking-wide rounded-tl-2xl rounded-br-2xl">
             -{discount}%
           </div>
         )}
         <button
           onClick={handleToggleWishlist}
-          className={`absolute top-2 rounded-full  right-2 p-2.5 bg-white/90 transition-colors ${
+          className={`absolute top-2 rounded-full  right-2 p-2.5 bg-card/90 transition-colors ${
             isInWishlist
-              ? "text-[#1473E6]"
-              : "text-gray-400 hover:text-[#1473E6]"
+              ? "text-secondary"
+              : "text-muted-foreground hover:text-secondary"
           }`}
           disabled={isPending}
           aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
           <Heart
-            className={`w-4 h-4 transition-all ${isInWishlist ? "fill-[#1473E6]" : ""}`}
+            className={`w-4 h-4 transition-all ${isInWishlist ? "fill-secondary" : ""}`}
           />
         </button>
       </div>
@@ -97,13 +97,13 @@ export function ProductCard({
         </h3>
         <div className="flex items-center gap-2">
           <p
-            className="font-bold text-[#1473E6] text-sm"
+            className="font-bold text-secondary text-sm"
             style={{ viewTransitionName: `product-price-${id}` }}
           >
             {formatToman(price)}
           </p>
           {originalPrice && (
-            <p className="text-xs text-gray-400 line-through">
+            <p className="text-[0.6rem] md:text-xs text-muted-foreground line-through">
               {formatToman(originalPrice)}
             </p>
           )}
@@ -116,10 +116,10 @@ export function ProductCard({
 export function ProductCardSkeleton() {
   return (
     <div className="block">
-      <div className="aspect-square bg-[#FDE68A]/40 animate-pulse mb-3" />
+      <div className="aspect-square bg-primary/20 animate-pulse mb-3" />
       <div className="space-y-2">
-        <div className="h-3.5 bg-[#FDE68A]/50 animate-pulse w-4/5" />
-        <div className="h-3.5 bg-[#FDE68A]/50 animate-pulse w-1/3" />
+        <div className="h-3.5 bg-primary/20 animate-pulse w-4/5" />
+        <div className="h-3.5 bg-primary/20 animate-pulse w-1/3" />
       </div>
     </div>
   );

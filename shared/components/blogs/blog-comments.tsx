@@ -27,7 +27,7 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
 
   return (
     <section className="mt-10">
-      <h3 className="font-bold text-lg mb-4 text-[#1473E6]">نظرات</h3>
+      <h3 className="font-bold text-lg mb-4 text-secondary">نظرات</h3>
       <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-2">
         <input
           className="border rounded px-3 py-2 text-sm"
@@ -51,15 +51,15 @@ export function BlogComments({ comments, onAddComment }: BlogCommentsProps) {
       </form>
       <div className="space-y-4">
         {comments.length === 0 && (
-          <div className="text-gray-400 text-center">نظری ثبت نشده است.</div>
+          <div className="text-muted-foreground text-center">نظری ثبت نشده است.</div>
         )}
         {comments.map((comment) => (
           <div key={comment.id} className="border rounded p-3">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold text-[#1473E6] text-sm">{comment.author}</span>
-              <span className="text-xs text-gray-400">{comment.date}</span>
+              <span className="font-bold text-secondary text-sm">{comment.author}</span>
+              <span className="text-xs text-muted-foreground">{comment.date}</span>
             </div>
-            <p className="text-gray-700 text-sm leading-6">{comment.content}</p>
+            <p className="text-foreground text-sm leading-6">{comment.content}</p>
           </div>
         ))}
       </div>

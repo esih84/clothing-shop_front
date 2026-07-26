@@ -7,7 +7,7 @@ interface CategorySelectorProps {
   showHeader?: boolean;
 }
 
-// گرادیان‌های برند (آبی/مشکی/زرد) — بدون رنگ‌های مد قدیمی
+// Brand gradients (blue/black/yellow) — without the old fashion colors
 const cardGradients = [
   "from-[#1473E6] to-[#0B3A78]",
   "from-[#0B3A78] to-[#111827]",
@@ -60,7 +60,7 @@ export function CategorySelector({
         </div>
       )}
 
-      <div className="mx-3 sm:mx-4 rounded-3xl border bg-white/60 p-2">
+      <div className="mx-3 sm:mx-4 rounded-3xl border bg-card/60 p-2">
         <div className={`grid grid-cols-2 ${smCols} gap-2 h-auto`}>
           {display.map((category, index) => {
             const nameOnTop = index % 2 === 1;
@@ -104,7 +104,7 @@ export function CategorySelector({
                       </span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
+                  <div className="absolute inset-0 bg-card/0 group-hover:bg-card/10 transition-colors duration-200" />
                 </div>
 
                 {!nameOnTop && (

@@ -32,7 +32,7 @@ function BackHeader({
   };
 
   return (
-    <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-sm border-b border-border">
+    <div className="sticky top-0 z-40 bg-card/90 backdrop-blur-sm border-b border-border">
       <div className="px-4 py-3 flex items-center justify-between max-w-7xl mx-auto">
         <button
           type="button"
@@ -88,7 +88,7 @@ function SearchBar({
           sm:flex-1 sm:block sm:opacity-100 sm:max-w-none sm:relative sm:z-auto
           ${
             isOpen
-              ? "fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-3 bg-white shadow-lg sm:static sm:p-0 sm:shadow-none sm:bg-transparent"
+              ? "fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-3 bg-card shadow-lg sm:static sm:p-0 sm:shadow-none sm:bg-transparent"
               : "hidden sm:block"
           }
         `}
@@ -114,7 +114,7 @@ function SearchBar({
             submitSearch(query);
           }}
         >
-          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-secondary transition-colors pointer-events-none" />
+          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-secondary transition-colors pointer-events-none" />
           <input
             ref={inputRef}
             type="text"
@@ -125,8 +125,8 @@ function SearchBar({
             className="
               w-full pr-10 pl-10 py-2.5 rounded-2xl
               bg-muted border border-border
-              text-sm text-foreground placeholder:text-gray-400
-              focus:outline-none focus:border-secondary/60 focus:bg-white focus:ring-2 focus:ring-secondary/15
+              text-sm text-foreground placeholder:text-muted-foreground
+              focus:outline-none focus:border-secondary/60 focus:bg-card focus:ring-2 focus:ring-secondary/15
               transition-all duration-200
             "
           />
@@ -134,30 +134,30 @@ function SearchBar({
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-gray-200 transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
               aria-label="پاک کردن جستجو"
             >
-              <X className="w-3.5 h-3.5 text-gray-400" />
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           )}
         </form>
 
         {/* Recent searches — shown only when focused and empty (mobile overlay) */}
-        {isOpen && !query && (
+        {/* {isOpen && !query && (
           <div className="mt-3 sm:hidden">
-            <p className="text-xs text-gray-400 mb-2 px-1">جستجوهای اخیر</p>
+            <p className="text-xs text-muted-foreground mb-2 px-1">جستجوهای اخیر</p>
             {["غذای سگ", "اسباب‌بازی گربه", "قلاده و بند"].map((item) => (
               <button
                 key={item}
                 onClick={() => submitSearch(item)}
                 className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-muted transition-colors text-right"
               >
-                <Search className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
                 <span className="text-sm text-muted-foreground">{item}</span>
               </button>
             ))}
           </div>
-        )}
+        )} */}
       </div>
     </>
   );
@@ -190,7 +190,7 @@ export function DynamicHeader() {
           isOpen={isFilterModalOpen}
           onClose={() => setIsFilterModalOpen(false)}
         />
-        <header className="sticky top-0 z-40 bg-white shadow-sm">
+        <header className="sticky top-0 z-40 bg-card shadow-sm">
           <div className="h-1 bg-gradient-to-l from-primary via-secondary to-primary" />
           <div className="mx-auto px-4 md:px-6 py-3">
             <div className="flex flex-row items-center gap-4 justify-between">
@@ -211,7 +211,7 @@ export function DynamicHeader() {
                 {/* Mobile: icon button */}
                 <button
                   onClick={openSearch}
-                  className="sm:hidden p-2.5 rounded-2xl bg-muted border border-border hover:bg-gray-100 hover:border-secondary/30 transition-all"
+                  className="sm:hidden p-2.5 rounded-2xl bg-muted border border-border hover:bg-muted hover:border-secondary/30 transition-all"
                   aria-label="جستجو"
                 >
                   <Search className="w-4 h-4 text-muted-foreground" />

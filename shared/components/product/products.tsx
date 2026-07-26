@@ -14,7 +14,7 @@ const ProductCard = dynamic(
   () => import("./product-card").then((m) => ({ default: m.ProductCard })),
   {
     loading: () => (
-      <div className="aspect-square bg-gray-100 rounded-2xl animate-pulse" />
+      <div className="aspect-square bg-muted rounded-2xl animate-pulse" />
     ),
     ssr: false,
   },
@@ -33,9 +33,9 @@ export function Products({
   initialHasMore: boolean;
   filters?: ProductFilters;
   limit?: number;
-  /** سقف نمایش (خانه = ۲۰). با رسیدن به سقف اسکرول متوقف و دکمه‌ی «بیشتر» نشان داده می‌شود. */
+  /** Display cap (home = 20). On reaching the cap, scrolling stops and a "more" button is shown. */
   maxItems?: number;
-  /** مقصد دکمه‌ی «نمایش محصولات بیشتر» وقتی سقف پر شد. */
+  /** Destination of the "show more products" button when the cap is reached. */
   moreHref?: string;
   gridClassName?: string;
 }) {
@@ -59,7 +59,7 @@ export function Products({
   const showMore = capReached && !!moreHref && !!hasNextPage;
 
   useEffect(() => {
-    // با رسیدن به سقف، دیگر خودکار بارگذاری نکن (کاربر با دکمه ادامه می‌دهد).
+    // On reaching the cap, stop auto-loading (the user continues with the button).
     if (capReached) return;
 
     const observer = new IntersectionObserver(
@@ -119,7 +119,7 @@ export function Products({
       ) : (
         <div ref={bottomRef} className="h-10 flex items-center justify-center">
           {isFetchingNextPage && (
-            <span className="text-sm text-gray-400">در حال بارگذاری...</span>
+            <span className="text-sm text-muted-foreground">در حال بارگذاری...</span>
           )}
         </div>
       )}

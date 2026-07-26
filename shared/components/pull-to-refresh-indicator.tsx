@@ -21,7 +21,7 @@ export function PullToRefreshIndicator({
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm border-b transition-all duration-200"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-card/90 backdrop-blur-sm border-b transition-all duration-200"
       style={{
         height: `${Math.min(pullDistance, threshold)}px`,
         transform: `translateY(${isRefreshing ? 0 : -threshold + pullDistance}px)`,
@@ -35,17 +35,17 @@ export function PullToRefreshIndicator({
             transform: `rotate(${isRefreshing ? 0 : rotation}deg)`,
           }}
         >
-          <RefreshCw className={`w-6 h-6 text-gray-600 ${isRefreshing ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-6 h-6 text-muted-foreground ${isRefreshing ? "animate-spin" : ""}`} />
         </div>
 
         {pullDistance >= threshold && !isRefreshing && (
-          <p className="text-sm text-gray-600 font-medium animate-fadeIn">Release to refresh</p>
+          <p className="text-sm text-muted-foreground font-medium animate-fadeIn">Release to refresh</p>
         )}
 
-        {isRefreshing && <p className="text-sm text-gray-600 font-medium animate-fadeIn">Refreshing...</p>}
+        {isRefreshing && <p className="text-sm text-muted-foreground font-medium animate-fadeIn">Refreshing...</p>}
 
         {pullDistance < threshold && pullDistance > 20 && !isRefreshing && (
-          <p className="text-sm text-gray-500 animate-fadeIn">Pull to refresh</p>
+          <p className="text-sm text-muted-foreground animate-fadeIn">Pull to refresh</p>
         )}
       </div>
     </div>

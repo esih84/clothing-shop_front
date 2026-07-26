@@ -5,8 +5,8 @@ interface SearchPageProps {
 }
 
 /**
- * صفحه‌ی جستجو حذف و با `/products` جایگزین شد.
- * این مسیر فقط برای سازگاری با لینک‌های قدیمی، کوئری را حفظ و ریدایرکت می‌کند.
+ * The search page was removed and replaced with `/products`.
+ * This route only preserves the query and redirects, for compatibility with old links.
  */
 export default async function SearchRedirect({ searchParams }: SearchPageProps) {
   const sp = await searchParams;

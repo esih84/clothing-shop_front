@@ -5,7 +5,7 @@ import { BlogComments } from "./blog-comments";
 export function BlogDetail({ blog }: { blog?: Blog }) {
   if (!blog) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-lg text-gray-500">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-lg text-muted-foreground">
         بلاگ مورد نظر پیدا نشد.
       </div>
     );
@@ -25,16 +25,16 @@ export function BlogDetail({ blog }: { blog?: Blog }) {
         />
       )}
       <h1 className="text-2xl font-bold mb-2 text-secondary">{blog.title}</h1>
-      <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
+      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
         <span>{dateLabel}</span>
       </div>
       {blog.excerpt && (
-        <p className="text-gray-700 leading-7 mb-6 font-medium">
+        <p className="text-foreground leading-7 mb-6 font-medium">
           {blog.excerpt}
         </p>
       )}
       <article
-        className="prose prose-sm max-w-none text-gray-800 leading-8 mb-8"
+        className="prose prose-sm max-w-none text-foreground leading-8 mb-8"
         dangerouslySetInnerHTML={{ __html: blog.content }}
       />
       <BlogComments comments={[]} />

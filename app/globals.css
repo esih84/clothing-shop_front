@@ -13,7 +13,7 @@
 body {
   font-family: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
   font-size: 16px;
-  background-color: #fafafa;
+  /* Background color is managed by the bg-background token in @layer base (dark-mode compatible) */
 
   @media (min-width: 768px) {
     font-size: 18px;
@@ -97,7 +97,7 @@ td {
 
 /* Luxury card styles */
 .luxury-card {
-  @apply bg-white border border-gray-100 shadow-md rounded-lg overflow-hidden transition-all duration-300;
+  @apply bg-card border border-border shadow-md rounded-lg overflow-hidden transition-all duration-300;
 }
 
 .luxury-card:hover {
@@ -106,36 +106,36 @@ td {
 
 /* Luxury button styles */
 .luxury-button {
-  @apply bg-black text-white px-4 py-2 rounded-md font-medium transition-all duration-300;
+  @apply bg-foreground text-background px-4 py-2 rounded-md font-medium transition-all duration-300;
 }
 
 .luxury-button:hover {
-  @apply bg-gray-800;
+  @apply bg-foreground/90;
 }
 
 /* Luxury input styles */
 .luxury-input {
-  @apply border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent;
+  @apply border border-input rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent;
 }
 
 @layer base {
   :root {
-    /* پالت برند: زرد (primary) + آبی (secondary/accent) + مشکی (foreground) */
+    /* Brand palette: yellow (primary) + blue (secondary/accent) + black (foreground) */
     --background: 48 33% 98%;
     --foreground: 220 18% 12%;
     --card: 0 0% 100%;
     --card-foreground: 220 18% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 18% 12%;
-    /* زرد دوستانه؛ متن روی آن مشکی برای کنتراست */
+    /* Friendly yellow; text on it is black for contrast */
     --primary: 45 94% 52%;
     --primary-foreground: 220 25% 12%;
-    /* آبی زنده */
+    /* Vivid blue */
     --secondary: 212 88% 48%;
     --secondary-foreground: 0 0% 100%;
     --muted: 45 30% 95%;
     --muted-foreground: 220 12% 40%;
-    /* اکسنت آبی روشن */
+    /* Light blue accent */
     --accent: 205 90% 94%;
     --accent-foreground: 212 88% 30%;
     --destructive: 0 84.2% 60.2%;
@@ -143,11 +143,11 @@ td {
     --border: 45 25% 88%;
     --input: 45 25% 88%;
     --ring: 212 88% 48%;
-    /* گوشه‌های کاملاً گرد */
+    /* Fully rounded corners */
     --radius: 1rem;
     --main: 45 94% 52%;
 
-    /* Chart colors (هماهنگ با برند) */
+    /* Chart colors (aligned with the brand) */
     --chart-1: 45 94% 52%;
     --chart-2: 212 88% 48%;
     --chart-3: 220 18% 20%;
@@ -156,25 +156,37 @@ td {
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 0 0% 100%;
+    /* Brand dark mode: deep navy + yellow (primary) + lighter blue (secondary) */
+    --background: 222 20% 10%;
+    --foreground: 45 30% 94%;
+    --card: 222 18% 14%;
+    --card-foreground: 45 30% 94%;
+    --popover: 222 18% 14%;
+    --popover-foreground: 45 30% 94%;
+    /* Brand yellow is kept; text on it is dark navy */
+    --primary: 45 94% 55%;
+    --primary-foreground: 222 30% 10%;
+    /* Lighter blue for contrast on the dark background */
+    --secondary: 212 90% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 16% 20%;
+    --muted-foreground: 220 12% 68%;
+    /* Dark blue accent */
+    --accent: 212 45% 22%;
+    --accent-foreground: 205 90% 85%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 15% 24%;
+    --input: 222 15% 24%;
+    --ring: 212 90% 60%;
+    --main: 45 94% 55%;
+
+    /* Chart colors (lighter for the dark background) */
+    --chart-1: 45 94% 58%;
+    --chart-2: 212 90% 62%;
+    --chart-3: 45 30% 90%;
+    --chart-4: 30 90% 60%;
+    --chart-5: 175 60% 55%;
   }
 }
 
@@ -226,8 +238,27 @@ td {
   font-size: 18px !important;
 }
 
+/* Dark-mode override for the slider arrows/dots (the rules above use !important) */
+.dark .swiper-button-next,
+.dark .swiper-button-prev {
+  background-color: rgba(0, 0, 0, 0.45) !important;
+  color: #fff !important;
+}
+
+.dark .swiper-pagination-bullet {
+  background: hsl(var(--muted-foreground)) !important;
+}
+
+.dark .swiper-pagination-bullet-active {
+  background: hsl(var(--primary)) !important;
+}
+
 .thumbs-swiper .swiper-slide-thumb-active img {
   border-color: black;
+}
+
+.dark .thumbs-swiper .swiper-slide-thumb-active img {
+  border-color: hsl(var(--primary));
 }
 
 .cart-item-swiper .swiper-slide {

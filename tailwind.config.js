@@ -9,6 +9,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        tiny: "0.625rem", // 10px
+        hero: "4rem", // 64px
+      },
       screens: {
         xs: "475px",
       },
@@ -51,6 +55,7 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        tiny: "calc(var(--radius) - 6px)",
       },
       keyframes: {
         "accordion-down": {
@@ -69,4 +74,4 @@ module.exports = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+};

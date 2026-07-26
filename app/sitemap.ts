@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 import { brand } from "@/shared/config/brand";
 
 /**
- * نقشه‌ی سایت. در حال حاضر مسیرهای اصلی ثابت را پوشش می‌دهد.
- * TODO (فاز ۲): پس از تثبیت لایه‌ی دیتا، URLهای پویای محصولات/دسته‌ها/بلاگ‌ها
- * با fetch از بک‌اند (با revalidate) به این لیست اضافه شوند.
+ * Sitemap. Currently covers the main static routes.
+ * TODO (phase 2): once the data layer is stable, add dynamic product/category/blog URLs
+ * to this list by fetching from the backend (with revalidate).
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

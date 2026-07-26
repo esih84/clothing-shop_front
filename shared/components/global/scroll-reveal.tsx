@@ -14,9 +14,9 @@ const hiddenByDir: Record<Direction, string> = {
 };
 
 /**
- * یک wrapper سبک که فرزندانش را هنگام ورود به viewport با انیمیشن
- * نمایش می‌دهد. مبتنی بر IntersectionObserver (بدون کتابخانه‌ی سنگین)
- * و سازگار با prefers-reduced-motion.
+ * A lightweight wrapper that animates its children into view when they enter
+ * the viewport. Based on IntersectionObserver (no heavy library)
+ * and compatible with prefers-reduced-motion.
  */
 export function ScrollReveal({
   children,
@@ -27,7 +27,7 @@ export function ScrollReveal({
 }: {
   children: React.ReactNode;
   direction?: Direction;
-  /** تأخیر بر حسب میلی‌ثانیه */
+  /** Delay in milliseconds */
   delay?: number;
   className?: string;
   as?: React.ElementType;

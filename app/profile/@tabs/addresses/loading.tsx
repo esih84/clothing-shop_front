@@ -1,28 +1,31 @@
 // profile/@tabs/addresses/loading.tsx
 
-import { MapPin } from 'lucide-react'
+import { MapPin } from "lucide-react";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export default function AddressesLoading() {
   return (
-    <div className="space-y-3" style={{ direction: 'rtl' }}>
+    <div className="space-y-3" style={{ direction: "rtl" }}>
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="flex items-center justify-between bg-white p-4 shadow-sm border border-[#A9CBF5]/30"
+          className="flex items-center justify-between bg-card p-4 rounded-2xl shadow-sm border border-border"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#FDE68A]/20 border border-[#A9CBF5]/30 flex-shrink-0 animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-primary/15 border border-border flex items-center justify-center flex-shrink-0 animate-pulse">
+              <MapPin className="w-5 h-5 text-secondary/40" />
+            </div>
             <div className="space-y-2">
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-              <div className="h-3 w-40 bg-gray-100 rounded animate-pulse" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-40" />
             </div>
           </div>
-          <div className="w-4 h-4 bg-gray-100 rounded animate-pulse" />
+          <Skeleton className="w-4 h-4 rounded" />
         </div>
       ))}
-      <div className="w-full p-4 border border-dashed border-[#A9CBF5]/60 flex items-center justify-center">
-        <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+      <div className="w-full p-4 rounded-2xl border border-dashed border-border/60 flex items-center justify-center">
+        <Skeleton className="h-4 w-32" />
       </div>
     </div>
-  )
+  );
 }

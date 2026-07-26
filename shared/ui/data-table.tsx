@@ -54,13 +54,13 @@ export function DataTable<TData, TValue>({
       <div className="rounded-md border">
         <div className="overflow-x-auto">
           <table className="w-full ">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="px-4 py-4 text-left text-base md:text-lg font-medium text-gray-500"
+                      className="px-4 py-4 text-left text-base md:text-lg font-medium text-muted-foreground"
                       style={{ width: header.getSize() }}
                     >
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -72,7 +72,7 @@ export function DataTable<TData, TValue>({
             <tbody>
               {table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="border-t border-gray-200 hover:bg-gray-50">
+                  <tr key={row.id} className="border-t border-border hover:bg-muted">
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-4 py-4  md:text-lg">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -92,7 +92,7 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="text-base md:text-lg text-gray-500">
+        <div className="text-base md:text-lg text-muted-foreground">
           Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
           {Math.min(
             (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,

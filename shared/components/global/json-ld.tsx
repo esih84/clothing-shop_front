@@ -1,8 +1,8 @@
 import { brand } from "@/shared/config/brand";
 
 /**
- * تزریق داده‌ی ساختاریافته (JSON-LD) برای موتورهای جستجو.
- * این کامپوننت سرور-ساید است و خروجی <script> امن تولید می‌کند.
+ * Injects structured data (JSON-LD) for search engines.
+ * This is a server-side component and produces safe <script> output.
  */
 export function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (
@@ -13,10 +13,10 @@ export function JsonLd({ data }: { data: Record<string, unknown> }) {
   );
 }
 
-/** اسکیمای سازمان + وب‌سایت برای صفحه‌ی اصلی/layout */
+/** Organization + website schema for the home page/layout */
 export function OrganizationJsonLd() {
   const data = {
-    "@context": "https://schema.org",
+    "@context": "https://petmeal.ir",
     "@graph": [
       {
         "@type": "Organization",
@@ -24,11 +24,11 @@ export function OrganizationJsonLd() {
         alternateName: brand.nameEn,
         url: brand.url,
         description: brand.description,
-        email: brand.contact.email,
+        // email: brand.contact.email,
         sameAs: [
           brand.social.instagram,
           brand.social.telegram,
-          brand.social.twitter,
+          // brand.social.twitter,
         ],
       },
       {

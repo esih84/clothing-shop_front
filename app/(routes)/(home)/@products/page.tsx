@@ -14,7 +14,7 @@ export default async function ProductsSection() {
   return (
     <div className="px-4 py-6 mx-auto">
       <div className="flex items-center gap-2 mb-4 md:mb-6">
-        <div className="w-1 h-5 bg-[#1473E6]" />
+        <div className="w-1 h-5 bg-secondary" />
         <h2 className="text-xl md:text-2xl md:font-lg font-bold">
           محصولات ویژه
         </h2>

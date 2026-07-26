@@ -72,7 +72,7 @@ export function CommentSection({
 
 function CommentItem({ comment }: { comment: Comment }) {
   return (
-    <div className="border-b border-gray-200 pb-4 last:border-b-0">
+    <div className="border-b border-border pb-4 last:border-b-0">
       <div className="flex items-start space-x-3">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -83,8 +83,8 @@ function CommentItem({ comment }: { comment: Comment }) {
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-sm font-medium text-gray-600">{comment.user.name.charAt(0).toUpperCase()}</span>
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+              <span className="text-sm font-medium text-muted-foreground">{comment.user.name.charAt(0).toUpperCase()}</span>
             </div>
           )}
         </div>
@@ -92,28 +92,28 @@ function CommentItem({ comment }: { comment: Comment }) {
         {/* Comment Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-1">
-            <h4 className="text-sm font-medium text-gray-900">{comment.user.name}</h4>
-            <span className="text-xs text-gray-500">{comment.date}</span>
+            <h4 className="text-sm font-medium text-foreground">{comment.user.name}</h4>
+            <span className="text-xs text-muted-foreground">{comment.date}</span>
             {comment.rating && (
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-3 h-3 ${i < comment.rating! ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                    className={`w-3 h-3 ${i < comment.rating! ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
                   />
                 ))}
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
+          <p className="text-sm text-foreground mb-2">{comment.content}</p>
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            <button className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700">
+            <button className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-foreground">
               <ThumbsUp className={`w-3 h-3 ${comment.isLiked ? "fill-blue-500 text-blue-500" : ""}`} />
               <span>{comment.likes}</span>
             </button>
-            <button className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700">
+            <button className="flex items-center space-x-1 text-xs text-muted-foreground hover:text-foreground">
               <Reply className="w-3 h-3" />
               <span>Reply</span>
             </button>
@@ -121,7 +121,7 @@ function CommentItem({ comment }: { comment: Comment }) {
 
           {/* Replies */}
           {comment.replies && comment.replies.length > 0 && (
-            <div className="mt-3 pl-4 border-l-2 border-gray-100 space-y-3">
+            <div className="mt-3 pl-4 border-l-2 border-border space-y-3">
               {comment.replies.map((reply) => (
                 <CommentItem key={reply.id} comment={reply} />
               ))}

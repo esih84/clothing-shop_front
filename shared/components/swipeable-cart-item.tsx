@@ -57,9 +57,9 @@ export function SwipeableCartItem({
   const getColorClass = (color: string) => {
     const colorMap: Record<string, string> = {
       black: "bg-black",
-      white: "bg-white border border-gray-300",
+      white: "bg-card border border-border",
       gray: "bg-gray-400",
-      silver: "bg-gray-300",
+      silver: "bg-muted",
       blue: "bg-blue-600",
       navy: "bg-blue-900",
       brown: "bg-amber-800",
@@ -68,7 +68,7 @@ export function SwipeableCartItem({
       pink: "bg-pink-500",
       purple: "bg-purple-600",
     };
-    return colorMap[color.toLowerCase()] || "bg-gray-200";
+    return colorMap[color.toLowerCase()] || "bg-muted";
   };
 
   return (
@@ -85,7 +85,7 @@ export function SwipeableCartItem({
         }}
       >
         <SwiperSlide>
-          <div className="bg-white rounded-xl p-3 shadow-sm">
+          <div className="bg-card rounded-xl p-3 shadow-sm">
             <div className="flex gap-3">
               <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
                 <Image
@@ -106,15 +106,15 @@ export function SwipeableCartItem({
                             color
                           )}`}
                         ></div>
-                        <span className="text-xs text-gray-500">Color</span>
+                        <span className="text-xs text-muted-foreground">Color</span>
                       </div>
                     )}
                     {color && size && (
-                      <span className="text-xs text-gray-500">|</span>
+                      <span className="text-xs text-muted-foreground">|</span>
                     )}
                     {size && (
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           Size = {size}
                         </span>
                       </div>
@@ -126,7 +126,7 @@ export function SwipeableCartItem({
                   <div className="flex items-center border rounded-lg">
                     <button
                       onClick={decrementQuantity}
-                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200"
+                      className="px-2 py-1 bg-muted hover:bg-muted"
                       disabled={quantity <= 1}
                     >
                       <Minus className="w-3 h-3" />
@@ -134,7 +134,7 @@ export function SwipeableCartItem({
                     <span className="px-3 text-sm">{quantity}</span>
                     <button
                       onClick={incrementQuantity}
-                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200"
+                      className="px-2 py-1 bg-muted hover:bg-muted"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -153,12 +153,12 @@ export function SwipeableCartItem({
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-md overflow-hidden">
+          <div className="bg-card rounded-xl w-full max-w-md overflow-hidden">
             <div className="p-4">
               <h3 className="text-lg font-bold text-center mb-4">
                 Remove From Cart?
               </h3>
-              <div className="bg-gray-100 rounded-xl p-3 mb-4">
+              <div className="bg-muted rounded-xl p-3 mb-4">
                 <div className="flex gap-3">
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <Image
@@ -179,15 +179,15 @@ export function SwipeableCartItem({
                                 color
                               )}`}
                             ></div>
-                            <span className="text-xs text-gray-500">Color</span>
+                            <span className="text-xs text-muted-foreground">Color</span>
                           </div>
                         )}
                         {color && size && (
-                          <span className="text-xs text-gray-500">|</span>
+                          <span className="text-xs text-muted-foreground">|</span>
                         )}
                         {size && (
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-muted-foreground">
                               Size = {size}
                             </span>
                           </div>
@@ -197,11 +197,11 @@ export function SwipeableCartItem({
                     <div className="flex justify-between items-center mt-2">
                       <span className="font-bold">${price.toFixed(2)}</span>
                       <div className="flex items-center border rounded-lg">
-                        <button className="px-2 py-1 bg-gray-200" disabled>
+                        <button className="px-2 py-1 bg-muted" disabled>
                           <Minus className="w-3 h-3" />
                         </button>
                         <span className="px-3 text-sm">{quantity}</span>
-                        <button className="px-2 py-1 bg-gray-200" disabled>
+                        <button className="px-2 py-1 bg-muted" disabled>
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
@@ -212,7 +212,7 @@ export function SwipeableCartItem({
               <div className="flex gap-3">
                 <button
                   onClick={cancelRemove}
-                  className="flex-1 py-3 px-4 bg-gray-200 rounded-full font-medium text-gray-800"
+                  className="flex-1 py-3 px-4 bg-muted rounded-full font-medium text-foreground"
                 >
                   Cancel
                 </button>

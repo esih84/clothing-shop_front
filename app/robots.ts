@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // مسیرهای خصوصی/کاربری از ایندکس خارج می‌شوند
+      // Private/user paths are excluded from indexing
       disallow: ["/profile", "/cart", "/checkout", "/orders"],
     },
     sitemap: `${brand.url}/sitemap.xml`,

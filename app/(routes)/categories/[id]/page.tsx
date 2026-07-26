@@ -4,7 +4,7 @@ import { ProductCard } from "@/shared/components/product/product-card";
 import { getDiscountInfo } from "@/shared/lib/discount";
 import Link from "next/link";
 
-// پارامتر مسیر در واقع slug دسته است (category-selector به /categories/[slug] لینک می‌دهد)
+// The route param is actually the category slug (category-selector links to /categories/[slug])
 export default async function CategoryPage({
   params,
 }: {
@@ -15,7 +15,7 @@ export default async function CategoryPage({
 
   if (!category) {
     return (
-      <div className="p-8 text-center text-lg text-gray-500">
+      <div className="p-8 text-center text-lg text-muted-foreground">
         دسته‌بندی پیدا نشد.
       </div>
     );
@@ -34,14 +34,14 @@ export default async function CategoryPage({
         <Link href="/" className="text-secondary hover:underline">
           خانه
         </Link>
-        <span className="text-gray-400">/</span>
+        <span className="text-muted-foreground">/</span>
         <span className="font-bold text-secondary">{category.name}</span>
       </div>
       <h1 className="text-2xl md:text-3xl font-bold mb-6 text-secondary">
         {category.name}
       </h1>
       {products.length === 0 ? (
-        <div className="text-gray-500 text-center py-12">
+        <div className="text-muted-foreground text-center py-12">
           محصولی در این دسته‌بندی وجود ندارد.
         </div>
       ) : (

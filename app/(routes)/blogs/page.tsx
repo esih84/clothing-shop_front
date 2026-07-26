@@ -10,11 +10,11 @@ export default async function BlogPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-8 flex items-center gap-2">
-        <Link href="/" className="text-[#1473E6] hover:underline">خانه</Link>
-        <span className="text-gray-400">/</span>
-        <span className="font-bold text-[#1473E6]">بلاگ</span>
+        <Link href="/" className="text-secondary hover:underline">خانه</Link>
+        <span className="text-muted-foreground">/</span>
+        <span className="font-bold text-secondary">بلاگ</span>
       </div>
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-[#1473E6]">بلاگ</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-secondary">بلاگ</h1>
       <BlogsList blogs={blogs} />
     </div>
   );

@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Category } from "@/types/category";
 import { AppSlider } from "@/shared/components/app-slider";
 
-// گرادیان‌های برند (آبی/مشکی/زرد)
+// Brand gradients (blue/black/yellow)
 const cardGradients = [
   "from-[#1473E6] to-[#0B3A78]",
   "from-[#0B3A78] to-[#111827]",
@@ -21,9 +21,9 @@ interface CategorySliderProps {
 }
 
 /**
- * اسلایدر افقی دسته‌بندی‌ها: موبایل ۲ کارت، تبلت ۳، دسکتاپ ۵.
- * اگر تعداد از ظرفیت هر بریک‌پوینت بیشتر باشد، Swiper خودکار اسلاید می‌کند
- * (autoplay فقط وقتی بیش از ۲ آیتم باشد فعال است).
+ * Horizontal category slider: mobile 2 cards, tablet 3, desktop 5.
+ * If the count exceeds a breakpoint's capacity, Swiper slides automatically
+ * (autoplay is enabled only when there are more than 2 items).
  */
 export function CategorySlider({
   categories,
@@ -31,9 +31,9 @@ export function CategorySlider({
 }: CategorySliderProps) {
   if (!categories.length) return null;
 
-  // برای جلوگیری از DOM بزرگ، حداکثر ۱۴ دسته در اسلایدر
+  // To avoid a large DOM, at most 14 categories in the slider
   const items = categories.slice(0, 14);
-  // فقط وقتی از ظرفیت یک ردیف (بیشترین بریک‌پوینت=۷) بیشتر باشد اسلاید/autoplay فعال شود
+  // Enable sliding/autoplay only when it exceeds one row's capacity (largest breakpoint = 7)
   const canSlide = items.length > 7;
 
   return (
@@ -57,7 +57,7 @@ export function CategorySlider({
         </div>
       )}
 
-      <div className="mx-3 sm:mx-4 rounded-3xl border bg-white/60 p-2">
+      <div className="mx-3 sm:mx-4 rounded-3xl border bg-card/60 p-2">
         <AppSlider
           items={items}
           getKey={(category) => category.id}
@@ -98,7 +98,7 @@ export function CategorySlider({
                     </span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-200" />
+                <div className="absolute inset-0 bg-card/0 group-hover:bg-card/10 transition-colors duration-200" />
               </div>
 
               <div className="flex items-start justify-center pt-1.5 pb-0.5 min-h-[2.4em]">

@@ -15,6 +15,11 @@ export function BottomNavigation() {
     return null
   }
 
+  // Hide navigation on the login page
+  if (pathname === "/login") {
+    return null
+  }
+
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true
     if (path !== "/" && pathname.startsWith(path)) return true
@@ -30,7 +35,7 @@ export function BottomNavigation() {
               href="/"
               className={`flex items-center p-2 rounded-full transition-colors ${
                 isActive("/")
-                  ? "bg-white text-secondary"
+                  ? "bg-card text-secondary"
                   : "text-secondary-foreground"
               }`}
             >
@@ -43,7 +48,7 @@ export function BottomNavigation() {
               onTouchStart={() => router.prefetch("/wishlist")}
               className={`flex items-center p-2 rounded-full transition-colors ${
                 isActive("/wishlist")
-                  ? "bg-white text-secondary"
+                  ? "bg-card text-secondary"
                   : "text-secondary-foreground"
               }`}
             >
@@ -56,7 +61,7 @@ export function BottomNavigation() {
               onTouchStart={() => router.prefetch("/cart")}
               className={`flex items-center p-2 rounded-full transition-colors relative ${
                 isActive("/cart")
-                  ? "bg-white text-secondary"
+                  ? "bg-card text-secondary"
                   : "text-secondary-foreground"
               }`}
             >
@@ -73,7 +78,7 @@ export function BottomNavigation() {
               onTouchStart={() => router.prefetch("/profile")}
               className={`flex items-center p-2 rounded-full transition-colors ${
                 isActive("/profile")
-                  ? "bg-white text-secondary"
+                  ? "bg-card text-secondary"
                   : "text-secondary-foreground"
               }`}
               onClick={() => router.push("/profile")}

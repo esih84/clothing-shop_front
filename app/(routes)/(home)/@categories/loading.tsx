@@ -6,7 +6,7 @@ export default function CategorySelectorSkeleton() {
     <div className="py-6">
       <div className="flex items-center justify-between mb-4 px-3 sm:px-4">
         <div className="flex items-center gap-2">
-          <div className="w-1 h-5 bg-[#1473E6]" />
+          <div className="w-1 h-5 bg-secondary" />
           <Skeleton className="h-4 w-32" />
         </div>
         <Skeleton className="h-3 w-16" />

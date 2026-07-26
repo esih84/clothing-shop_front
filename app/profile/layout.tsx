@@ -7,7 +7,7 @@ export default async function ProfileLayout({
   children: React.ReactNode;
   tabs: React.ReactNode;
 }) {
-  // کاربر لاگین‌نشده نباید پروفایل خالی ببیند؛ مستقیم به لاگین می‌رود
+  // A logged-out user should not see an empty profile; goes straight to login
   const cookieStore = await cookies();
   const hasSession =
     cookieStore.has("access_token") || cookieStore.has("refresh_token");

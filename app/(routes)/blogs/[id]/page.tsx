@@ -4,9 +4,9 @@ import { JsonLd } from "@/shared/components/global/json-ld";
 import { brand } from "@/shared/config/brand";
 import type { Metadata } from "next";
 
-// پارامتر مسیر در واقع slug بلاگ است (BlogCard به /blogs/[slug] لینک می‌دهد)
+// The route param is actually the blog slug (BlogCard links to /blogs/[slug])
 
-/** متادیتای داینامیک برای هر مقاله — عنوان/توضیحات/OG/canonical از خود بلاگ ساخته می‌شود */
+/** Dynamic metadata for each article — title/description/OG/canonical are built from the blog itself */
 export async function generateMetadata({
   params,
 }: {

@@ -8,7 +8,7 @@ export default function Loading() {
           {[...Array(4)].map((_, idx) => (
             <div
               key={idx}
-              className="wishlist-item bg-white overflow-hidden shadow-sm border border-[#A9CBF5]/30"
+              className="wishlist-item bg-card overflow-hidden shadow-sm border border-border"
             >
               <div className="flex p-3 sm:p-4 md:p-6 items-center">
                 <Skeleton className="mr-3 sm:mr-4 md:mr-6 w-[60px] h-[60px] sm:w-[80px] sm:h-[80px] md:w-[100px] md:h-[100px] lg:w-[120px] lg:h-[120px]" />

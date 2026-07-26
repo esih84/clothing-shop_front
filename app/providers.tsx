@@ -6,15 +6,17 @@ import { Provider } from "react-redux";
 import { persistor, store } from "@/shared/store/store";
 import { PersistGate } from "redux-persist/integration/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/shared/ui/sonner";
+import { ThemeProvider } from "@/shared/components/theme-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  // یک‌بار ساخته می‌شود؛ پیش‌فرض‌ها برای کش بهتر و جابجایی سریع‌تر
+  // Created once; defaults for better caching and faster navigation
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // ۱ دقیقه داده‌ها تازه فرض می‌شوند
+            staleTime: 60 * 1000, // Data is considered fresh for 1 minute
             gcTime: 5 * 60 * 1000,
             refetchOnWindowFocus: false,
             retry: 1,
@@ -24,14 +26,22 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        {/* PersistGate با loading={null} هیدراسیون کلاینت را مدیریت می‌کند؛
-            درخت دیگر روی isMounted گِیت نمی‌شود تا SSR محتوای واقعی بدهد. */}
-        <PersistGate loading={null} persistor={persistor}>
-          {children}
-        </PersistGate>
-      </Provider>
-    </QueryClientProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+    >
+      <QueryClientProvider client={queryClient}>
+        <Provider store={store}>
+          {/* PersistGate with loading={null} manages client hydration;
+              the tree is no longer gated on isMounted so SSR yields real content. */}
+          <PersistGate loading={null} persistor={persistor}>
+            {children}
+            <Toaster position="top-center" richColors />
+          </PersistGate>
+        </Provider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
