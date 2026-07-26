@@ -15,13 +15,13 @@ export type CheckoutInput = {
 
 export const paymentService = {
   /**
-   * چک‌اوت یک‌مرحله‌ای: در یک درخواست سفارش را از روی سبد می‌سازد، تراکنش پرداخت
-   * را ایجاد می‌کند و آدرس درگاه زرین‌پال را برمی‌گرداند.
+   * One-step checkout: in a single request it builds the order from the cart, creates the payment
+   * transaction, and returns the Zarinpal gateway URL.
    */
   checkout: async (data: CheckoutInput) =>
     await api.post<ApiResponse<CreatePaymentResult>>("/payments", data),
 
-  /** تلاش مجدد پرداخت برای یک سفارشِ موجودِ در انتظار پرداخت. */
+  /** Retry payment for an existing order awaiting payment. */
   retry: async (data: { orderId: string }) =>
     await api.post<ApiResponse<CreatePaymentResult>>("/payments/retry", data),
 };

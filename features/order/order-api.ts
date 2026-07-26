@@ -5,13 +5,13 @@ import { Order } from "@/types/order";
 
 export type OrderListResponse = ApiListResponse<Order, "data">;
 
-/* خواندن‌های سمت سرور سفارش (شخصی → بدون کش، با ارسال کوکی) */
+/* Server-side order reads (personal → no cache, sending the cookie) */
 export async function getMyOrders(page = 1) {
   try {
     const res = await serverFetch<OrderListResponse>(`/orders?page=${page}`, {
       auth: true,
-      revalidate: 300, // کش ۵ دقیقه‌ای (per-user via cookie in cache key)
-      tags: ["orders"], // با ثبت سفارش جدید باطل می‌شود (revalidateOrders)
+      revalidate: 300, // 5-minute cache (per-user via cookie in cache key)
+      tags: ["orders"], // Invalidated when a new order is placed (revalidateOrders)
     });
     return { data: res.data, total: res.total, error: null };
   } catch (error) {
@@ -29,7 +29,7 @@ export async function getOrderDetails(id: string) {
 }
 
 export const orderService = {
-  // ساخت سفارش از مسیر چک‌اوت پرداخت انجام می‌شود (features/payment)؛ اینجا فقط خواندن.
+  // Order creation happens via the checkout payment flow (features/payment); this file is read-only.
   getMyOrders: async (page = 1) => {
     const res = await api.get<ApiResponse<OrderListResponse>>(
       `/orders?page=${page}`,

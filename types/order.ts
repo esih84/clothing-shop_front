@@ -1,8 +1,8 @@
 import type { User } from "./user";
 
 export type OrderStatus =
-  | "pending"
-  | "confirmed"
+  | "awaiting_payment"
+  | "paid"
   | "processing"
   | "shipped"
   | "delivered"
@@ -18,9 +18,11 @@ export type OrderItem = {
 
   quantity: number;
   unitPrice: number;
+  /** Unit base price at order placement; if greater than unitPrice it had a discount. */
+  originalUnitPrice?: number;
   totalPrice: number;
 
-  /** تصویر شاخص محصول؛ بک‌اند هنگام خواندن جزئیات سفارش پُر می‌کند. */
+  /** Product's featured image; filled by the backend when reading order details. */
   productImage?: string;
 };
 

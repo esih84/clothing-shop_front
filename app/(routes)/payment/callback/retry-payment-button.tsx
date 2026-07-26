@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRetryPayment } from "@/features/payment/mutations";
 
-/** دکمه‌ی تلاش مجدد پرداخت برای سفارشی که پرداختش ناموفق بوده است. */
+/** Retry-payment button for an order whose payment failed. */
 export default function RetryPaymentButton({ orderId }: { orderId: string }) {
   const retryPayment = useRetryPayment();
   const [error, setError] = useState<string | null>(null);

@@ -6,8 +6,8 @@ import { CURRENT_USER_KEY, queryKeys } from "@/features/query-keys";
 import { revalidateOrders } from "@/features/order/order-actions";
 
 /**
- * چک‌اوت: در یک درخواست سفارش ساخته و تراکنش پرداخت آغاز می‌شود؛
- * خروجی شامل gatewayUrl برای انتقال به درگاه است.
+ * Checkout: in a single request the order is created and the payment transaction is started;
+ * the output includes gatewayUrl for redirecting to the gateway.
  */
 export function useCheckout() {
   const qc = useQueryClient();
@@ -17,17 +17,17 @@ export function useCheckout() {
       return res.data.data;
     },
     onSuccess: () => {
-      // نام کاربر و پت‌ها ممکن است هنگام ثبت سفارش به‌روز شده باشند.
-      // سبد عمداً باطل نمی‌شود؛ تا موفقیت پرداخت دست‌نخورده می‌ماند (جریان ACID).
+      // The user's name and pets may have been updated when the order was placed.
+      // The cart is intentionally not invalidated; it stays untouched until payment succeeds (ACID flow).
       qc.invalidateQueries({ queryKey: CURRENT_USER_KEY });
       qc.invalidateQueries({ queryKey: queryKeys.pets });
-      // باطل‌سازی کش لیست سفارش‌ها تا سفارش جدید بلافاصله دیده شود.
+      // Invalidate the orders list cache so the new order is seen immediately.
       revalidateOrders();
     },
   });
 }
 
-/** تلاش مجدد پرداخت برای یک سفارش موجود؛ خروجی شامل gatewayUrl است. */
+/** Retry payment for an existing order; the output includes gatewayUrl. */
 export function useRetryPayment() {
   return useMutation({
     mutationFn: async (data: { orderId: string }) => {

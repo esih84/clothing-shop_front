@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { CheckCircle2, XCircle } from "lucide-react";
 import RetryPaymentButton from "./retry-payment-button";
+import PaymentSuccessEffect from "./payment-success-effect";
 
 export const dynamic = "force-dynamic";
 
 /**
- * صفحه‌ی نتیجه‌ی پرداخت. زرین‌پال ابتدا به بک‌اند (`/api/v1/payments/verify`)
- * برمی‌گردد؛ بک‌اند پس از تأیید کاربر را به اینجا هدایت می‌کند با پارامترهای
+ * Payment result page. Zarinpal first returns to the backend (`/api/v1/payments/verify`);
+ * after verification the backend redirects the user here with the result parameters.
  * status / orderId / refId.
  */
 export default async function PaymentCallbackPage({
@@ -26,18 +27,19 @@ export default async function PaymentCallbackPage({
       className="max-w-md mx-auto p-4 py-10"
       style={{ direction: "rtl" }}
     >
-      <div className="bg-white rounded-2xl shadow-sm border border-[#A9CBF5]/30 p-6 text-center space-y-4">
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-6 text-center space-y-4">
         {success ? (
           <>
+            <PaymentSuccessEffect />
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
-            <h1 className="text-xl font-bold text-gray-800">
+            <h1 className="text-xl font-bold text-foreground">
               پرداخت با موفقیت انجام شد
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               سفارش شما ثبت و تأیید شد. از خرید شما سپاسگزاریم.
             </p>
             {refId && (
-              <p className="text-sm text-gray-700" dir="ltr">
+              <p className="text-sm text-foreground" dir="ltr">
                 کد پیگیری پرداخت: <span className="font-bold">{refId}</span>
               </p>
             )}
@@ -52,7 +54,7 @@ export default async function PaymentCallbackPage({
               )}
               <Link
                 href="/"
-                className="block w-full text-[#1473E6] rounded-2xl py-2 font-medium hover:underline"
+                className="block w-full text-secondary rounded-2xl py-2 font-medium hover:underline"
               >
                 بازگشت به فروشگاه
               </Link>
@@ -61,10 +63,10 @@ export default async function PaymentCallbackPage({
         ) : (
           <>
             <XCircle className="w-16 h-16 text-red-500 mx-auto" />
-            <h1 className="text-xl font-bold text-gray-800">
+            <h1 className="text-xl font-bold text-foreground">
               پرداخت ناموفق بود
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               تراکنش شما تأیید نشد یا لغو شد. مبلغی از حساب شما کسر نشده است؛
               می‌توانید دوباره تلاش کنید.
             </p>
@@ -73,14 +75,14 @@ export default async function PaymentCallbackPage({
               {orderId && (
                 <Link
                   href={`/order/${orderId}`}
-                  className="block w-full text-[#1473E6] rounded-2xl py-2 font-medium hover:underline"
+                  className="block w-full text-secondary rounded-2xl py-2 font-medium hover:underline"
                 >
                   مشاهده‌ی سفارش
                 </Link>
               )}
               <Link
                 href="/cart"
-                className="block w-full text-gray-500 rounded-2xl py-2 font-medium hover:underline"
+                className="block w-full text-muted-foreground rounded-2xl py-2 font-medium hover:underline"
               >
                 بازگشت به سبد خرید
               </Link>
