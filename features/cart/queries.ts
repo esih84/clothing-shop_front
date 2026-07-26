@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { cartService } from "./cart-api";
 import { useAppDispatch, useAppSelector } from "@/shared/store/hooks";
 import {
@@ -12,18 +13,24 @@ import {
 } from "@/shared/store/slices/cartSlice";
 import { useIsLoggedIn } from "@/features/auth/queries";
 import { CART_KEY } from "@/features/query-keys";
+import { getApiErrorMessage } from "@/shared/api/get-error-message";
 import type { Cart } from "@/types/cart";
 
-/** خط سبد به‌صورت نرمال‌شده برای نمایش (هم برای مهمان و هم سرور). */
+/** Normalized cart line for display (for both guest and server). */
 export interface CartLine {
-  /** کلید آیتم = productId */
+  /** Item key = productId */
   productId: string;
-  /** فقط در سبد سرور؛ برای update/remove لازم است */
+  /** Only in the server cart; required for update/remove */
   serverItemId?: string;
   name: string;
+  /** Payable price (with discount if any). */
   price: number;
+  /** Base price; if greater than price it has a discount and should be shown struck through. */
+  originalPrice: number;
   quantity: number;
   imageUrl: string;
+  /** Stock quantity; for capping the max in the UI. */
+  stock?: number;
 }
 
 function useServerCart(enabled: boolean) {
@@ -43,8 +50,12 @@ function useServerCart(enabled: boolean) {
 }
 
 /**
- * سبد یکپارچه: کاربر مهمان → Redux، کاربر واردشده → سبد سرور.
- * یک API مشترک (lines/add/updateQty/remove) برای هر دو حالت می‌دهد.
+ * Unified cart: guest user → Redux, logged-in user → server cart.
+ * Provides one shared API (lines/add/updateQty/remove) for both cases.
+ *
+ * The server path is pessimistic: it waits for the server response, then updates
+ * via refetch. During the request, the corresponding line's control is disabled
+ * (isLinePending/isAdding) and errors are shown with a toast.
  */
 export function useCart() {
   const isLoggedIn = useIsLoggedIn();
@@ -53,7 +64,34 @@ export function useCart() {
   const qc = useQueryClient();
   const { data: serverCart } = useServerCart(isLoggedIn);
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: CART_KEY });
+  const onError = (err: unknown) => {
+    toast.error(getApiErrorMessage(err));
+  };
+  // The mutation response already carries the full updated cart, so we write it straight into
+  // the cache instead of triggering a second GET /cart round-trip.
+  const setCart = (res: { data: { data: Cart } }) => {
+    qc.setQueryData(CART_KEY, res.data.data);
+  };
+
+  const addMutation = useMutation({
+    mutationFn: (item: GuestCartItem) =>
+      cartService.addItem(item.id, item.quantity),
+    onSuccess: setCart,
+    onError,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ line, quantity }: { line: CartLine; quantity: number }) =>
+      cartService.updateItem(line.serverItemId!, quantity),
+    onSuccess: setCart,
+    onError,
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (line: CartLine) => cartService.removeItem(line.serverItemId!),
+    onSuccess: setCart,
+    onError,
+  });
 
   const lines: CartLine[] = useMemo(() => {
     if (isLoggedIn) {
@@ -68,8 +106,10 @@ export function useCart() {
           serverItemId: it.id,
           name: product?.name ?? "محصول",
           price: product?.discountedPrice ?? product?.basePrice ?? 0,
+          originalPrice: product?.basePrice ?? 0,
           quantity: it.quantity,
           imageUrl: image,
+          stock: product?.stock,
         };
       });
     }
@@ -77,15 +117,17 @@ export function useCart() {
       productId: it.id,
       name: it.name,
       price: it.price,
+      originalPrice: it.originalPrice ?? it.price,
       quantity: it.quantity,
       imageUrl: it.imageUrl,
+      stock: it.stock,
     }));
   }, [isLoggedIn, serverCart, guestItems]);
 
   const add = async (item: GuestCartItem) => {
     if (isLoggedIn) {
-      await cartService.addItem(item.id, item.quantity);
-      invalidate();
+      // mutateAsync so callers can await success (e.g. to show a confirmation)
+      await addMutation.mutateAsync(item);
     } else {
       dispatch(addToRedux(item));
     }
@@ -93,10 +135,7 @@ export function useCart() {
 
   const remove = async (line: CartLine) => {
     if (isLoggedIn) {
-      if (line.serverItemId) {
-        await cartService.removeItem(line.serverItemId);
-        invalidate();
-      }
+      if (line.serverItemId) removeMutation.mutate(line);
     } else {
       dispatch(removeFromRedux({ id: line.productId }));
     }
@@ -105,17 +144,36 @@ export function useCart() {
   const updateQty = async (line: CartLine, quantity: number) => {
     if (quantity < 1) return remove(line);
     if (isLoggedIn) {
-      if (line.serverItemId) {
-        await cartService.updateItem(line.serverItemId, quantity);
-        invalidate();
-      }
+      if (line.serverItemId) updateMutation.mutate({ line, quantity });
     } else {
       dispatch(updateRedux({ id: line.productId, quantity }));
     }
   };
 
+  // Id of the product currently being updated/removed on the server (to disable that line's control).
+  const pendingProductId =
+    (updateMutation.isPending
+      ? updateMutation.variables?.line.productId
+      : undefined) ??
+    (removeMutation.isPending ? removeMutation.variables?.productId : undefined);
+
+  /** true if a server operation for this line is in progress (pessimistic → the control must be disabled). */
+  const isLinePending = (line: CartLine) =>
+    isLoggedIn && line.productId === pendingProductId;
+
   const subtotal = lines.reduce((acc, l) => acc + l.price * l.quantity, 0);
   const count = lines.reduce((acc, l) => acc + l.quantity, 0);
 
-  return { isLoggedIn, lines, add, updateQty, remove, subtotal, count };
+  return {
+    isLoggedIn,
+    lines,
+    add,
+    updateQty,
+    remove,
+    subtotal,
+    count,
+    /** true if adding to the cart is in progress (for the button state). */
+    isAdding: addMutation.isPending,
+    isLinePending,
+  };
 }

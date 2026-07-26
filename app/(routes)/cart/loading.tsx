@@ -8,7 +8,7 @@ export default function Loading() {
           {[...Array(2)].map((_, idx) => (
             <div
               key={idx}
-              className="cart-item bg-white p-4 md:p-6 flex items-center gap-4 shadow-sm border border-[#A9CBF5]/30"
+              className="cart-item bg-card p-4 md:p-6 flex items-center gap-4 shadow-sm border border-border"
             >
               <Skeleton className="cart-item-image w-24 h-24 md:w-32 md:h-32 lg:w-36 lg:h-36" />
               <div className="flex-1">
@@ -22,7 +22,7 @@ export default function Loading() {
                 </div>
                 <div className="flex justify-between items-center mt-3">
                   <Skeleton className="w-20 h-6" />
-                  <div className="flex items-center border border-[#A9CBF5]/50 overflow-hidden">
+                  <div className="flex items-center border border-border overflow-hidden">
                     <Skeleton className="w-10 h-10" />
                     <Skeleton className="w-10 h-10" />
                     <Skeleton className="w-10 h-10" />
@@ -32,7 +32,7 @@ export default function Loading() {
             </div>
           ))}
         </div>
-        <div className="bg-white p-6 shadow-sm border border-[#A9CBF5]/30 h-fit">
+        <div className="bg-card p-6 shadow-sm border border-border h-fit">
           <Skeleton className="w-32 h-8 mb-4" />
           <div className="space-y-3 mb-6">
             <div className="flex justify-between">

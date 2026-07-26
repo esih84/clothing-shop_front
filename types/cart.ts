@@ -7,7 +7,7 @@ export type CartItem = {
   cartId: string;
   productId: string;
 
-  // در entity eager: true هست و بک‌اند product.images را هم لود می‌کند
+  // In the entity it is eager: true and the backend also loads product.images
   product?: Product;
 
   quantity: number;

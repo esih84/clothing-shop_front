@@ -18,7 +18,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  // محصولات مرتبط بر اساس دسته‌ی فعلی + والد + فرزندان.
+  // Related products based on the current category + parent + children.
   const relatedSlugs = collectRelatedCategorySlugs(product, categoryTree);
   const { data: relatedResult } = await getProducts(
     relatedSlugs.length

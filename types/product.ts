@@ -44,15 +44,15 @@ export type Product = {
   sku?: string;
   isActive: boolean;
 
-  /** ترتیب نمایش دستی (عدد بزرگ‌تر = بالاتر). */
+  /** Manual display order (larger number = higher). */
   displayOrder?: number;
 
   categoryId?: string;
   category?: Category | null;
 
   /**
-   * دسته‌های محصول (چند‌مقداری، رابطه‌ی M2M در بک‌اند). معمولاً کل مسیر
-   * دسته‌ی محصول (والد + برگ) را دربر می‌گیرد. برای پیشنهاد محصولات مرتبط.
+   * Product categories (multi-valued, M2M relation in the backend). Usually covers the whole
+   * category path (parent + leaf). Used for related-product suggestions.
    */
   categories?: Category[] | null;
 
@@ -65,11 +65,11 @@ export type Product = {
   reviews?: Review[];
 
   /**
-   * قیمت مؤثر پس از اعمال تخفیف فعال — توسط بک‌اند محاسبه می‌شود.
-   * اگر تخفیف فعالی نباشد برابر basePrice است.
+   * Effective price after applying the active discount — computed by the backend.
+   * Equals basePrice if there is no active discount.
    */
   discountedPrice?: number;
-  /** تخفیف فعالِ همین‌الان (توسط بک‌اند تعیین می‌شود) یا null. */
+  /** The currently active discount (determined by the backend) or null. */
   activeDiscount?: Discount | null;
 
   createdAt: string;

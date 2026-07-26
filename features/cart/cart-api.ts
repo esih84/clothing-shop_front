@@ -10,12 +10,17 @@ export const cartService = {
     }),
 
   addItem: (productId: string, quantity: number = 1) =>
-    api.post("/cart/items", { productId, quantity }),
+    api.post<ApiResponse<Cart>>("/cart/items", { productId, quantity }),
+
+  /** Fold the guest cart into the server cart in a single request; returns the merged cart. */
+  merge: (items: { productId: string; quantity: number }[]) =>
+    api.post<ApiResponse<Cart>>("/cart/merge", { items }),
 
   updateItem: (itemId: string, quantity: number) =>
-    api.put(`/cart/items/${itemId}`, { quantity }),
+    api.put<ApiResponse<Cart>>(`/cart/items/${itemId}`, { quantity }),
 
-  removeItem: (itemId: string) => api.delete(`/cart/items/${itemId}`),
+  removeItem: (itemId: string) =>
+    api.delete<ApiResponse<Cart>>(`/cart/items/${itemId}`),
 
   clear: () => api.delete("/cart"),
 };

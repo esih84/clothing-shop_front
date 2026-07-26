@@ -5,13 +5,11 @@ import {
   Star,
   Shield,
   Headphones,
-  Trash2,
-  Minus,
-  Plus,
   ShoppingBag,
   RefreshCw,
   ChevronDown,
 } from "lucide-react";
+import { QuantityStepper } from "@/shared/components/cart/quantity-stepper";
 import {
   AppSlider,
   type AppSliderHandle,
@@ -21,16 +19,16 @@ import { toggleWishlist } from "@/shared/store/slices/wishlistSlice";
 import { useCart } from "@/features/cart/queries";
 import { formatToman } from "@/shared/lib/utils";
 import { getDiscountInfo } from "@/shared/lib/discount";
-import { useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/shared/components/product/product-card";
+import { AddedToCartDialog } from "@/shared/components/cart/added-to-cart-dialog";
 import type { Product } from "@/types/product";
 
 interface ProductDetailsProps {
   product: Product;
   relatedProducts?: Product[];
-  /** لینک «مشاهده محصولات بیشتر» — صفحه‌ی /products با فیلتر دسته‌های همین صفحه. */
+  /** "View more products" link — the /products page filtered by this page's categories. */
   moreHref?: string;
 }
 
@@ -47,19 +45,29 @@ export function ProductDetails({
     "details",
   );
   const [descExpanded, setDescExpanded] = useState(false);
+  const [showAddedDialog, setShowAddedDialog] = useState(false);
+  const [attributesExpanded, setAttributesExpanded] = useState(false);
 
-  // توضیحات محصول؛ اگر طولانی باشد در موبایل جمع می‌شود و با دکمه باز می‌شود.
+  // Product description; if long, it collapses on mobile and expands with a button.
   const description = product.description?.trim() || "توضیحاتی ثبت نشده است.";
   const isLongDescription = (product.description?.trim().length ?? 0) > 160;
 
+  // Attribute cards; if there are many, they collapse on mobile and expand with a button.
+  const isManyAttributes = (product.attributes?.length ?? 0) > 5;
   const dispatch = useAppDispatch();
-  const [isPending, startTransition] = useTransition();
 
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
-  const { lines: cartLines, add, updateQty, remove } = useCart();
+  const {
+    lines: cartLines,
+    add,
+    updateQty,
+    remove,
+    isAdding,
+    isLinePending,
+  } = useCart();
   const isInWishlist = wishlistItems.some((item) => item.id === product.id);
 
-  // تخفیف فعال و قیمت مؤثر از بک‌اند می‌آیند (بدون منطق تاریخ/فعال‌بودن در فرانت)
+  // The active discount and effective price come from the backend (no date/active logic on the frontend)
   const {
     hasDiscount,
     finalPrice: displayPrice,
@@ -79,7 +87,7 @@ export function ProductDetails({
     return a.order - b.order;
   });
 
-  // کنترل اسلایدر از بیرون (کلیک روی thumbnail)
+  // Control the slider from outside (clicking a thumbnail)
   const sliderRef = useRef<AppSliderHandle>(null);
   const goToImage = (index: number) => sliderRef.current?.slideTo(index);
 
@@ -96,17 +104,22 @@ export function ProductDetails({
     );
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!inStock) return;
-    startTransition(() => {
-      void add({
+    try {
+      await add({
         id: product.id,
         name: product.name,
         price: displayPrice,
+        originalPrice: activePrice,
         quantity,
         imageUrl: sortedImages[0]?.url ?? "",
+        stock: product.stock,
       });
-    });
+      setShowAddedDialog(true);
+    } catch {
+      // Error toast is already shown by the cart hook.
+    }
   };
 
   const incrementQuantity = () => {
@@ -137,13 +150,13 @@ export function ProductDetails({
       : null;
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-card">
+      <div className="max-w-6xl mx-auto px-4 pt-6 pb-28 lg:pb-6">
         {/* ── Main two-column section ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           {/* LEFT: Image gallery */}
           <div>
-            <div className="relative aspect-square overflow-hidden bg-[#FDE68A]/20 border border-[#A9CBF5]/30 mb-3 rounded-2xl select-none">
+            <div className="relative aspect-square overflow-hidden bg-primary/15 border border-border mb-3 rounded-2xl select-none">
               {sortedImages.length > 0 ? (
                 <AppSlider
                   ref={sliderRef}
@@ -168,12 +181,12 @@ export function ProductDetails({
                   )}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                   بدون تصویر
                 </div>
               )}
               {activeDiscount && (
-                <div className="absolute top-0 left-0 z-10 bg-[#1473E6] text-white text-xs font-bold px-2.5 py-1.5 leading-none rounded-tl-2xl rounded-br-2xl">
+                <div className="absolute top-0 left-0 z-10 bg-secondary text-white text-xs font-bold px-2.5 py-1.5 leading-none rounded-tl-2xl rounded-br-2xl">
                   {activeDiscount.type === "percentage"
                     ? `${activeDiscount.value}٪ تخفیف`
                     : `${formatToman(activeDiscount.value)} تخفیف`}
@@ -189,8 +202,8 @@ export function ProductDetails({
                     onClick={() => goToImage(idx)}
                     className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 overflow-hidden border-2 rounded-xl transition-colors ${
                       selectedImageIndex === idx
-                        ? "border-[#1473E6]"
-                        : "border-[#A9CBF5]/40 hover:border-[#A9CBF5]"
+                        ? "border-secondary"
+                        : "border-border hover:border-border"
                     }`}
                   >
                     <Image
@@ -212,20 +225,23 @@ export function ProductDetails({
             {(product.category || product.brand) && (
               <div className="flex flex-wrap items-center gap-2">
                 {product.category && (
-                  <span className="border border-[#A9CBF5]/60 px-2.5 py-0.5 text-xs text-[#1473E6] font-medium rounded-full">
+                  <span className="border border-border/60 px-2.5 py-0.5 text-xs text-secondary font-medium rounded-full">
                     {product.category.name}
                   </span>
                 )}
                 {product.brand && (
-                  <span className="border border-[#A9CBF5]/60 bg-[#FDE68A]/30 px-2.5 py-0.5 text-xs text-[#1473E6] font-medium rounded-full">
+                  <Link
+                    href={`/products?brandSlugs=${encodeURIComponent(product.brand.slug)}`}
+                    className="border border-border/60 bg-primary/15 px-2.5 py-0.5 text-xs text-secondary font-medium rounded-full transition-colors hover:bg-primary/30 hover:border-secondary/40"
+                  >
                     برند: {product.brand.name}
-                  </span>
+                  </Link>
                 )}
               </div>
             )}
 
             {/* Title */}
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900 leading-snug">
+            <h1 className="text-xl md:text-3xl font-bold text-foreground leading-snug">
               {product.name}
             </h1>
 
@@ -239,28 +255,28 @@ export function ProductDetails({
                       className={`w-4 h-4 ${
                         i <= Math.round(avgRating)
                           ? "fill-yellow-400 text-yellow-400"
-                          : "fill-gray-200 text-gray-200"
+                          : "fill-muted text-muted-foreground"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-foreground">
                   {avgRating.toFixed(1)}
                 </span>
-                <span className="text-gray-300">|</span>
-                <span className="text-sm text-gray-500">
+                <span className="text-muted-foreground">|</span>
+                <span className="text-sm text-muted-foreground">
                   {reviewList.length.toLocaleString()} نظر
                 </span>
               </div>
             )}
 
-            {/* Price */}
-            <div className="flex items-center gap-3 pb-4 border-b border-[#A9CBF5]/30">
-              <span className=" text-md md:text-3xl font-bold text-[#1473E6]">
+            {/* Price (hidden on mobile — shown in the sticky bottom bar instead) */}
+            <div className="hidden lg:flex items-center gap-3 pb-4 border-b border-border">
+              <span className=" text-md md:text-3xl font-bold text-secondary">
                 {formatToman(displayPrice)}
               </span>
               {hasDiscount && (
-                <span className="text-lg text-gray-400 line-through">
+                <span className="text-lg text-muted-foreground line-through">
                   {formatToman(activePrice)}
                 </span>
               )}
@@ -275,38 +291,28 @@ export function ProductDetails({
                     ` — تنها ${product.stock} عدد باقی مانده`}
                 </span>
               ) : (
-                <span className="text-gray-400 font-medium">ناموجود</span>
+                <span className="text-muted-foreground font-medium">
+                  ناموجود
+                </span>
               )}
             </div>
 
-            {/* Quantity stepper / Add to cart */}
-            <div className="space-y-3 pt-1">
+            {/* Quantity stepper / Add to cart (hidden on mobile — shown in the sticky bottom bar instead) */}
+            <div className="hidden lg:block space-y-3 pt-1">
               {isInCart ? (
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center border border-[#A9CBF5]/50 overflow-hidden rounded-xl">
-                    <button
-                      onClick={decrementQuantity}
-                      className="px-4 py-3 bg-[#FDE68A]/30 hover:bg-[#FDE68A]/60 transition-colors"
-                    >
-                      {cartItem?.quantity === 1 ? (
-                        <Trash2 className="w-5 h-5 text-[#1473E6]" />
-                      ) : (
-                        <Minus className="w-5 h-5 text-[#1473E6]" />
-                      )}
-                    </button>
-                    <span className="px-6 py-3 text-lg font-bold bg-white">
-                      {cartItem?.quantity ?? 0}
-                    </span>
-                    <button
-                      onClick={incrementQuantity}
-                      className="px-4 py-3 bg-[#1473E6] hover:bg-[#1473E6]/90 text-white transition-colors"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </div>
+                  <QuantityStepper
+                    variant="detail"
+                    quantity={cartItem?.quantity ?? 0}
+                    max={product.stock}
+                    disabled={!!cartItem && isLinePending(cartItem)}
+                    showTrashAtMin
+                    onIncrement={incrementQuantity}
+                    onDecrement={decrementQuantity}
+                  />
                   <div className="text-start">
-                    <p className="text-xs text-gray-400">جمع کل</p>
-                    <p className="text-xl font-bold text-[#1473E6]">
+                    <p className="text-xs text-muted-foreground">جمع کل</p>
+                    <p className="text-xl font-bold text-secondary">
                       {formatToman(displayPrice * (cartItem?.quantity ?? 0))}
                     </p>
                   </div>
@@ -314,13 +320,13 @@ export function ProductDetails({
               ) : (
                 <button
                   onClick={handleAddToCart}
-                  disabled={isPending || !inStock}
-                  className="w-full bg-[#1473E6] hover:bg-[#1473E6]/90 text-white py-3 font-medium flex items-center justify-center gap-2 rounded-2xl transition-colors disabled:opacity-50"
+                  disabled={isAdding || !inStock}
+                  className="w-full bg-secondary hover:bg-secondary/90 text-white py-3 font-medium flex items-center justify-center gap-2 rounded-2xl transition-colors disabled:opacity-50"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   {!inStock
                     ? "ناموجود"
-                    : isPending
+                    : isAdding
                       ? "در حال افزودن..."
                       : "افزودن به سبد خرید"}
                 </button>
@@ -328,36 +334,36 @@ export function ProductDetails({
             </div>
 
             {/* Features strip */}
-            <div className="grid grid-cols-3 gap-2 py-4 border-t border-b border-[#A9CBF5]/30">
+            <div className="grid grid-cols-3 gap-2 py-4 border-t border-b border-border">
               <div className="flex flex-col items-center text-center gap-1.5 p-2">
-                <Headphones className="w-5 h-5 text-[#1473E6]" />
+                <Headphones className="w-5 h-5 text-secondary" />
                 <p className="text-xs font-medium">پشتیبانی ۲۴ ساعته</p>
-                <p className="text-[10px] text-gray-400">
+                <p className="text-[10px] text-muted-foreground">
                   پاسخ‌گویی در تمام ساعات شبانه‌روز
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center gap-1.5 p-2 border-x border-[#A9CBF5]/30">
-                <Shield className="w-5 h-5 text-[#1473E6]" />
+              <div className="flex flex-col items-center text-center gap-1.5 p-2 border-x border-border">
+                <Shield className="w-5 h-5 text-secondary" />
                 <p className="text-xs font-medium">پرداخت امن</p>
-                <p className="text-[10px] text-gray-400">۱۰۰٪ محافظت</p>
+                <p className="text-[10px] text-muted-foreground">۱۰۰٪ محافظت</p>
               </div>
               <div className="flex flex-col items-center text-center gap-1.5 p-2">
-                <RefreshCw className="w-5 h-5 text-[#1473E6]" />
+                <RefreshCw className="w-5 h-5 text-secondary" />
                 <p className="text-xs font-medium">مرجوعی آسان</p>
-                <p className="text-[10px] text-gray-400">۳۰ روزه</p>
+                <p className="text-[10px] text-muted-foreground">7 روزه</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* ── Info tabs ── */}
-        <div className="mb-12 border border-[#A9CBF5]/30 rounded-2xl overflow-hidden">
-          <div className="flex border-b border-[#A9CBF5]/30 overflow-x-auto">
+        <div className="mb-12 border border-border rounded-2xl overflow-hidden">
+          <div className="flex border-b border-border overflow-x-auto">
             {(
               [
                 { key: "details", label: "جزئیات محصول" },
-                // { key: "care", label: "نکات نگهداری و مصرف" },
-                // { key: "specs", label: "مشخصات" },
+                // { key: "care", label: "Storage & usage tips" },
+                // { key: "specs", label: "Specifications" },
               ] as const
             ).map((tab) => (
               <button
@@ -365,8 +371,8 @@ export function ProductDetails({
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex-shrink-0 px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
                   activeTab === tab.key
-                    ? "border-[#1473E6] text-[#1473E6] bg-[#FDE68A]/10"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-secondary text-secondary bg-primary/10"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {tab.label}
@@ -379,7 +385,7 @@ export function ProductDetails({
               <div className="space-y-4">
                 <div className="relative">
                   <p
-                    className={`text-gray-600 leading-relaxed text-sm md:text-base whitespace-pre-line ${
+                    className={`text-muted-foreground leading-relaxed text-sm md:text-base whitespace-pre-line ${
                       isLongDescription && !descExpanded
                         ? "line-clamp-5 md:line-clamp-none"
                         : ""
@@ -387,9 +393,9 @@ export function ProductDetails({
                   >
                     {description}
                   </p>
-                  {/* محو تدریجی پایین متن هنگام جمع‌بودن (فقط موبایل) */}
+                  {/* Gradual fade at the bottom of the text when collapsed (mobile only) */}
                   {isLongDescription && !descExpanded && (
-                    <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent" />
+                    <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background to-transparent" />
                   )}
                 </div>
 
@@ -397,7 +403,7 @@ export function ProductDetails({
                   <button
                     type="button"
                     onClick={() => setDescExpanded((v) => !v)}
-                    className="md:hidden w-full flex items-center justify-center gap-1.5 rounded-xl border border-[#A9CBF5]/40 bg-[#FDE68A]/10 py-2.5 text-sm font-medium text-[#1473E6] active:scale-[0.99] transition-transform"
+                    className="md:hidden w-full flex items-center justify-center gap-1.5 rounded-xl border border-border bg-primary/10 py-2.5 text-sm font-medium text-secondary active:scale-[0.99] transition-transform"
                     aria-expanded={descExpanded}
                   >
                     {descExpanded ? "بستن جزئیات" : "مشاهده‌ی جزئیات بیشتر"}
@@ -409,53 +415,85 @@ export function ProductDetails({
                   </button>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                  {product.category && (
-                    <div className="bg-[#FDE68A]/15 border border-[#A9CBF5]/30 p-3 rounded-xl">
-                      <p className="text-xs text-gray-400 mb-0.5">دسته‌بندی</p>
-                      <p className="text-sm font-medium text-gray-800">
-                        {product.category.name}
-                      </p>
-                    </div>
-                  )}
+                <div className="relative">
+                  <div
+                    className={`grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 ${
+                      isManyAttributes && !attributesExpanded
+                        ? "max-h-64 overflow-hidden md:max-h-none md:overflow-visible"
+                        : ""
+                    }`}
+                  >
+                    {product.category && (
+                      <div className="bg-primary/15 border border-border p-3 rounded-xl">
+                        <p className="text-xs text-muted-foreground mb-0.5">
+                          دسته‌بندی
+                        </p>
+                        <p className="text-sm font-medium text-foreground">
+                          {product.category.name}
+                        </p>
+                      </div>
+                    )}
 
-                  {product.attributes?.map((attr) => (
-                    <div
-                      key={attr.id}
-                      className="bg-[#FDE68A]/15 border border-[#A9CBF5]/30 p-3 rounded-xl"
-                    >
-                      <p className="text-xs text-gray-400 mb-0.5">{attr.key}</p>
-                      <p className="text-sm font-medium text-gray-800">
-                        {attr.value}
-                      </p>
-                    </div>
-                  ))}
+                    {product.attributes?.map((attr) => (
+                      <div
+                        key={attr.id}
+                        className="bg-primary/15 border border-border p-3 rounded-xl"
+                      >
+                        <p className="text-xs text-muted-foreground mb-0.5">
+                          {attr.key}
+                        </p>
+                        <p className="text-sm font-medium text-foreground">
+                          {attr.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Gradual fade at the bottom of the grid when collapsed (mobile only) */}
+                  {isManyAttributes && !attributesExpanded && (
+                    <div className="md:hidden pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-background to-transparent" />
+                  )}
                 </div>
+
+                {isManyAttributes && (
+                  <button
+                    type="button"
+                    onClick={() => setAttributesExpanded((v) => !v)}
+                    className="md:hidden w-full flex items-center justify-center gap-1.5 rounded-xl border border-border bg-primary/10 py-2.5 text-sm font-medium text-secondary active:scale-[0.99] transition-transform"
+                    aria-expanded={attributesExpanded}
+                  >
+                    {attributesExpanded ? "بستن مشخصات" : "مشاهده‌ی مشخصات بیشتر"}
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        attributesExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                )}
               </div>
             )}
 
-            {/* تب «نکات نگهداری و مصرف» فعلاً کامنت شده است.
+            {/* The "Storage & usage tips" tab is currently commented out.
             {activeTab === "care" && (
-              <ul className="space-y-2 text-sm text-gray-600">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <span className="text-[#1473E6] mt-0.5">•</span>
-                  در جای خشک و خنک و دور از نور مستقیم آفتاب نگهداری شود
+                  <span className="text-secondary mt-0.5">•</span>
+                  Store in a cool, dry place away from direct sunlight
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#1473E6] mt-0.5">•</span>
-                  پس از باز کردن بسته، درب آن را محکم ببندید تا تازگی حفظ شود
+                  <span className="text-secondary mt-0.5">•</span>
+                  After opening the package, close it tightly to keep it fresh
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#1473E6] mt-0.5">•</span>
-                  همیشه آب تمیز و تازه در کنار غذا در دسترس حیوان قرار دهید
+                  <span className="text-secondary mt-0.5">•</span>
+                  Always keep clean, fresh water available next to the food
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#1473E6] mt-0.5">•</span>
-                  مقدار مصرف را متناسب با وزن و سن حیوان تنظیم کنید
+                  <span className="text-secondary mt-0.5">•</span>
+                  Adjust the amount according to the pet's weight and age
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-[#1473E6] mt-0.5">•</span>
-                  پیش از مصرف، تاریخ انقضای درج‌شده روی بسته را بررسی کنید
+                  <span className="text-secondary mt-0.5">•</span>
+                  Before use, check the expiry date printed on the package
                 </li>
               </ul>
             )}
@@ -464,17 +502,17 @@ export function ProductDetails({
             {/* {activeTab === "specs" && (
               <div className="space-y-3 text-sm">
                 {product.sku && (
-                  <div className="flex justify-between py-2 border-b border-[#A9CBF5]/20">
-                    <span className="text-gray-500">کد محصول</span>
-                    <span className="font-medium text-gray-800">
+                  <div className="flex justify-between py-2 border-b border-border/20">
+                    <span className="text-muted-foreground">Product code</span>
+                    <span className="font-medium text-foreground">
                       {product.sku}
                     </span>
                   </div>
                 )}
                 {product.category && (
-                  <div className="flex justify-between py-2 border-b border-[#A9CBF5]/20">
-                    <span className="text-gray-500">دسته‌بندی</span>
-                    <span className="font-medium text-gray-800">
+                  <div className="flex justify-between py-2 border-b border-border/20">
+                    <span className="text-muted-foreground">Category</span>
+                    <span className="font-medium text-foreground">
                       {product.category.name}
                     </span>
                   </div>
@@ -482,18 +520,18 @@ export function ProductDetails({
                 {product.attributes?.map((attr) => (
                   <div
                     key={attr.id}
-                    className="flex justify-between py-2 border-b border-[#A9CBF5]/20"
+                    className="flex justify-between py-2 border-b border-border/20"
                   >
-                    <span className="text-gray-500">{attr.key}</span>
-                    <span className="font-medium text-gray-800">
+                    <span className="text-muted-foreground">{attr.key}</span>
+                    <span className="font-medium text-foreground">
                       {attr.value}
                     </span>
                   </div>
                 ))}
                 <div className="flex justify-between py-2">
-                  <span className="text-gray-500">موجودی انبار</span>
-                  <span className="font-medium text-gray-800">
-                    {product.stock.toLocaleString("fa-IR")} عدد
+                  <span className="text-muted-foreground">Stock</span>
+                  <span className="font-medium text-foreground">
+                    {product.stock.toLocaleString("fa-IR")} pcs
                   </span>
                 </div>
               </div>
@@ -504,7 +542,7 @@ export function ProductDetails({
         {/* ── Related products ── */}
         {relatedProducts.length > 0 && (
           <div className="pb-8">
-            <h2 className="text-xl font-bold mb-6 text-gray-900">
+            <h2 className="text-xl font-bold mb-6 text-foreground">
               شاید دوست داشته باشید
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -549,6 +587,67 @@ export function ProductDetails({
           </div>
         )}
       </div>
+
+      {/* ── Mobile sticky add-to-cart bar (price right, add-to-cart left) ── */}
+      <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-border bg-card px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+        {/* Add to cart / stepper (left in RTL) */}
+        <div className="flex flex-1 justify-start">
+          {isInCart ? (
+            <QuantityStepper
+              variant="detail"
+              quantity={cartItem?.quantity ?? 0}
+              max={product.stock}
+              disabled={!!cartItem && isLinePending(cartItem)}
+              showTrashAtMin
+              onIncrement={incrementQuantity}
+              onDecrement={decrementQuantity}
+            />
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={isAdding || !inStock}
+              className="flex max-w-[240px] flex-1 items-center justify-center gap-2 rounded-2xl bg-secondary py-3 font-medium text-white transition-colors hover:bg-secondary/90 disabled:opacity-50"
+            >
+              <ShoppingBag className="h-4 w-4" />
+              {!inStock
+                ? "ناموجود"
+                : isAdding
+                  ? "در حال افزودن..."
+                  : "افزودن به سبد خرید"}
+            </button>
+          )}
+        </div>
+        {/* Price (right in RTL) */}
+        <div className="flex shrink-0 flex-col gap-0.5">
+          {isInCart ? (
+            <>
+              <span className="text-[11px] leading-none text-muted-foreground">
+                جمع کل
+              </span>
+              <span className="whitespace-nowrap text-lg font-bold text-secondary">
+                {formatToman(displayPrice * (cartItem?.quantity ?? 0))}
+              </span>
+            </>
+          ) : (
+            <>
+              {hasDiscount && (
+                <span className="text-[11px] leading-none text-muted-foreground line-through">
+                  {formatToman(activePrice)}
+                </span>
+              )}
+              <span className="whitespace-nowrap text-lg font-bold text-secondary">
+                {formatToman(displayPrice)}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ── "Added to cart" confirmation (above sticky bar on mobile, bottom-left on desktop) ── */}
+      <AddedToCartDialog
+        open={showAddedDialog}
+        onOpenChange={setShowAddedDialog}
+      />
     </div>
   );
 }
