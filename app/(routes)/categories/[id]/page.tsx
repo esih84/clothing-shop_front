@@ -1,8 +1,30 @@
+import type { Metadata } from "next";
 import { getCategoryBySlug } from "@/features/category/category-api";
 import { getProducts } from "@/features/product/product-api";
 import { ProductCard } from "@/shared/components/product/product-card";
 import { getDiscountInfo } from "@/shared/lib/discount";
+import { categoryUrl } from "@/shared/lib/urls";
 import Link from "next/link";
+
+/**
+ * Legacy category route. The canonical landing page for a category is
+ * `/products?categorySlug=<slug>` (it has the filters, sorting and infinite scroll), so this page
+ * is kept working for old inbound links but is marked noindex and canonicalises there.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id: slug } = await params;
+  const { data: category } = await getCategoryBySlug(slug);
+
+  return {
+    title: category?.name ?? "دسته‌بندی",
+    robots: { index: false, follow: true },
+    alternates: { canonical: categoryUrl(slug) },
+  };
+}
 
 // The route param is actually the category slug (category-selector links to /categories/[slug])
 export default async function CategoryPage({
