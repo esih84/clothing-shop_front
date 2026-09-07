@@ -11,6 +11,14 @@ export type CheckoutInput = {
   shippingAddress?: Record<string, unknown>;
   shippingMethod?: string;
   pointsToRedeem?: number;
+  /**
+   * Ask the backend to copy this shipping address into the address book. Doing it server-side
+   * keeps a second HTTP round trip off the path between the button and the payment gateway.
+   */
+  saveShippingAddress?: boolean;
+  addressLabel?: string;
+  /** The saved address used, so the postal code can be written back onto it. */
+  shippingAddressId?: string;
 };
 
 export const paymentService = {
