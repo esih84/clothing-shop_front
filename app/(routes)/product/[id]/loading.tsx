@@ -9,7 +9,7 @@ export default function ProductDetailsSkeleton() {
           {/* LEFT: Image gallery */}
           <div>
             {/* Main image */}
-            <div className="relative aspect-square overflow-hidden bg-primary/15 border border-border mb-3 rounded-2xl">
+            <div className="relative aspect-square overflow-hidden border border-border mb-3 rounded-2xl">
               <Skeleton className="absolute inset-0 h-full w-full rounded-2xl" />
               <div className="absolute top-0 left-0 z-10">
                 <Skeleton className="h-7 w-20 rounded-tl-2xl rounded-br-2xl" />
