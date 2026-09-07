@@ -29,3 +29,23 @@ export function getApiErrorMessage(
   }
   return fallback;
 }
+
+/**
+ * Some failures happen *after* the order was already created (e.g. the payment gateway did not
+ * answer). The backend puts the order id in the error body so the UI can offer a retry instead
+ * of a dead end. Returns undefined when the error carries no order.
+ */
+export function getApiErrorOrder(
+  error: unknown,
+): { orderId: string; orderNumber?: string } | undefined {
+  if (!(error instanceof AxiosError)) return undefined;
+  const data = error.response?.data as
+    | { orderId?: unknown; orderNumber?: unknown }
+    | undefined;
+  if (typeof data?.orderId !== "string" || !data.orderId) return undefined;
+  return {
+    orderId: data.orderId,
+    orderNumber:
+      typeof data.orderNumber === "string" ? data.orderNumber : undefined,
+  };
+}

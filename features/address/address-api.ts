@@ -4,6 +4,8 @@ import type { ApiResponse } from "@/types/api";
 export interface Address {
   id: string;
   label: string;
+  /** Optional: addresses saved before the province picker existed have none. */
+  province?: string;
   city: string;
   address: string;
   plaque: string;
@@ -15,6 +17,7 @@ export interface Address {
 
 export type AddressInput = {
   label: string;
+  province: string;
   city: string;
   address: string;
   plaque: string;

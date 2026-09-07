@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ShoppingBag,
   MapPin,
@@ -13,11 +14,18 @@ import {
   Loader2,
   PawPrint,
   ArrowLeft,
+  AlertCircle,
 } from "lucide-react";
 import { useCurrentUser, useIsLoggedIn } from "@/features/auth/queries";
-import { useCart } from "@/features/cart/queries";
+import { useCart, useCartAvailability } from "@/features/cart/queries";
+import { cartService } from "@/features/cart/cart-api";
+import { CART_KEY } from "@/features/query-keys";
+import {
+  getApiErrorMessage,
+  getApiErrorOrder,
+} from "@/shared/api/get-error-message";
+import RetryPaymentButton from "../payment/callback/retry-payment-button";
 import { useAddresses } from "@/features/address/queries";
-import { useCreateAddress } from "@/features/address/mutations";
 import { usePets } from "@/features/pet/queries";
 import {
   useApplyCoupon,
@@ -25,11 +33,28 @@ import {
   useValidateCoupon,
 } from "@/features/coupon/mutations";
 import { useCheckout } from "@/features/payment/mutations";
+import { useSendOtp } from "@/features/auth/mutations";
+import { useOtpTimer } from "@/features/auth/use-otp-timer";
 import { formatToman } from "@/shared/lib/utils";
+import { normalizeDigits } from "@/shared/lib/digits";
+import ProvinceCitySelect from "@/shared/components/global/province-city-select";
+import { useProvinces, findProvinceByCity } from "@/features/location/queries";
+import { useShippingMethods } from "@/features/shipping-method/queries";
+import { shippingMethodsFor } from "@/shared/lib/shipping";
 import type { Address } from "@/features/address/address-api";
 
 /** Pending order form for a user who is sent to login mid-checkout */
 const PENDING_ORDER_KEY = "pending-order";
+
+/** A pending order older than this is abandoned rather than submitted behind the user's back. */
+const PENDING_ORDER_TTL_MS = 30 * 60 * 1000;
+
+/**
+ * Hard cap on how long the auto-finalize waits for the session and the server cart before it
+ * gives up and hands control back to the user. Without it a cart that never arrives leaves the
+ * page spinning forever with no order ever sent.
+ */
+const FINALIZE_TIMEOUT_MS = 15_000;
 
 /** Payment methods (currently only Zarinpal; the structure is ready for adding more). */
 const PAYMENT_METHODS = [
@@ -42,46 +67,64 @@ const PAYMENT_METHODS = [
 
 type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
 
-/** Shipping methods. Adding a new method = one item here + one line in the backend's ShippingMethod enum. */
-const SHIPPING_METHODS = [
-  {
-    id: "tipax",
-    label: "تیپاکس",
-    desc: "پس‌کرایه (هزینه هنگام تحویل)",
-  },
-  {
-    id: "post",
-    label: "پست",
-    desc: "پس‌کرایه (هزینه هنگام تحویل)",
-  },
-] as const;
-
-type ShippingMethodId = (typeof SHIPPING_METHODS)[number]["id"];
-
 interface PendingOrder {
   firstName: string;
   lastName: string;
   petName: string;
+  /** Only used for the guest OTP flow; the order itself takes the phone from the session. */
+  phone: string;
+  province: string;
   city: string;
   address: string;
   plaque: string;
+  postalCode: string;
   note: string;
   selectedAddressId: string | null;
   saveNewAddress: boolean;
   addressLabel: string;
   couponCode: string | null;
-  shippingMethod: ShippingMethodId;
+  /** Slug of a method from the panel; re-derived from the city on restore. */
+  shippingMethod: string | null;
+  /**
+   * The cart as it was when the guest left for login. If the merge after login did not reach
+   * the server, these lines are pushed again so the order can still be placed.
+   */
+  lines: { productId: string; quantity: number }[];
+  createdAt: number;
 }
+
+/** Reads the stored pending order, returning null when it is missing, malformed, or too old. */
+function readPendingOrder(): PendingOrder | null {
+  const raw = sessionStorage.getItem(PENDING_ORDER_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as PendingOrder;
+    if (typeof parsed?.createdAt !== "number") return null;
+    if (Date.now() - parsed.createdAt > PENDING_ORDER_TTL_MS) return null;
+    if (!Array.isArray(parsed.lines)) parsed.lines = [];
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/** Where the auto-finalize (after returning from login) currently stands. */
+type FinalizeState = "idle" | "waiting" | "submitting" | "failed";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const isLoggedIn = useIsLoggedIn();
   const checkout = useCheckout();
-  const createAddress = useCreateAddress();
-  const { lines: cartItems } = useCart();
+  const { lines: cartItems, isCartSettled } = useCart();
+  const { provinces } = useProvinces();
+  // Last line of defence: stock can run out between the cart page and here.
+  const { unavailableLines, hasUnavailable } = useCartAvailability(cartItems);
+  const qc = useQueryClient();
   const applyCoupon = useApplyCoupon();
   const removeCouponMutation = useRemoveCoupon();
   const validateCoupon = useValidateCoupon();
+  const sendOtp = useSendOtp();
+  const otpTimer = useOtpTimer();
   const { data: currentUser } = useCurrentUser();
   const { data: addresses = [] } = useAddresses();
   const { data: pets = [] } = usePets();
@@ -91,12 +134,21 @@ export default function CheckoutPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [petName, setPetName] = useState("");
+  const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [plaque, setPlaque] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [postalCodeError, setPostalCodeError] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Phone of a guest checking out: the OTP is sent from here so the login page
+  // only has to ask for the code.
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   // Discount code
   const [couponInput, setCouponInput] = useState("");
@@ -110,9 +162,13 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethodId>("zarinpal");
 
-  // Shipping method
-  const [shippingMethod, setShippingMethod] =
-    useState<ShippingMethodId>("tipax");
+  // Shipping method — the list comes from the panel, filtered by the chosen city.
+  const {
+    data: allShippingMethods = [],
+    isPending: shippingLoading,
+    isError: shippingFailed,
+  } = useShippingMethods();
+  const [shippingMethod, setShippingMethod] = useState<string | null>(null);
 
   // Saved addresses
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
@@ -124,15 +180,33 @@ export default function CheckoutPage() {
   const [addressLabel, setAddressLabel] = useState("خانه");
 
   // Automatically submit the pending order after returning from login
-  const [finalizing, setFinalizing] = useState(false);
+  const [finalizeState, setFinalizeState] = useState<FinalizeState>("idle");
+  const [finalizeTimedOut, setFinalizeTimedOut] = useState(false);
   const autoSubmitted = useRef(false);
+  const formRestored = useRef(false);
+
+  // The order exists but the gateway could not be reached — the user can still pay it.
+  const [pendingPayment, setPendingPayment] = useState<{
+    orderId: string;
+    orderNumber?: string;
+  } | null>(null);
 
   useEffect(() => {
     setMounted(true);
-    if (sessionStorage.getItem(PENDING_ORDER_KEY)) {
-      setFinalizing(true);
+    if (readPendingOrder()) {
+      setFinalizeState("waiting");
+    } else {
+      // Missing, malformed, or expired — drop it so a reload never re-enters the finalize path.
+      sessionStorage.removeItem(PENDING_ORDER_KEY);
     }
   }, []);
+
+  // Bound the wait for the session/cart so the page can never spin indefinitely.
+  useEffect(() => {
+    if (finalizeState !== "waiting") return;
+    const timer = setTimeout(() => setFinalizeTimedOut(true), FINALIZE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [finalizeState]);
 
   // Fill the name from the profile once the user is loaded
   useEffect(() => {
@@ -147,88 +221,168 @@ export default function CheckoutPage() {
     if (city || address) return; // The user has already entered something
     const def = addresses.find((a) => a.isDefault) ?? addresses[0];
     setSelectedAddressId(def.id);
+    setProvince(def.province ?? findProvinceByCity(provinces, def.city) ?? "");
     setCity(def.city);
     setAddress(def.address);
     setPlaque(def.plaque);
+    setPostalCode(def.postalCode ?? "");
   }, [addresses]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep the shipping method valid for the selected city: a method scoped to
+  // other cities (or one the admin just disabled) must never stay selected.
+  const availableShippingMethods = useMemo(
+    () => shippingMethodsFor(city, allShippingMethods),
+    [city, allShippingMethods],
+  );
+
+  useEffect(() => {
+    if (availableShippingMethods.some((m) => m.slug === shippingMethod)) return;
+    setShippingMethod(availableShippingMethods[0]?.slug ?? null);
+  }, [availableShippingMethods, shippingMethod]);
 
   const submitOrder = async (payload: PendingOrder) => {
     setSubmitError(null);
+    setPendingPayment(null);
     setSubmitting(true);
     try {
       // One request: builds the order from the cart, creates the payment transaction, and
-      // returns the gateway URL. The cart is not cleared until payment succeeds (ACID flow).
+      // returns the gateway URL. The backend empties the cart as soon as the order exists
+      // (stock is reserved there); the order then waits in AWAITING_PAYMENT until it is paid.
       const { gatewayUrl } = await checkout.mutateAsync({
         shippingAddress: {
           firstName: payload.firstName,
           lastName: payload.lastName,
           petName: payload.petName,
+          province: payload.province,
           city: payload.city,
           address: payload.address,
           plaque: payload.plaque,
+          postalCode: payload.postalCode,
           note: payload.note,
         },
-        shippingMethod: payload.shippingMethod,
+        shippingMethod: payload.shippingMethod ?? undefined,
+        // The backend adds it to the address book after the order is created, so the redirect
+        // below is not held up by a second request.
+        saveShippingAddress: !payload.selectedAddressId && payload.saveNewAddress,
+        addressLabel: payload.addressLabel.trim() || payload.city,
+        shippingAddressId: payload.selectedAddressId ?? undefined,
       });
-      // Save the new address in the address book (its failure does not break the payment flow)
-      if (!payload.selectedAddressId && payload.saveNewAddress) {
-        try {
-          await createAddress.mutateAsync({
-            label: payload.addressLabel.trim() || payload.city,
-            city: payload.city,
-            address: payload.address,
-            plaque: payload.plaque,
-          });
-        } catch {}
-      }
       window.location.href = gatewayUrl;
-    } catch {
+    } catch (err) {
+      // The order may already exist and only the gateway leg failed; in that case the backend
+      // returns its id so the user gets a retry button instead of a dead end.
+      const order = getApiErrorOrder(err);
+      if (order) setPendingPayment(order);
       setSubmitError(
-        "ثبت سفارش یا اتصال به درگاه پرداخت با خطا مواجه شد. لطفاً مطمئن شوید وارد شده‌اید و دوباره تلاش کنید.",
+        getApiErrorMessage(
+          err,
+          "ثبت سفارش یا اتصال به درگاه پرداخت با خطا مواجه شد. لطفاً دوباره تلاش کنید.",
+        ),
       );
-      setFinalizing(false);
+      setFinalizeState("failed");
       setSubmitting(false);
     }
   };
 
-  // After returning from login: restore the saved form and submit the order automatically
+  // After returning from login: restore the saved form and submit the order automatically.
+  // Every exit path must clear the stored order and leave the "waiting" state, otherwise the
+  // page renders its spinner forever without ever sending a request.
   useEffect(() => {
-    if (!mounted || !isLoggedIn || autoSubmitted.current) return;
-    const raw = sessionStorage.getItem(PENDING_ORDER_KEY);
-    if (!raw) return;
-    // Wait until the server cart (after merge) arrives
-    if (cartItems.length === 0) return;
-    autoSubmitted.current = true;
-    sessionStorage.removeItem(PENDING_ORDER_KEY);
-    try {
-      const pending = JSON.parse(raw) as PendingOrder;
+    if (!mounted || finalizeState !== "waiting" || autoSubmitted.current) return;
+
+    const pending = readPendingOrder();
+    if (!pending) {
+      sessionStorage.removeItem(PENDING_ORDER_KEY);
+      setFinalizeState("idle");
+      return;
+    }
+
+    // Re-derive the shipping method from the city so a stale pair can never be ordered
+    const allowed = shippingMethodsFor(pending.city, allShippingMethods);
+    pending.shippingMethod = allowed.some((m) => m.slug === pending.shippingMethod)
+      ? pending.shippingMethod
+      : (allowed[0]?.slug ?? null);
+
+    // Put what the customer typed back on screen right away — it must survive a failure too.
+    if (!formRestored.current) {
+      formRestored.current = true;
       setFirstName(pending.firstName);
       setLastName(pending.lastName);
       setPetName(pending.petName);
+      setProvince(pending.province ?? "");
       setCity(pending.city);
       setAddress(pending.address);
       setPlaque(pending.plaque);
+      setPostalCode(pending.postalCode ?? "");
       setNote(pending.note);
       setSaveNewAddress(pending.saveNewAddress);
       setAddressLabel(pending.addressLabel);
-      setShippingMethod(pending.shippingMethod ?? "tipax");
-      void (async () => {
-        // The coupon must be re-applied to the merged server cart so it is counted when the order is placed
-        if (pending.couponCode) {
-          setCouponInput(pending.couponCode);
-          try {
-            const res = await applyCoupon.mutateAsync(pending.couponCode);
-            setAppliedCoupon({ code: res.coupon.code, discount: res.discount });
-          } catch {
-            setAppliedCoupon(null);
-          }
-        }
-        await submitOrder(pending);
-      })();
-    } catch {
-      setFinalizing(false);
+      setShippingMethod(pending.shippingMethod);
+      if (pending.couponCode) setCouponInput(pending.couponCode);
     }
-  }, [mounted, isLoggedIn, cartItems.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Keep waiting for the session, the cart, and the shipping methods (without them the
+    // order would be submitted with none), but only until the timeout fires.
+    if (
+      !finalizeTimedOut &&
+      (!isLoggedIn || !isCartSettled || shippingLoading)
+    )
+      return;
+
+    // From here we commit to a single attempt and never re-enter this effect.
+    autoSubmitted.current = true;
+    sessionStorage.removeItem(PENDING_ORDER_KEY);
+
+    void (async () => {
+      if (!isLoggedIn) {
+        setFinalizeState("failed");
+        setSubmitError(
+          "ورود شما تأیید نشد. لطفاً دوباره وارد شوید و سفارش را ثبت کنید.",
+        );
+        return;
+      }
+
+      let hasItems = cartItems.length > 0;
+      if (!hasItems && pending.lines.length > 0) {
+        // The guest cart never made it to the server (the merge was skipped or failed). Push it
+        // once more here — otherwise the order could never be placed and the cart would be lost.
+        try {
+          const res = await cartService.merge(pending.lines);
+          const merged = res.data.data;
+          qc.setQueryData(CART_KEY, merged);
+          hasItems = (merged.items?.length ?? 0) > 0;
+        } catch {}
+      }
+      if (!hasItems) {
+        setFinalizeState("failed");
+        setSubmitError(
+          "سبد خرید شما خالی است؛ ممکن است کالاهای انتخابی ناموجود شده باشند. لطفاً دوباره آن‌ها را به سبد اضافه کنید.",
+        );
+        return;
+      }
+
+      // The coupon must be re-applied to the merged server cart so it is counted when the order is placed
+      if (pending.couponCode) {
+        try {
+          const res = await applyCoupon.mutateAsync(pending.couponCode);
+          setAppliedCoupon({ code: res.coupon.code, discount: res.discount });
+        } catch {
+          setAppliedCoupon(null);
+        }
+      }
+
+      setFinalizeState("submitting");
+      await submitOrder(pending);
+    })();
+  }, [
+    mounted,
+    finalizeState,
+    finalizeTimedOut,
+    isLoggedIn,
+    isCartSettled,
+    cartItems.length,
+    shippingLoading,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!mounted) return null;
 
@@ -236,20 +390,27 @@ export default function CheckoutPage() {
 
   const handleSelectSavedAddress = (saved: Address) => {
     setSelectedAddressId(saved.id);
+    // Addresses saved before the province picker only carry a city
+    setProvince(saved.province ?? findProvinceByCity(provinces, saved.city) ?? "");
     setCity(saved.city);
     setAddress(saved.address);
     setPlaque(saved.plaque);
+    setPostalCode(saved.postalCode ?? "");
     setUseNewAddress(false);
     setShowAddressDropdown(false);
+    setLocationError(null);
   };
 
   const handleUseNewAddress = () => {
     setSelectedAddressId(null);
+    setProvince("");
     setCity("");
     setAddress("");
     setPlaque("");
+    setPostalCode("");
     setUseNewAddress(true);
     setShowAddressDropdown(false);
+    setLocationError(null);
   };
 
   const handleApplyCoupon = async () => {
@@ -282,7 +443,10 @@ export default function CheckoutPage() {
           setAppliedCoupon(null);
           return;
         }
-        setAppliedCoupon({ code: res.coupon.code, discount: res.discount ?? 0 });
+        setAppliedCoupon({
+          code: res.coupon.code,
+          discount: res.discount ?? 0,
+        });
       }
     } catch (err: unknown) {
       const message =
@@ -310,22 +474,95 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocationError(null);
+    setPhoneError(null);
+    setPostalCodeError(null);
+
+    // The province/city pickers are not native inputs, so they are checked here
+    if (!province || !city) {
+      setLocationError("لطفاً استان و شهر را انتخاب کنید.");
+      return;
+    }
+
+    // Iranian postal codes are exactly 10 digits; the backend rejects anything else, and a
+    // shipment cannot be handed over without one.
+    if (!/^\d{10}$/.test(normalizeDigits(postalCode))) {
+      setPostalCodeError("کد پستی باید ۱۰ رقم باشد.");
+      return;
+    }
+
+    // No method is offered for this city (the admin defined none, or disabled them all).
+    // The backend would reject the order anyway, so stop here with a readable message.
+    if (!shippingMethod) {
+      setSubmitError(
+        shippingLoading
+          ? "روش‌های ارسال هنوز بارگذاری نشده‌اند. لحظه‌ای صبر کنید."
+          : shippingFailed
+            ? "دریافت روش‌های ارسال با خطا مواجه شد. صفحه را دوباره بارگذاری کنید."
+            : "برای شهر انتخاب‌شده روش ارسالی تعریف نشده است. لطفاً شهر دیگری انتخاب کنید یا با پشتیبانی تماس بگیرید.",
+      );
+      return;
+    }
+
+    // Checked before the OTP is sent: the backend drops unavailable lines when the guest cart is
+    // merged, and finding that out after logging in is the worst possible moment.
+    if (hasUnavailable) {
+      setSubmitError(
+        unavailableLines.length === 1
+          ? `«${unavailableLines[0].name}» دیگر موجود نیست. لطفاً آن را از سبد خرید حذف کنید.`
+          : `${unavailableLines.length} کالای سبد شما دیگر موجود نیست. لطفاً آن‌ها را از سبد خرید حذف کنید.`,
+      );
+      return;
+    }
+
     const payload: PendingOrder = {
       firstName,
       lastName,
       petName,
+      phone,
+      province,
       city,
       address,
       plaque,
+      postalCode: normalizeDigits(postalCode),
       note,
       selectedAddressId,
       saveNewAddress,
       addressLabel,
       couponCode: appliedCoupon?.code ?? null,
       shippingMethod,
+      lines: cartItems.map((it) => ({
+        productId: it.productId,
+        quantity: it.quantity,
+      })),
+      createdAt: Date.now(),
     };
+
     if (!isLoggedIn) {
+      const normalizedPhone = normalizeDigits(phone);
+      if (!/^09\d{9}$/.test(normalizedPhone)) {
+        setPhoneError("شماره موبایل معتبر نیست. نمونه: ۰۹۱۲۳۴۵۶۷۸۹");
+        return;
+      }
+      // Send the code from here so the login page opens straight on the code
+      // step. An OTP already in flight for this number is reused instead of
+      // sent again (the backend enforces a 60s cooldown per number).
+      const hasLiveOtp =
+        otpTimer.session?.phone === normalizedPhone && otpTimer.remaining > 0;
+      if (!hasLiveOtp) {
+        try {
+          setSubmitting(true);
+          await sendOtp.mutateAsync(normalizedPhone);
+          otpTimer.start(normalizedPhone);
+        } catch {
+          setPhoneError("ارسال کد تأیید با خطا مواجه شد. دوباره تلاش کنید.");
+          return;
+        } finally {
+          setSubmitting(false);
+        }
+      }
       // We keep the form so it is submitted automatically after login
+      payload.phone = normalizedPhone;
       sessionStorage.setItem(PENDING_ORDER_KEY, JSON.stringify(payload));
       router.push("/login?redirect=/checkout");
       return;
@@ -333,8 +570,9 @@ export default function CheckoutPage() {
     await submitOrder(payload);
   };
 
-  // Finalizing the pending order (after login)
-  if (finalizing && !submitError) {
+  // Finalizing the pending order (after login). Bounded by FINALIZE_TIMEOUT_MS, so this
+  // screen always resolves into either the gateway, an error, or the form.
+  if (finalizeState === "waiting" || finalizeState === "submitting") {
     return (
       <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
         <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -342,6 +580,36 @@ export default function CheckoutPage() {
           <p className="text-muted-foreground text-base md:text-lg">
             در حال ثبت نهایی سفارش شما...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // The order was registered but the gateway could not be reached: it is waiting for payment,
+  // so the user is offered a retry instead of being told the whole thing failed.
+  if (pendingPayment) {
+    return (
+      <div className="pt-16 pb-24 px-4 mx-auto max-w-6xl">
+        <div className="flex flex-col items-center justify-center py-12 max-w-md mx-auto">
+          <div className="bg-amber-100 p-4 mb-4 rounded-2xl">
+            <AlertCircle className="w-8 h-8 md:w-10 md:h-10 text-amber-600" />
+          </div>
+          <h2 className="text-xl md:text-2xl font-medium mb-2 text-center">
+            سفارش شما ثبت شد، اما پرداخت انجام نشد
+          </h2>
+          <p className="text-muted-foreground text-center mb-6 text-base md:text-lg">
+            {pendingPayment.orderNumber
+              ? `سفارش ${pendingPayment.orderNumber} در وضعیت «در انتظار پرداخت» ثبت شد`
+              : "سفارش شما در وضعیت «در انتظار پرداخت» ثبت شد"}
+            ، ولی اتصال به درگاه برقرار نشد. می‌توانید همین‌جا دوباره پرداخت کنید.
+          </p>
+          <RetryPaymentButton orderId={pendingPayment.orderId} />
+          <Link
+            href="/profile"
+            className="mt-3 text-sm text-muted-foreground hover:text-secondary transition-colors"
+          >
+            مشاهده سفارش‌های من
+          </Link>
         </div>
       </div>
     );
@@ -357,9 +625,15 @@ export default function CheckoutPage() {
           <h2 className="text-xl md:text-2xl font-medium mb-2">
             سبد خرید شما خالی است
           </h2>
-          <p className="text-muted-foreground text-center mb-6 text-base md:text-lg">
-            برای پرداخت ابتدا محصولی به سبد خرید اضافه کنید.
-          </p>
+          {submitError ? (
+            <p className="text-red-600 text-center mb-6 text-base md:text-lg max-w-md">
+              {submitError}
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-center mb-6 text-base md:text-lg">
+              برای پرداخت ابتدا محصولی به سبد خرید اضافه کنید.
+            </p>
+          )}
           <Link
             href="/"
             className="bg-secondary text-secondary-foreground px-6 py-3 font-medium inline-block text-base md:text-lg rounded-2xl hover:bg-secondary/90 transition-colors"
@@ -412,10 +686,40 @@ export default function CheckoutPage() {
                     className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                   />
                 </div>
+                {!isLoggedIn && (
+                  <div>
+                    <label className="block text-sm md:text-base text-muted-foreground mb-1">
+                      شماره موبایل <span className="text-secondary">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      dir="ltr"
+                      maxLength={11}
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(
+                          normalizeDigits(e.target.value)
+                            .replace(/\D/g, "")
+                            .slice(0, 11),
+                        );
+                        setPhoneError(null);
+                      }}
+                      placeholder="09123456789"
+                      className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
+                    />
+
+                    {phoneError && (
+                      <p className="text-xs text-red-600 mt-1">{phoneError}</p>
+                    )}
+                  </div>
+                )}
                 <div className="sm:col-span-2">
                   <label className="block text-sm md:text-base text-muted-foreground mb-1">
                     نام حیوان خانگی شما 🐾{" "}
-                    <span className="text-muted-foreground text-xs">(اختیاری)</span>
+                    <span className="text-muted-foreground text-xs">
+                      (اختیاری)
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -527,20 +831,18 @@ export default function CheckoutPage() {
 
               {/* Address Fields */}
               <div className="space-y-4">
+                <ProvinceCitySelect
+                  province={province}
+                  city={city}
+                  onChange={(next) => {
+                    setProvince(next.province);
+                    setCity(next.city);
+                    setLocationError(null);
+                  }}
+                  error={locationError}
+                  triggerClassName="border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
+                />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm md:text-base text-muted-foreground mb-1">
-                      شهر <span className="text-secondary">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      required
-                      placeholder="مثال: تهران"
-                      className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
-                    />
-                  </div>
                   <div>
                     <label className="block text-sm md:text-base text-muted-foreground mb-1">
                       پلاک <span className="text-secondary">*</span>
@@ -553,6 +855,32 @@ export default function CheckoutPage() {
                       placeholder="مثال: ۱۲"
                       className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base focus:outline-none focus:border-secondary bg-card rounded-xl"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm md:text-base text-muted-foreground mb-1">
+                      کد پستی <span className="text-secondary">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      dir="ltr"
+                      maxLength={10}
+                      value={postalCode}
+                      onChange={(e) => {
+                        setPostalCode(
+                          normalizeDigits(e.target.value)
+                            .replace(/\D/g, "")
+                            .slice(0, 10),
+                        );
+                        setPostalCodeError(null);
+                      }}
+                      required
+                      placeholder="۱۰ رقم بدون خط تیره"
+                      className="w-full border border-border px-3 py-2 md:py-3 text-sm md:text-base text-right focus:outline-none focus:border-secondary bg-card rounded-xl"
+                    />
+                    {postalCodeError && (
+                      <p className="mt-1 text-xs text-red-600">{postalCodeError}</p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -601,7 +929,9 @@ export default function CheckoutPage() {
                 <div>
                   <label className="block text-sm md:text-base text-muted-foreground mb-1">
                     یادداشت{" "}
-                    <span className="text-muted-foreground text-xs">(اختیاری)</span>
+                    <span className="text-muted-foreground text-xs">
+                      (اختیاری)
+                    </span>
                   </label>
                   <textarea
                     value={note}
@@ -748,33 +1078,49 @@ export default function CheckoutPage() {
                   روش ارسال
                 </h3>
                 <div className="space-y-2">
-                  {SHIPPING_METHODS.map((m) => (
-                    <label
-                      key={m.id}
-                      className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
-                        shippingMethod === m.id
-                          ? "border-secondary bg-secondary/5"
-                          : "border-border hover:border-border/70"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="shipping-method"
-                        value={m.id}
-                        checked={shippingMethod === m.id}
-                        onChange={() => setShippingMethod(m.id)}
-                        className="mt-0.5 accent-secondary"
-                      />
-                      <span className="text-sm">
-                        <span className="font-medium text-foreground">
-                          {m.label}
+                  {shippingLoading ? (
+                    <p className="text-xs text-muted-foreground py-2">
+                      در حال بارگذاری روش‌های ارسال…
+                    </p>
+                  ) : availableShippingMethods.length === 0 ? (
+                    <p className="text-xs text-red-600 py-2">
+                      {shippingFailed
+                        ? "دریافت روش‌های ارسال با خطا مواجه شد. صفحه را دوباره بارگذاری کنید."
+                        : city
+                          ? "برای این شهر روش ارسالی تعریف نشده است."
+                          : "برای دیدن روش‌های ارسال، ابتدا شهر را انتخاب کنید."}
+                    </p>
+                  ) : (
+                    availableShippingMethods.map((m) => (
+                      <label
+                        key={m.slug}
+                        className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
+                          shippingMethod === m.slug
+                            ? "border-secondary bg-secondary/5"
+                            : "border-border hover:border-border/70"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="shipping-method"
+                          value={m.slug}
+                          checked={shippingMethod === m.slug}
+                          onChange={() => setShippingMethod(m.slug)}
+                          className="mt-0.5 accent-secondary"
+                        />
+                        <span className="text-sm">
+                          <span className="font-medium text-foreground">
+                            {m.label}
+                          </span>
+                          {m.description && (
+                            <span className="block text-xs text-muted-foreground mt-0.5">
+                              {m.description}
+                            </span>
+                          )}
                         </span>
-                        <span className="block text-xs text-muted-foreground mt-0.5">
-                          {m.desc}
-                        </span>
-                      </span>
-                    </label>
-                  ))}
+                      </label>
+                    ))
+                  )}
                 </div>
               </div>
               {/* Payment method */}
@@ -819,17 +1165,25 @@ export default function CheckoutPage() {
               )}
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  sendOtp.isPending ||
+                  hasUnavailable ||
+                  shippingLoading ||
+                  !shippingMethod
+                }
                 className="w-full bg-secondary text-secondary-foreground rounded-2xl py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors disabled:opacity-60"
               >
-                {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
-                {isLoggedIn ? "تأیید و پرداخت" : "ورود و ادامه"}
+                {(submitting || sendOtp.isPending) && (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                )}
+                {isLoggedIn ? "تأیید و پرداخت" : "ارسال کد و ادامه"}
                 <ArrowLeft className="h-6 w-6" />
               </button>
             </div>
 
             {/* Security note */}
-            <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground px-1">
+            {/* <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground px-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -845,7 +1199,7 @@ export default function CheckoutPage() {
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
               پرداخت شما امن و رمزگذاری شده است
-            </div>
+            </div> */}
           </div>
         </div>
       </form>

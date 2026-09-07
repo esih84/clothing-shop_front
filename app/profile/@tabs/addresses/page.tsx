@@ -8,6 +8,7 @@ import {
   useDeleteAddress,
   useSetDefaultAddress,
 } from "@/features/address/mutations";
+import ProvinceCitySelect from "@/shared/components/global/province-city-select";
 
 const inputCls =
   "w-full border border-border px-3 py-2 text-sm focus:outline-none focus:border-secondary bg-card rounded-xl";
@@ -20,27 +21,38 @@ export default function AddressesTab() {
 
   const [showForm, setShowForm] = useState(false);
   const [label, setLabel] = useState("خانه");
+  const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [plaque, setPlaque] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   const resetForm = () => {
     setLabel("خانه");
+    setProvince("");
     setCity("");
     setAddress("");
     setPlaque("");
     setPostalCode("");
     setError(null);
+    setLocationError(null);
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setLocationError(null);
+    // The province/city pickers are not native inputs, so they are checked here
+    if (!province || !city) {
+      setLocationError("لطفاً استان و شهر را انتخاب کنید.");
+      return;
+    }
     try {
       await createAddress.mutateAsync({
         label: label.trim() || city,
+        province,
         city,
         address,
         plaque,
@@ -90,6 +102,7 @@ export default function AddressesTab() {
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                {addr.province ? `${addr.province}، ` : ""}
                 {addr.city}، {addr.address}، پلاک {addr.plaque}
               </p>
             </div>
@@ -142,6 +155,18 @@ export default function AddressesTab() {
               {error}
             </div>
           )}
+          <ProvinceCitySelect
+            province={province}
+            city={city}
+            onChange={(next) => {
+              setProvince(next.province);
+              setCity(next.city);
+              setLocationError(null);
+            }}
+            error={locationError}
+            labelClassName="block text-xs text-muted-foreground mb-1"
+            triggerClassName="border border-border px-3 py-2 text-sm focus:outline-none focus:border-secondary bg-card rounded-xl"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-muted-foreground mb-1">عنوان</label>
@@ -150,19 +175,6 @@ export default function AddressesTab() {
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="مثال: خانه، محل کار"
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-muted-foreground mb-1">
-                شهر <span className="text-secondary">*</span>
-              </label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                required
-                placeholder="مثال: تهران"
                 className={inputCls}
               />
             </div>

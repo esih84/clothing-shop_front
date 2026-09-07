@@ -23,6 +23,8 @@ export const queryKeys = {
     ["reviews", productId, "mine"] as const,
   myProductReviewVotes: (productId: string) =>
     ["reviews", productId, "my-votes"] as const,
+  shippingMethods: ["shipping-methods"] as const,
+  provinces: ["provinces"] as const,
 } as const;
 
 // Commonly used aliases

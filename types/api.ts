@@ -14,6 +14,7 @@ export type ApiListResponse<T, K extends string> = {
   total: number;
   page: number;
   limit: number;
+  totalPages: number;
 };
 
 /** Error shape matching HttpExceptionFilter */
