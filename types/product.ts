@@ -65,6 +65,12 @@ export type Product = {
   reviews?: Review[];
 
   /**
+   * Curated "buy together" links picked by the admin, ordered by `order`. Only returned by the
+   * admin read; the storefront gets the resolved products from `getRelatedProducts` instead.
+   */
+  relatedLinks?: { id: string; order: number; relatedProduct: Product }[];
+
+  /**
    * Effective price after applying the active discount — computed by the backend.
    * Equals basePrice if there is no active discount.
    */

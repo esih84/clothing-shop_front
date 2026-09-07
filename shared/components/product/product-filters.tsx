@@ -371,7 +371,7 @@ export function ProductFilters({
     <div className="space-y-7">
       {/* Search */}
       <div>
-        <h3 className="font-semibold text-secondary text-base mb-3">جستجو</h3>
+        <h3 className="font-bold text-secondary text-sm mb-3">جستجو</h3>
         <div className="relative">
           <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <input
@@ -396,7 +396,7 @@ export function ProductFilters({
             onChange={(e) => setInStock(e.target.checked)}
             className="w-4 h-4 rounded border-border accent-secondary"
           />
-          <span className="flex items-center gap-1.5 text-foreground">
+          <span className="flex items-center gap-1.5 text-sm text-foreground">
             <PackageSearch className="w-4 h-4 text-secondary" />
             فقط کالاهای موجود
           </span>
@@ -412,7 +412,7 @@ export function ProductFilters({
             onChange={(e) => setHasDiscount(e.target.checked)}
             className="w-4 h-4 rounded border-border accent-secondary"
           />
-          <span className="flex items-center gap-1.5 text-foreground">
+          <span className="flex items-center gap-1.5 text-sm text-foreground">
             <Percent className="w-4 h-4 text-secondary" />
             فقط کالاهای تخفیف‌دار
           </span>
@@ -420,9 +420,7 @@ export function ProductFilters({
       </div>
       {/* Price */}
       <div>
-        <h3 className="font-semibold text-secondary text-base mb-1">
-          محدوده‌ی قیمت
-        </h3>
+        <h3 className="font-bold text-secondary text-sm mb-1">محدوده‌ی قیمت</h3>
         <PriceSlider
           min={PRICE_MIN}
           max={PRICE_MAX}
@@ -433,9 +431,7 @@ export function ProductFilters({
 
       {/* Category */}
       <div className="pb-1">
-        <h3 className="font-semibold text-secondary text-base mb-3">
-          دسته‌بندی
-        </h3>
+        <h3 className="font-bold text-secondary text-sm mb-3">دسته‌بندی</h3>
         {categoriesLoading ? (
           <div className="flex justify-center py-4">
             <Loader2 className="w-5 h-5 text-secondary animate-spin" />
@@ -469,7 +465,7 @@ export function ProductFilters({
 
       {/* Brand */}
       <div className="pb-1">
-        <h3 className="font-semibold text-secondary text-base mb-3">برند</h3>
+        <h3 className="font-bold text-secondary text-sm mb-3">برند</h3>
         {brandsLoading ? (
           <div className="flex justify-center py-4">
             <Loader2 className="w-5 h-5 text-secondary animate-spin" />
@@ -512,14 +508,14 @@ export function ProductFilters({
         <button
           type="button"
           onClick={handleApply}
-          className="px-4 py-2.5 bg-secondary hover:bg-secondary/90 text-white rounded-2xl text-base font-semibold shadow transition-colors"
+          className="px-4 py-2.5 bg-secondary hover:bg-secondary/90 text-white rounded-2xl text-sm font-semibold shadow transition-colors"
         >
           اعمال فیلتر
         </button>
         <button
           type="button"
           onClick={handleReset}
-          className="px-4 py-2.5 border border-border rounded-2xl text-base font-medium hover:bg-muted transition-colors"
+          className="px-4 py-2.5 border border-border rounded-2xl text-sm font-medium hover:bg-muted transition-colors"
         >
           بازنشانی
         </button>

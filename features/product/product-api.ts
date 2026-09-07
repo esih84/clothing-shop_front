@@ -25,7 +25,23 @@ export type ProductFilters = {
   sortOrder?: "ASC" | "DESC";
 };
 
-export type ProductListResponse = ApiListResponse<Product, "data">;
+export type ProductListResponse = ApiListResponse<Product, "data"> & {
+  /**
+   * Set by the backend when nothing matched the query exactly and these are the results of a
+   * widened search. The list is still worth showing — it just must not be labelled as exact.
+   */
+  searchRelaxed?: boolean;
+};
+
+/** A category or brand whose own name matched the query — offered as a shortcut in autocomplete. */
+export type SuggestTaxonomy = { id: string; name: string; slug: string };
+
+export type ProductSuggestResponse = {
+  products: Product[];
+  categories: SuggestTaxonomy[];
+  brands: SuggestTaxonomy[];
+  searchRelaxed: boolean;
+};
 
 function buildQuery(filters: ProductFilters): string {
   return new URLSearchParams(
@@ -79,6 +95,22 @@ export async function getDiscountedProducts(
   }
 }
 
+/**
+ * The admin-curated "buy together" list for one product, already in the admin's order.
+ * Empty for most products — that is the normal case, not an error.
+ */
+export async function getRelatedProducts(productId: string, limit = 12) {
+  try {
+    const data = await serverFetch<Product[]>(
+      `/products/${productId}/related?limit=${limit}`,
+      { revalidate: 60, tags: ["products", `product:related:${productId}`] },
+    );
+    return { data, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
 export async function getProductBySlug(slug: string) {
   try {
     const data = await serverFetch<Product>(`/products/${slug}`, {
@@ -108,6 +140,17 @@ export const productService = {
       adapter: "fetch",
       fetchOptions: { cache: "no-store" },
     });
+    return res.data.data;
+  },
+  /**
+   * Header autocomplete. Fires on every (debounced) keystroke, so unlike the calls above it is
+   * left cacheable — the same prefix typed twice must not cost a second round-trip.
+   */
+  suggest: async (query: string, limit = 6, signal?: AbortSignal) => {
+    const res = await api.get<ApiResponse<ProductSuggestResponse>>(
+      `/products/suggest?q=${encodeURIComponent(query)}&limit=${limit}`,
+      { signal },
+    );
     return res.data.data;
   },
 };

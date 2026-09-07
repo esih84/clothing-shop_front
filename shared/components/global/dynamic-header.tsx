@@ -3,10 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Filter, ArrowRight, X } from "lucide-react";
+import { Search, Filter, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { FilterModal } from "./filter-modal";
-import { brand } from "@/shared/config/brand";
+import { SearchBox } from "./search-box";
+import { useSiteSettings } from "@/shared/config/site-settings-provider";
 
 // ─── Shared sub-components ───────────────────────────────────────────────────
 
@@ -42,130 +43,19 @@ function BackHeader({
           <ArrowRight className="w-5 h-5" />
           <span className="text-sm font-medium">بازگشت</span>
         </button>
-        <h1 className="text-lg md:text-2xl font-bold text-foreground">
-          {title}
-        </h1>
+        {/* Deliberately not an <h1>: this header renders on top of pages that already have their
+            own heading (product name, category name, ...). Two <h1>s per page is an SEO defect. */}
+        <p className="text-lg md:text-2xl font-bold text-foreground">{title}</p>
         <div className="w-16 flex justify-end">{right}</div>
       </div>
     </div>
   );
 }
 
-// ─── Search bar component ─────────────────────────────────────────────────────
-
-function SearchBar({
-  isOpen,
-  onClose,
-  inputRef,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  inputRef: React.RefObject<HTMLInputElement>;
-}) {
-  const [query, setQuery] = useState("");
-  const router = useRouter();
-
-  const submitSearch = (value: string) => {
-    const q = value.trim();
-    router.push(q ? `/products?search=${encodeURIComponent(q)}` : "/products");
-    onClose();
-  };
-
-  return (
-    <>
-      {/* Backdrop (mobile only) */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-30 sm:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Search input — inline on md+, overlay on mobile */}
-      <div
-        className={`
-          transition-all duration-300 ease-in-out overflow-hidden
-          sm:flex-1 sm:block sm:opacity-100 sm:max-w-none sm:relative sm:z-auto
-          ${
-            isOpen
-              ? "fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-3 bg-card shadow-lg sm:static sm:p-0 sm:shadow-none sm:bg-transparent"
-              : "hidden sm:block"
-          }
-        `}
-      >
-        {/* Mobile top bar inside overlay */}
-        {isOpen && (
-          <div className="flex items-center justify-between mb-3 sm:hidden">
-            <span className="text-sm font-semibold text-foreground">جستجو</span>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-muted transition-colors"
-              aria-label="بستن جستجو"
-            >
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
-          </div>
-        )}
-
-        <form
-          className="relative group"
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitSearch(query);
-          }}
-        >
-          <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-secondary transition-colors pointer-events-none" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`جستجو در ${brand.name}...`}
-            dir="rtl"
-            className="
-              w-full pr-10 pl-10 py-2.5 rounded-2xl
-              bg-muted border border-border
-              text-sm text-foreground placeholder:text-muted-foreground
-              focus:outline-none focus:border-secondary/60 focus:bg-card focus:ring-2 focus:ring-secondary/15
-              transition-all duration-200
-            "
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-muted transition-colors"
-              aria-label="پاک کردن جستجو"
-            >
-              <X className="w-3.5 h-3.5 text-muted-foreground" />
-            </button>
-          )}
-        </form>
-
-        {/* Recent searches — shown only when focused and empty (mobile overlay) */}
-        {/* {isOpen && !query && (
-          <div className="mt-3 sm:hidden">
-            <p className="text-xs text-muted-foreground mb-2 px-1">جستجوهای اخیر</p>
-            {["غذای سگ", "اسباب‌بازی گربه", "قلاده و بند"].map((item) => (
-              <button
-                key={item}
-                onClick={() => submitSearch(item)}
-                className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-muted transition-colors text-right"
-              >
-                <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground">{item}</span>
-              </button>
-            ))}
-          </div>
-        )} */}
-      </div>
-    </>
-  );
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function DynamicHeader() {
+  const { brand, cart, wishlist, orders } = useSiteSettings();
   const pathname = usePathname();
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -197,12 +87,12 @@ export function DynamicHeader() {
               {/* Brand */}
               <Link href="/" className="flex items-center gap-2 flex-shrink-0">
                 <Image
-                  src="/logo.png"
+                  src={brand.logoUrl}
                   alt={brand.name}
-                  width={160}
-                  height={44}
+                  width={366}
+                  height={200}
                   priority
-                  className="h-9 sm:h-10 w-auto object-contain"
+                  className="h-9 sm:h-11 lg:h-12 xl:h-14 w-auto object-contain"
                 />
               </Link>
 
@@ -219,7 +109,7 @@ export function DynamicHeader() {
 
                 {/* sm+: inline search bar */}
                 <div className="hidden max-w-xl sm:flex flex-1 items-center gap-2">
-                  <SearchBar
+                  <SearchBox
                     isOpen={false}
                     onClose={() => {}}
                     inputRef={searchInputRef}
@@ -228,7 +118,7 @@ export function DynamicHeader() {
 
                 {/* Mobile overlay search */}
                 <div className="sm:hidden">
-                  <SearchBar
+                  <SearchBox
                     isOpen={isSearchOpen}
                     onClose={() => setIsSearchOpen(false)}
                     inputRef={searchInputRef}
@@ -257,13 +147,13 @@ export function DynamicHeader() {
     "/products": "محصولات",
     "/offers": "پیشنهادهای ویژه",
     "/product": "جزئیات محصول",
-    "/wishlist": "علاقه‌مندی‌ها",
-    "/cart": "سبد خرید",
+    "/wishlist": wishlist.title,
+    "/cart": cart.title,
     "/checkout": "پرداخت نهایی",
     "/profile": "پروفایل",
     "/categories": "دسته‌بندی‌ها",
     "/blogs": "بلاگ",
-    "/orders": "سفارش‌ها",
+    "/orders": orders.title,
   };
 
   const matchedKey = Object.keys(namedPages).find(
