@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
@@ -25,25 +25,25 @@ function LoginForm() {
     redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
       ? redirectParam
       : "/profile";
-  const [step, setStep] = useState<"phone" | "code">("phone");
-  const [phone, setPhone] = useState("");
+  const fromCheckout = redirectTo.startsWith("/checkout");
+  const [phoneInput, setPhoneInput] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Set once the code is accepted and never unset: the page is on its way out, and letting the
+  // form render again while the cart merges and the route changes looks like the code failed.
+  const [redirecting, setRedirecting] = useState(false);
 
   const sendOtp = useSendOtp();
   const verifyOtp = useVerifyOtp();
   const mergeGuestCart = useMergeGuestCart();
   const otpTimer = useOtpTimer();
 
-  // Restore the code step after a refresh while an OTP session is still tracked,
-  // so the persisted countdown keeps running instead of resetting.
-  useEffect(() => {
-    if (otpTimer.session && step === "phone") {
-      setPhone(otpTimer.session.phone);
-      setStep("code");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otpTimer.session]);
+  // The step is derived from the OTP session rather than set by an effect, so a
+  // user arriving from checkout (where the code was already sent) never sees the
+  // phone step — not even for a single frame. The number comes from the session
+  // until the user types one.
+  const step: "phone" | "code" = otpTimer.session ? "code" : "phone";
+  const phone = phoneInput ?? otpTimer.session?.phone ?? "";
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +55,6 @@ function LoginForm() {
     try {
       await sendOtp.mutateAsync(phone);
       otpTimer.start(phone);
-      setStep("code");
     } catch {
       setError("ارسال کد با خطا مواجه شد. دوباره تلاش کنید.");
     }
@@ -81,14 +80,44 @@ function LoginForm() {
     }
     try {
       await verifyOtp.mutateAsync({ phone, code });
-      otpTimer.clear();
-      // Merge the guest cart with the server cart after login
-      await mergeGuestCart.mutateAsync();
-      router.push(redirectTo);
     } catch {
       setError("کد وارد شده نادرست یا منقضی شده است.");
+      return;
     }
+    // Before clearing the session — `step` is derived from it, so clearing first would snap the
+    // page back to the empty phone form for the whole duration of the merge + navigation.
+    setRedirecting(true);
+    otpTimer.clear();
+    // Merge the guest cart with the server cart after login. The user is already signed in at
+    // this point and the code is spent, so a failing merge must never look like a wrong code
+    // nor block the redirect — checkout retries the merge itself before placing the order.
+    try {
+      await mergeGuestCart.mutateAsync();
+    } catch {}
+    router.push(redirectTo);
   };
+
+  // Signed in and on the way out — keep one uninterrupted spinner instead of flashing a form.
+  if (redirecting) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4 px-4 py-10">
+        <Loader2 className="w-8 h-8 text-secondary animate-spin" />
+        <p className="text-muted-foreground text-sm">
+          {fromCheckout ? "در حال آماده‌سازی سفارش شما..." : "در حال ورود..."}
+        </p>
+      </div>
+    );
+  }
+
+  // Hold the render until the persisted OTP session is known, so the step below
+  // is correct on its very first paint.
+  if (!otpTimer.ready) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-10">
+        <Loader2 className="w-8 h-8 text-secondary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-10">
@@ -108,7 +137,9 @@ function LoginForm() {
           <p className="text-sm text-muted-foreground mt-1 text-center">
             {step === "phone"
               ? "شماره موبایلت رو وارد کن تا کد تأیید برات بفرستیم"
-              : `کد تأیید پیامک‌شده به ${phone} رو وارد کن`}
+              : `کد تأیید پیامک‌شده به ${phone} رو وارد کن${
+                  fromCheckout ? " تا سفارشت ثبت بشه" : ""
+                }`}
           </p>
         </div>
 
@@ -128,7 +159,7 @@ function LoginForm() {
               placeholder="09123456789"
               value={phone}
               onChange={(e) =>
-                setPhone(
+                setPhoneInput(
                   normalizeDigits(e.target.value)
                     .replace(/\D/g, "")
                     .slice(0, 11),
@@ -196,7 +227,7 @@ function LoginForm() {
               type="button"
               onClick={() => {
                 otpTimer.clear();
-                setStep("phone");
+                setPhoneInput("");
                 setCode("");
                 setError(null);
               }}
