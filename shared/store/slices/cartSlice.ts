@@ -47,6 +47,15 @@ export const cartSlice = createSlice({
     removeFromCart: (state, action: PayloadAction<{ id: string }>) => {
       state.items = state.items.filter((item) => item.id !== action.payload.id);
     },
+    /**
+     * Drops several items at once. Used after the guest cart is merged into the server cart so
+     * only the lines the server actually accepted leave the guest cart; anything it skipped
+     * (unavailable/out of stock) stays here instead of silently disappearing.
+     */
+    removeManyFromCart: (state, action: PayloadAction<{ ids: string[] }>) => {
+      const ids = new Set(action.payload.ids);
+      state.items = state.items.filter((item) => !ids.has(item.id));
+    },
     updateQuantity: (
       state,
       action: PayloadAction<{ id: string; quantity: number }>
@@ -70,7 +79,12 @@ export const cartSlice = createSlice({
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart } =
-  cartSlice.actions;
+export const {
+  addToCart,
+  removeFromCart,
+  removeManyFromCart,
+  updateQuantity,
+  clearCart,
+} = cartSlice.actions;
 
 export default cartSlice.reducer;

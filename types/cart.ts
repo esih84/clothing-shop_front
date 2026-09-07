@@ -27,3 +27,15 @@ export type Cart = {
   createdAt: string;
   updatedAt: string;
 };
+
+/** Live availability of one cart line, from POST /cart/validate. */
+export type CartLineAvailability = {
+  productId: string;
+  /** null when the product no longer exists at all. */
+  name: string | null;
+  stock: number;
+  available: boolean;
+  /** Orderable quantity for this line; 0 when it cannot be ordered. */
+  maxQuantity: number;
+  reason: "missing" | "inactive" | "out_of_stock" | null;
+};

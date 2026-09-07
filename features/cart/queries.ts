@@ -12,9 +12,9 @@ import {
   type CartItem as GuestCartItem,
 } from "@/shared/store/slices/cartSlice";
 import { useIsLoggedIn } from "@/features/auth/queries";
-import { CART_KEY } from "@/features/query-keys";
+import { CART_KEY, queryKeys } from "@/features/query-keys";
 import { getApiErrorMessage } from "@/shared/api/get-error-message";
-import type { Cart } from "@/types/cart";
+import type { Cart, CartLineAvailability } from "@/types/cart";
 
 /** Normalized cart line for display (for both guest and server). */
 export interface CartLine {
@@ -38,13 +38,11 @@ function useServerCart(enabled: boolean) {
     queryKey: CART_KEY,
     enabled,
     staleTime: 1000 * 30,
+    // Errors are deliberately not swallowed into `null`: callers (checkout) must be able to
+    // tell "the cart is empty" apart from "the cart could not be loaded".
     queryFn: async () => {
-      try {
-        const res = await cartService.getCart();
-        return res.data.data;
-      } catch {
-        return null;
-      }
+      const res = await cartService.getCart();
+      return res.data.data;
     },
   });
 }
@@ -62,7 +60,11 @@ export function useCart() {
   const dispatch = useAppDispatch();
   const guestItems = useAppSelector((s) => s.cart.items);
   const qc = useQueryClient();
-  const { data: serverCart } = useServerCart(isLoggedIn);
+  const {
+    data: serverCart,
+    isPending: isServerCartPending,
+    isError: isServerCartError,
+  } = useServerCart(isLoggedIn);
 
   const onError = (err: unknown) => {
     toast.error(getApiErrorMessage(err));
@@ -164,6 +166,14 @@ export function useCart() {
   const subtotal = lines.reduce((acc, l) => acc + l.price * l.quantity, 0);
   const count = lines.reduce((acc, l) => acc + l.quantity, 0);
 
+  // The guest cart is synchronous, so only the server cart can be "not known yet".
+  const isCartLoading = isLoggedIn && isServerCartPending;
+  /**
+   * true once `lines` reflects reality — i.e. the server cart has either arrived or failed.
+   * Checkout needs this to avoid treating a still-loading cart as an empty one.
+   */
+  const isCartSettled = !isCartLoading;
+
   return {
     isLoggedIn,
     lines,
@@ -175,5 +185,53 @@ export function useCart() {
     /** true if adding to the cart is in progress (for the button state). */
     isAdding: addMutation.isPending,
     isLinePending,
+    isCartLoading,
+    isCartSettled,
+    /** true if loading the server cart failed (distinct from an empty cart). */
+    isCartError: isLoggedIn && isServerCartError,
   };
+}
+
+/**
+ * Live availability for the given cart lines.
+ *
+ * The guest cart stores each product's stock in localStorage at the moment it was added and never
+ * refreshes it, so an item can look perfectly fine in the cart long after it went out of stock or
+ * was deactivated — and the customer would only discover it when the order is placed, right after
+ * entering their OTP. This asks the server what is actually orderable so the cart and checkout
+ * pages can say so up front.
+ */
+export function useCartAvailability(lines: CartLine[]) {
+  const items = useMemo(
+    () => lines.map((l) => ({ productId: l.productId, quantity: l.quantity })),
+    [lines],
+  );
+  // Keyed by the line contents so the answer is refetched whenever the cart changes.
+  const signature = items.map((i) => `${i.productId}:${i.quantity}`).join(",");
+
+  const { data } = useQuery<CartLineAvailability[]>({
+    queryKey: [...queryKeys.cartAvailability, signature],
+    enabled: items.length > 0,
+    staleTime: 1000 * 30,
+    queryFn: async () => {
+      const res = await cartService.validate(items);
+      return res.data.data;
+    },
+  });
+
+  return useMemo(() => {
+    const byProduct = new Map((data ?? []).map((a) => [a.productId, a]));
+    // Unknown (still loading, or the check failed) counts as available: the server rejects a bad
+    // line at order time anyway, and blocking checkout on a failed check would be worse.
+    const unavailable = lines.filter(
+      (l) => byProduct.get(l.productId)?.available === false,
+    );
+    return {
+      availabilityByProduct: byProduct,
+      unavailableLines: unavailable,
+      hasUnavailable: unavailable.length > 0,
+      isAvailable: (line: CartLine) =>
+        byProduct.get(line.productId)?.available !== false,
+    };
+  }, [data, lines]);
 }

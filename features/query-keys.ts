@@ -5,6 +5,7 @@
 export const queryKeys = {
   currentUser: ["current-user"] as const,
   cart: ["cart"] as const,
+  cartAvailability: ["cart-availability"] as const,
   products: ["products"] as const,
   /** Header autocomplete for one (debounced) query string. */
   productSuggest: (query: string) => ["products", "suggest", query] as const,

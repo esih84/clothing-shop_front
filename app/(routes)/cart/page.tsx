@@ -3,14 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Trash2 } from "lucide-react";
-import { useCart, type CartLine } from "@/features/cart/queries";
+import { ShoppingBag, Trash2, AlertCircle } from "lucide-react";
+import {
+  useCart,
+  useCartAvailability,
+  type CartLine,
+} from "@/features/cart/queries";
 import { QuantityStepper } from "@/shared/components/cart/quantity-stepper";
 import { formatToman } from "@/shared/lib/utils";
+import { useSiteSettings } from "@/shared/config/site-settings-provider";
 
 export default function CartPage() {
+  const { cart } = useSiteSettings();
   const { lines: cartItems, updateQty, remove, subtotal, isLinePending } =
     useCart();
+  // The guest cart freezes each product's stock at add time, so availability is re-checked
+  // against the server here instead of being discovered at order placement.
+  const { isAvailable, unavailableLines, hasUnavailable } =
+    useCartAvailability(cartItems);
   const [mounted, setMounted] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<CartLine | null>(null);
@@ -44,26 +54,30 @@ export default function CartPage() {
             <ShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-secondary" />
           </div>
           <h2 className="text-xl md:text-2xl font-medium mb-2">
-            سبد خرید شما خالی است
+            {cart.emptyTitle}
           </h2>
           <p className="text-muted-foreground text-center mb-6 text-base md:text-lg">
-            به نظر می‌رسد هنوز چیزی به سبد خرید اضافه نکرده‌اید.
+            {cart.emptyDescription}
           </p>
           <Link
             prefetch
             href="/"
             className="bg-secondary text-secondary-foreground rounded-2xl px-6 py-3 font-medium inline-block text-base md:text-lg hover:bg-secondary/90 transition-colors"
           >
-            شروع به خرید
+            {cart.emptyCtaLabel}
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => (
+            {cartItems.map((item) => {
+              const available = isAvailable(item);
+              return (
               <div
                 key={item.productId}
-                className="bg-card rounded-2xl p-3 md:p-6 flex items-stretch gap-3 md:gap-4 shadow-sm border border-border"
+                className={`bg-card rounded-2xl p-3 md:p-6 flex items-stretch gap-3 md:gap-4 shadow-sm border ${
+                  available ? "border-border" : "border-red-300 bg-red-50/40"
+                }`}
               >
                 <div className="w-20 h-20 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-2xl bg-primary/15 flex-shrink-0 overflow-hidden self-start">
                   <Image
@@ -71,14 +85,22 @@ export default function CartPage() {
                     alt={item.name}
                     width={144}
                     height={144}
-                    className="w-full h-full object-cover"
+                    className={`w-full h-full object-cover ${available ? "" : "grayscale opacity-60"}`}
                   />
                 </div>
                 <div className="flex-1 min-w-0 flex flex-col">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="min-w-0 font-normal text-sm sm:text-base md:text-lg lg:text-xl leading-snug break-words">
-                      {item.name}
-                    </h3>
+                    <div className="min-w-0">
+                      <h3 className="min-w-0 font-normal text-sm sm:text-base md:text-lg lg:text-xl leading-snug break-words">
+                        {item.name}
+                      </h3>
+                      {!available && (
+                        <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-red-100 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          ناموجود — برای ادامه حذفش کنید
+                        </span>
+                      )}
+                    </div>
                     <button
                       onClick={() => openRemoveModal(item)}
                       className="flex-shrink-0 -m-1 p-1 text-muted-foreground hover:text-red-500 transition-colors"
@@ -112,14 +134,15 @@ export default function CartPage() {
                       variant="cart"
                       quantity={item.quantity}
                       max={item.stock}
-                      disabled={isLinePending(item)}
+                      disabled={isLinePending(item) || !available}
                       onIncrement={() => void updateQty(item, item.quantity + 1)}
                       onDecrement={() => void updateQty(item, item.quantity - 1)}
                     />
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="bg-card rounded-2xl p-6 shadow-sm border border-border h-fit sticky top-20">
@@ -130,13 +153,30 @@ export default function CartPage() {
                 <span>{formatToman(total)}</span>
               </div>
             </div>
-            <Link
-              prefetch
-              href="/checkout"
-              className="w-full bg-secondary text-secondary-foreground rounded-2xl py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center hover:bg-secondary/90 transition-colors"
-            >
-              پرداخت نهایی
-            </Link>
+            {hasUnavailable ? (
+              <>
+                <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {unavailableLines.length === 1
+                    ? `«${unavailableLines[0].name}» دیگر موجود نیست. برای ادامه آن را از سبد حذف کنید.`
+                    : `${unavailableLines.length} کالای سبد شما دیگر موجود نیست. برای ادامه آن‌ها را حذف کنید.`}
+                </p>
+                <button
+                  type="button"
+                  disabled
+                  className="w-full bg-secondary text-secondary-foreground rounded-2xl py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center opacity-50 cursor-not-allowed"
+                >
+                  {cart.checkoutLabel}
+                </button>
+              </>
+            ) : (
+              <Link
+                prefetch
+                href="/checkout"
+                className="w-full bg-secondary text-secondary-foreground rounded-2xl py-3 md:py-4 font-medium text-base md:text-lg flex items-center justify-center hover:bg-secondary/90 transition-colors"
+              >
+                {cart.checkoutLabel}
+              </Link>
+            )}
           </div>
         </div>
       )}
