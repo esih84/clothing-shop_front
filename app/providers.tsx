@@ -1,10 +1,9 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Provider } from "react-redux";
 import { persistor, store } from "@/shared/store/store";
-import { PersistGate } from "redux-persist/integration/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/shared/ui/sonner";
 import { ThemeProvider } from "@/shared/components/theme-provider";
@@ -25,6 +24,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
+  // Rehydrate the persisted cart/wishlist only after the server HTML has been hydrated, so the
+  // tree renders on the server (previously PersistGate returned null there, leaving <body> empty).
+  useEffect(() => {
+    persistor.persist();
+  }, []);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -34,12 +39,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <QueryClientProvider client={queryClient}>
         <Provider store={store}>
-          {/* PersistGate with loading={null} manages client hydration;
-              the tree is no longer gated on isMounted so SSR yields real content. */}
-          <PersistGate loading={null} persistor={persistor}>
-            {children}
-            <Toaster position="top-center" richColors />
-          </PersistGate>
+          {children}
+          <Toaster position="top-center" richColors />
         </Provider>
       </QueryClientProvider>
     </ThemeProvider>
