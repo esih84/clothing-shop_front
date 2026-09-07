@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  Star,
   Shield,
   Headphones,
   ShoppingBag,
@@ -19,15 +18,25 @@ import { toggleWishlist } from "@/shared/store/slices/wishlistSlice";
 import { useCart } from "@/features/cart/queries";
 import { formatToman } from "@/shared/lib/utils";
 import { getDiscountInfo } from "@/shared/lib/discount";
+import { brandPath, categoryPath } from "@/shared/lib/urls";
+import { readPendingReview } from "@/shared/lib/pending-review";
+import { toPersianDigits } from "@/shared/lib/digits";
+import { useReviewSummary } from "@/features/review/queries";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/shared/components/product/product-card";
+import { ProductReviews } from "@/shared/components/product/reviews/product-reviews";
 import { AddedToCartDialog } from "@/shared/components/cart/added-to-cart-dialog";
 import type { Product } from "@/types/product";
 
 interface ProductDetailsProps {
   product: Product;
   relatedProducts?: Product[];
+  /**
+   * Admin-curated "buy together" products, shown inside the add-to-cart confirmation.
+   * Empty for most products, in which case the dialog stays a plain confirmation.
+   */
+  cartSuggestions?: Product[];
   /** "View more products" link — the /products page filtered by this page's categories. */
   moreHref?: string;
 }
@@ -35,18 +44,44 @@ interface ProductDetailsProps {
 export function ProductDetails({
   product,
   relatedProducts = [],
+  cartSuggestions = [],
   moreHref,
 }: ProductDetailsProps) {
   const images = product.images ?? [];
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<"details" | "care" | "specs">(
-    "details",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "details" | "reviews" | "care" | "specs"
+  >("details");
   const [descExpanded, setDescExpanded] = useState(false);
   const [showAddedDialog, setShowAddedDialog] = useState(false);
   const [attributesExpanded, setAttributesExpanded] = useState(false);
+
+  // Review count for the tab label. Shares its query key with the reviews tab, so opening the
+  // tab does not refetch.
+  const { data: reviewSummary } = useReviewSummary(product.id);
+
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const pendingReviewScroll = useRef(false);
+
+  // Arriving at "#reviews" — or coming back from login with a parked draft — opens the reviews
+  // tab instead of the default one. The draft itself is restored by ProductReviews.
+  useEffect(() => {
+    const wantsReviews =
+      window.location.hash === "#reviews" || !!readPendingReview(product.id);
+    if (!wantsReviews) return;
+    setActiveTab("reviews");
+    pendingReviewScroll.current = true;
+  }, [product.id]);
+
+  // Scroll only once the reviews tab has actually rendered, so the tab bar lands at the top of
+  // the viewport rather than somewhere mid-transition.
+  useEffect(() => {
+    if (activeTab !== "reviews" || !pendingReviewScroll.current) return;
+    pendingReviewScroll.current = false;
+    tabsRef.current?.scrollIntoView({ block: "start" });
+  }, [activeTab]);
 
   // Product description; if long, it collapses on mobile and expands with a button.
   const description = product.description?.trim() || "توضیحاتی ثبت نشده است.";
@@ -142,13 +177,6 @@ export function ProductDetails({
     }
   };
 
-  // Derive average rating from reviews if available
-  const reviewList = product.reviews ?? [];
-  const avgRating =
-    reviewList.length > 0
-      ? reviewList.reduce((sum, r) => sum + r.rating, 0) / reviewList.length
-      : null;
-
   return (
     <div className="min-h-screen bg-card">
       <div className="max-w-6xl mx-auto px-4 pt-6 pb-28 lg:pb-6">
@@ -156,7 +184,7 @@ export function ProductDetails({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           {/* LEFT: Image gallery */}
           <div>
-            <div className="relative aspect-square overflow-hidden bg-primary/15 border border-border mb-3 rounded-2xl select-none">
+            <div className="relative aspect-square overflow-hidden border border-border mb-3 rounded-2xl select-none">
               {sortedImages.length > 0 ? (
                 <AppSlider
                   ref={sliderRef}
@@ -225,13 +253,16 @@ export function ProductDetails({
             {(product.category || product.brand) && (
               <div className="flex flex-wrap items-center gap-2">
                 {product.category && (
-                  <span className="border border-border/60 px-2.5 py-0.5 text-xs text-secondary font-medium rounded-full">
+                  <Link
+                    href={categoryPath(product.category.slug)}
+                    className="border border-border/60 px-2.5 py-0.5 text-xs text-secondary font-medium rounded-full transition-colors hover:bg-primary/20 hover:border-secondary/40"
+                  >
                     {product.category.name}
-                  </span>
+                  </Link>
                 )}
                 {product.brand && (
                   <Link
-                    href={`/products?brandSlugs=${encodeURIComponent(product.brand.slug)}`}
+                    href={brandPath(product.brand.slug)}
                     className="border border-border/60 bg-primary/15 px-2.5 py-0.5 text-xs text-secondary font-medium rounded-full transition-colors hover:bg-primary/30 hover:border-secondary/40"
                   >
                     برند: {product.brand.name}
@@ -244,31 +275,6 @@ export function ProductDetails({
             <h1 className="text-xl md:text-3xl font-bold text-foreground leading-snug">
               {product.name}
             </h1>
-
-            {/* Rating row — only shown if reviews exist */}
-            {avgRating !== null && (
-              <div className="flex items-center flex-wrap gap-2">
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${
-                        i <= Math.round(avgRating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "fill-muted text-muted-foreground"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-medium text-foreground">
-                  {avgRating.toFixed(1)}
-                </span>
-                <span className="text-muted-foreground">|</span>
-                <span className="text-sm text-muted-foreground">
-                  {reviewList.length.toLocaleString()} نظر
-                </span>
-              </div>
-            )}
 
             {/* Price (hidden on mobile — shown in the sticky bottom bar instead) */}
             <div className="hidden lg:flex items-center gap-3 pb-4 border-b border-border">
@@ -357,11 +363,15 @@ export function ProductDetails({
         </div>
 
         {/* ── Info tabs ── */}
-        <div className="mb-12 border border-border rounded-2xl overflow-hidden">
+        <div
+          ref={tabsRef}
+          className="mb-12 border border-border rounded-2xl overflow-hidden scroll-mt-4"
+        >
           <div className="flex border-b border-border overflow-x-auto">
             {(
               [
                 { key: "details", label: "جزئیات محصول" },
+                { key: "reviews", label: "نظرات کاربران" },
                 // { key: "care", label: "Storage & usage tips" },
                 // { key: "specs", label: "Specifications" },
               ] as const
@@ -376,11 +386,16 @@ export function ProductDetails({
                 }`}
               >
                 {tab.label}
+                {tab.key === "reviews" && !!reviewSummary?.count && (
+                  <span className="ms-1.5 text-xs text-muted-foreground">
+                    ({toPersianDigits(reviewSummary.count)})
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {activeTab === "details" && (
               <div className="space-y-4">
                 <div className="relative">
@@ -470,6 +485,13 @@ export function ProductDetails({
                   </button>
                 )}
               </div>
+            )}
+
+            {activeTab === "reviews" && (
+              <ProductReviews
+                productId={product.id}
+                productSlug={product.slug}
+              />
             )}
 
             {/* The "Storage & usage tips" tab is currently commented out.
@@ -647,6 +669,7 @@ export function ProductDetails({
       <AddedToCartDialog
         open={showAddedDialog}
         onOpenChange={setShowAddedDialog}
+        products={cartSuggestions}
       />
     </div>
   );

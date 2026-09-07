@@ -10,6 +10,17 @@ export const queryKeys = {
   orders: ["orders"] as const,
   addresses: ["addresses"] as const,
   pets: ["pets"] as const,
+  reviews: ["reviews"] as const,
+  /** All review data for one product — list, summary, own review and own votes. */
+  productReviews: (productId: string) => ["reviews", productId] as const,
+  productReviewList: (productId: string, sort: string) =>
+    ["reviews", productId, "list", sort] as const,
+  productReviewSummary: (productId: string) =>
+    ["reviews", productId, "summary"] as const,
+  myProductReview: (productId: string) =>
+    ["reviews", productId, "mine"] as const,
+  myProductReviewVotes: (productId: string) =>
+    ["reviews", productId, "my-votes"] as const,
 } as const;
 
 // Commonly used aliases
