@@ -1,4 +1,5 @@
-import { brand } from "@/shared/config/brand";
+import { brand as brandConfig } from "@/shared/config/brand";
+import type { SiteSettings } from "@/shared/config/site-settings";
 
 /**
  * Injects structured data (JSON-LD) for search engines.
@@ -14,31 +15,33 @@ export function JsonLd({ data }: { data: Record<string, unknown> }) {
 }
 
 /** Organization + website schema for the home page/layout */
-export function OrganizationJsonLd() {
+export function OrganizationJsonLd({ settings }: { settings: SiteSettings }) {
+  const { brand, contact } = settings;
   const data = {
-    "@context": "https://petmeal.ir",
+    "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "Organization",
         name: brand.name,
         alternateName: brand.nameEn,
-        url: brand.url,
+        url: brandConfig.url,
         description: brand.description,
-        // email: brand.contact.email,
-        sameAs: [
-          brand.social.instagram,
-          brand.social.telegram,
-          // brand.social.twitter,
-        ],
+        ...(contact.email ? { email: contact.email } : {}),
+        ...(contact.phone ? { telephone: contact.phone } : {}),
+        // A blank social field means "not set up yet" — an empty string in
+        // sameAs is a schema error, so those are dropped instead of emitted.
+        sameAs: [contact.instagram, contact.telegram, contact.whatsapp].filter(
+          Boolean,
+        ),
       },
       {
         "@type": "WebSite",
         name: brand.name,
-        url: brand.url,
+        url: brandConfig.url,
         inLanguage: "fa-IR",
         potentialAction: {
           "@type": "SearchAction",
-          target: `${brand.url}/categories?search={search_term_string}`,
+          target: `${brandConfig.url}/categories?search={search_term_string}`,
           "query-input": "required name=search_term_string",
         },
       },

@@ -4,20 +4,22 @@ import Link from "next/link";
 import type { Category } from "@/types/category";
 import { AppSlider } from "@/shared/components/app-slider";
 
-// Brand gradients (blue/black/yellow)
+// Brand gradients, built from the admin's two colours (see shared/lib/theme.ts)
 const cardGradients = [
-  "from-[#1473E6] to-[#0B3A78]",
-  "from-[#0B3A78] to-[#111827]",
-  "from-[#1473E6] to-[#111827]",
-  "from-[#F4B400] to-[#1473E6]",
-  "from-[#111827] to-[#1473E6]",
-  "from-[#1473E6] to-[#0B3A78]",
-  "from-[#0B3A78] to-[#111827]",
+  "from-secondary to-brand-deep",
+  "from-brand-deep to-brand-ink",
+  "from-secondary to-brand-ink",
+  "from-primary to-secondary",
+  "from-brand-ink to-secondary",
+  "from-secondary to-brand-deep",
+  "from-brand-deep to-brand-ink",
 ];
 
 interface CategorySliderProps {
   categories: Category[];
   showHeader?: boolean;
+  /** Section heading; comes from the admin's site settings on the home page. */
+  title?: string;
 }
 
 /**
@@ -28,6 +30,7 @@ interface CategorySliderProps {
 export function CategorySlider({
   categories,
   showHeader = true,
+  title = "دسته‌بندی محصولات",
 }: CategorySliderProps) {
   if (!categories.length) return null;
 
@@ -42,9 +45,7 @@ export function CategorySlider({
         <div className="flex items-center justify-between mb-4 px-3 sm:px-4">
           <div className="flex items-center gap-2">
             <div className="w-1 h-5 rounded-full bg-secondary" />
-            <h2 className="text-base font-bold tracking-wide">
-              دسته‌بندی محصولات
-            </h2>
+            <h2 className="text-base font-bold tracking-wide">{title}</h2>
           </div>
 
           {/* <Link
@@ -101,7 +102,7 @@ export function CategorySlider({
                 <div className="absolute inset-0 bg-card/0 group-hover:bg-card/10 transition-colors duration-200" />
               </div>
 
-              <div className="flex items-start justify-center pt-1.5 pb-0.5 min-h-[2.4em]">
+              <div className="flex items-center justify-center pt-1.5 pb-0.5 min-h-[2.4em]">
                 <p className="text-[11px] sm:text-xs font-semibold text-secondary text-center leading-tight line-clamp-2">
                   {category.name}
                 </p>

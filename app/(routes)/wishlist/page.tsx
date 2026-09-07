@@ -6,8 +6,10 @@ import { Trash2, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatToman } from "@/shared/lib/utils";
+import { useSiteSettings } from "@/shared/config/site-settings-provider";
 
 export default function WishlistPage() {
+  const { wishlist } = useSiteSettings();
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
   const dispatch = useAppDispatch();
 
@@ -54,7 +56,7 @@ export default function WishlistPage() {
                     </p>
                     <Link prefetch href={`/product/${item.id}`}>
                       <button className="bg-secondary text-secondary-foreground rounded-[0.5rem] lg:rounded-xl px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 font-medium text-xs sm:text-sm md:text-base hover:bg-secondary/90 transition-colors">
-                        جزئیات محصول
+                        {wishlist.detailsLabel}
                       </button>
                     </Link>
                   </div>
@@ -68,17 +70,17 @@ export default function WishlistPage() {
               <Heart className="w-8 h-8 md:w-10 md:h-10 text-secondary" />
             </div>
             <h2 className="text-xl md:text-2xl font-medium mb-2">
-              لیست علاقه‌مندی‌های شما خالی است
+              {wishlist.emptyTitle}
             </h2>
             <p className="text-muted-foreground text-center mb-6 text-base md:text-lg">
-              به نظر می‌رسد هنوز چیزی به علاقه‌مندی‌ها اضافه نکرده‌اید.
+              {wishlist.emptyDescription}
             </p>
             <Link
               prefetch
               href="/"
               className="bg-secondary text-secondary-foreground rounded-2xl px-6 py-3 md:px-8 md:py-4 font-medium inline-block text-base md:text-lg hover:bg-secondary/90 transition-colors"
             >
-              شروع به انتخاب
+              {wishlist.emptyCtaLabel}
             </Link>
           </div>
         )}

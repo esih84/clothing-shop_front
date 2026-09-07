@@ -59,7 +59,7 @@ export function ProductCard({
       className="block group"
       style={{ viewTransitionName: `product-${id}` }}
     >
-      <div className="relative bg-primary/15 overflow-hidden aspect-square mb-3 rounded-2xl border border-border">
+      <div className="relative overflow-hidden aspect-square mb-3 rounded-2xl border border-border">
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={title}
@@ -69,7 +69,7 @@ export function ProductCard({
           style={{ viewTransitionName: `product-image-${id}` }}
         />
         {discount && (
-          <div className="absolute top-0 left-0 bg-secondary text-white text-[10px] font-bold px-2 py-1 tracking-wide rounded-tl-2xl rounded-br-2xl">
+          <div className="absolute top-0 left-0 bg-secondary text-white font-bold tracking-wide rounded-tl-2xl rounded-br-2xl text-[10px] px-2 py-1 sm:text-xs sm:px-2.5 sm:py-1.5 xl:text-sm xl:px-3 xl:py-2">
             -{discount}%
           </div>
         )}

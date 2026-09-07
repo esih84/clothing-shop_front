@@ -2,19 +2,30 @@ import { Package, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { getMyOrders } from "@/features/order/order-api";
 import { getOrderStatus } from "@/features/order/order-status";
+import { getSiteSettings } from "@/features/settings/settings-api";
 
 export default async function OrdersTab() {
+  const { orders: ordersText } = await getSiteSettings();
   const { data } = await getMyOrders(1);
   const orders = data ?? [];
 
   if (!orders.length) {
     return (
-      <p
-        className="text-center text-sm text-muted-foreground py-8"
+      <div
+        className="flex flex-col items-center gap-4 py-8"
         style={{ direction: "rtl" }}
       >
-        هنوز سفارشی ثبت نکرده‌اید
-      </p>
+        <p className="text-center text-sm text-muted-foreground">
+          {ordersText.emptyTitle}
+        </p>
+        <Link
+          prefetch
+          href="/"
+          className="bg-secondary text-secondary-foreground rounded-2xl px-6 py-2.5 text-sm font-medium no-underline hover:bg-secondary/90 transition-colors"
+        >
+          {ordersText.emptyCtaLabel}
+        </Link>
+      </div>
     );
   }
 

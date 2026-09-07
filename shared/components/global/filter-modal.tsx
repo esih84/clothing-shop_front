@@ -33,10 +33,10 @@ export function FilterModal({
       <DrawerContent className="h-[90vh] md:h-full w-full max-w-md mx-auto md:mx-0 shadow-2xl bg-card">
         <div className="mx-auto w-full max-w-md flex flex-col h-full">
           <DrawerHeader>
-            <DrawerTitle className="flex items-center gap-2 text-2xl font-bold text-secondary">
+            <DrawerTitle className="flex items-center gap-2 text-lg font-bold text-secondary">
               فیلتر محصولات
             </DrawerTitle>
-            <DrawerDescription className="text-muted-foreground text-right">
+            <DrawerDescription className="text-xs text-muted-foreground text-right">
               بر اساس نام، دسته‌بندی و قیمت، محصولات را فیلتر کنید
             </DrawerDescription>
           </DrawerHeader>

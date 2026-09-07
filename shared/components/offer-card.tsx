@@ -63,7 +63,7 @@ export function OfferCard({
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {/* Discount badge */}
-        <div className="absolute top-0 left-0 bg-secondary text-white text-[11px] font-bold px-2.5 py-1 leading-none rounded-tl-2xl rounded-br-2xl">
+        <div className="absolute top-0 left-0 bg-secondary text-white font-bold leading-none rounded-tl-2xl rounded-br-2xl text-[11px] px-2.5 py-1.5 sm:text-xs sm:px-3 sm:py-2 xl:text-sm xl:px-3.5 xl:py-2.5">
           -{discount}%
         </div>
 

@@ -27,28 +27,28 @@ const STYLES: Record<
     wrap: "absolute inset-0 z-20 flex flex-col justify-end p-3 md:justify-center md:p-10 lg:p-14",
     box: "max-w-[60%] md:max-w-[50%] my-auto mr-1",
     title:
-      "text-[11px] font-semibold lg:font-extrabold lg:leading-tight leading-none text-[#0F73E6]  md:text-2xl lg:text-4xl",
-    desc: "mt-2 line-clamp-2 text-[8px] font-thin md:font-normal leading-none md:leading-snug text-[#1a2433] sm:text-xs md:mt-3 lg:mt-4 md:text-xs lg:text-base",
+      "text-[11px] font-semibold lg:font-extrabold lg:leading-tight leading-none text-brand-on-light  md:text-2xl lg:text-4xl",
+    desc: "mt-2 line-clamp-2 text-[8px] font-thin md:font-normal leading-none md:leading-snug text-brand-ink sm:text-xs md:mt-3 lg:mt-4 md:text-xs lg:text-base",
     button:
-      "mt-4  inline-block rounded-[0.25rem] bg-[#0F73E6] px-1.5 py-1 text-[0.5rem] lg:font-semibold text-white shadow-md sm:mt-3 sm:px-2 sm:py-1.5 sm:text-[0.6rem] md: px-4 md:py-2 md:mt-8 md:text-base lg:mt-6 lg:rounded-xl lg:px-6 lg:py-3 lg:text-base",
+      "mt-4  inline-block rounded-[0.25rem] bg-brand-on-light px-1.5 py-1 text-[0.5rem] lg:font-semibold text-white shadow-md sm:mt-3 sm:px-2 sm:py-1.5 sm:text-[0.6rem] md: px-4 md:py-2 md:mt-8 md:text-base lg:mt-6 lg:rounded-xl lg:px-6 lg:py-3 lg:text-base",
   },
   side: {
     wrap: "absolute inset-0 z-20 flex flex-col justify-end p-2.5 md:justify-center md:p-4 lg:p-4",
     box: "max-w-[60%] md:max-w-[50%] my-auto ",
     title:
-      "line-clamp-2 text-[0.55rem] font-semibold lg:font-extrabold lg:leading-tight leading-none text-[#0F73E6] sm:text-xs md:text-base lg:text-lg",
-    desc: "mt-2 line-clamp-2 hidden  text-[8px] font-thin  leading-none lg:leading-snug text-[#1a2433] lg:font-light md:block md:text-tiny",
+      "line-clamp-2 text-[0.55rem] font-semibold lg:font-extrabold lg:leading-tight leading-none text-brand-on-light sm:text-xs md:text-base lg:text-lg",
+    desc: "mt-2 line-clamp-2 hidden  text-[8px] font-thin  leading-none lg:leading-snug text-brand-ink lg:font-light md:block md:text-tiny",
     button:
-      "mt-6  inline-block rounded-[0.25rem] bg-[#0F73E6] px-1 py-0.5 text-[0.5rem]  md:text-tiny lg:font-semibold text-white shadow-md sm:mt-3 sm:px-1 sm:py-0.5  md:px-2 md:mt-4 md:py-1 lg:mt-6 lg:rounded-[0.5rem] lg:px-2 lg:py-1.5 lg:text-xs",
+      "mt-6  inline-block rounded-[0.25rem] bg-brand-on-light px-1 py-0.5 text-[0.5rem]  md:text-tiny lg:font-semibold text-white shadow-md sm:mt-3 sm:px-1 sm:py-0.5  md:px-2 md:mt-4 md:py-1 lg:mt-6 lg:rounded-[0.5rem] lg:px-2 lg:py-1.5 lg:text-xs",
   },
   brand: {
     wrap: "absolute inset-0 z-20 flex flex-col justify-end p-2.5 md:justify-center md:p-6 lg:p-8",
     box: "max-w-[60%] md:max-w-[50%] my-auto mr-1",
     title:
-      "line-clamp-2 text-tiny font-semibold md:font-bold lg:font-extrabold lg:leading-tight leading-none text-[#0F73E6] sm:text-xs md:text-xs lg:text-2xl",
-    desc: "mt-2 line-clamp-2 text-[8px] font-thin md:font-light leading-none lg:leading-snug text-[#1a2433]  md:text-tiny lg:text-base",
+      "line-clamp-2 text-tiny font-semibold md:font-bold lg:font-extrabold lg:leading-tight leading-none text-brand-on-light sm:text-xs md:text-xs lg:text-2xl",
+    desc: "mt-2 line-clamp-2 text-[8px] font-thin md:font-light leading-none lg:leading-snug text-brand-ink  md:text-tiny lg:text-base",
     button:
-      "mt-3  inline-block rounded-[0.25rem] bg-[#0F73E6] px-1.5 py-1 text-[0.5rem] lg:font-semibold text-white shadow-md sm:mt-3 sm:px-2 sm:py-1.5 sm:text-[0.6rem] lg:mt-6 lg:rounded-xl lg:px-6 lg:py-3 lg:text-base",
+      "mt-3  inline-block rounded-[0.25rem] bg-brand-on-light px-1.5 py-1 text-[0.5rem] lg:font-semibold text-white shadow-md sm:mt-3 sm:px-2 sm:py-1.5 sm:text-[0.6rem] lg:mt-6 lg:rounded-xl lg:px-6 lg:py-3 lg:text-base",
   },
 };
 
@@ -92,8 +92,8 @@ export function BannerCard({
     <>
       {/*
         No gradient — the image background is light blue, so the text sits directly on the
-        image. The title uses the site's bold blue and the description uses the site's navy text
-        (#1a2433 ~ --foreground) so it stays readable on light blue.
+        image. Both use the brand tokens pinned to a dark, readable lightness — the artwork is
+        light in either theme, so these must not follow the dark-mode flip.
         Mobile: text at the bottom of the box. Desktop: center-right (RTL).
       */}
       <div className={styles.wrap}>

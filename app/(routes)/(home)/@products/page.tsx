@@ -1,7 +1,9 @@
 import { Products } from "@/shared/components/product/products";
 import { getProducts } from "@/features/product/product-api";
+import { getSiteSettings } from "@/features/settings/settings-api";
 
 export default async function ProductsSection() {
+  const { home } = await getSiteSettings();
   const { data: response } = await getProducts({ page: 1, limit: 10 });
   const products = response?.data ?? [];
   const total = response?.total ?? 0;
@@ -16,7 +18,7 @@ export default async function ProductsSection() {
       <div className="flex items-center gap-2 mb-4 md:mb-6">
         <div className="w-1 h-5 bg-secondary" />
         <h2 className="text-xl md:text-2xl md:font-lg font-bold">
-          محصولات ویژه
+          {home.productsTitle}
         </h2>
       </div>
 

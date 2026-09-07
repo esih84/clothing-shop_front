@@ -7,15 +7,15 @@ interface CategorySelectorProps {
   showHeader?: boolean;
 }
 
-// Brand gradients (blue/black/yellow) — without the old fashion colors
+// Brand gradients, built from the admin's two colours (see shared/lib/theme.ts) — without the old fashion colors
 const cardGradients = [
-  "from-[#1473E6] to-[#0B3A78]",
-  "from-[#0B3A78] to-[#111827]",
-  "from-[#1473E6] to-[#111827]",
-  "from-[#F4B400] to-[#1473E6]",
-  "from-[#111827] to-[#1473E6]",
-  "from-[#1473E6] to-[#0B3A78]",
-  "from-[#0B3A78] to-[#111827]",
+  "from-secondary to-brand-deep",
+  "from-brand-deep to-brand-ink",
+  "from-secondary to-brand-ink",
+  "from-primary to-secondary",
+  "from-brand-ink to-secondary",
+  "from-secondary to-brand-deep",
+  "from-brand-deep to-brand-ink",
 ];
 
 const colsClass: Record<number, string> = {

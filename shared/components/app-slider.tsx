@@ -112,9 +112,9 @@ export function AppSlider<T>({
       wrapperClass={wrapperClassName}
       style={
         {
-          "--swiper-navigation-color": "#1473E6",
+          "--swiper-navigation-color": "hsl(var(--secondary))",
           "--swiper-navigation-size": "20px",
-          "--swiper-pagination-color": "#1473E6",
+          "--swiper-pagination-color": "hsl(var(--secondary))",
         } as CSSProperties
       }
       className={cn("w-full", className)}

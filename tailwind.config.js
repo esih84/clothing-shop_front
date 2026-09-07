@@ -50,6 +50,12 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Derived from the admin's brand colours and deliberately identical in
+        // light and dark mode: they sit on artwork (category gradients, banner
+        // captions) that never flips with the theme.
+        "brand-ink": "hsl(var(--brand-ink))",
+        "brand-deep": "hsl(var(--brand-deep))",
+        "brand-on-light": "hsl(var(--brand-on-light))",
       },
       borderRadius: {
         lg: "var(--radius)",
