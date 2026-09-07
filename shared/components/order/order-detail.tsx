@@ -32,12 +32,14 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order }) => {
   ]
     .filter(Boolean)
     .join(" ");
+  const province = addressField(sa, "province");
   const city = addressField(sa, "city");
   const addressLine = addressField(sa, "address");
   const plaque = addressField(sa, "plaque");
+  const postalCode = addressField(sa, "postalCode");
   const note = addressField(sa, "note");
   const hasLocation = Boolean(
-    receiverName || city || addressLine || plaque || note,
+    receiverName || city || addressLine || plaque || postalCode || note,
   );
 
   return (
@@ -185,7 +187,9 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order }) => {
               {city && (
                 <div className="text-sm text-foreground mb-2 leading-relaxed">
                   <span className="text-muted-foreground">شهر: </span>
-                  <span className="font-medium">{city}</span>
+                  <span className="font-medium">
+                    {province ? `${province}، ${city}` : city}
+                  </span>
                 </div>
               )}
               {addressLine && (
@@ -198,6 +202,14 @@ const OrderDetail: React.FC<OrderDetailProps> = ({ order }) => {
                 <div className="text-sm text-foreground mb-2 leading-relaxed">
                   <span className="text-muted-foreground">پلاک: </span>
                   <span className="font-medium">{plaque}</span>
+                </div>
+              )}
+              {postalCode && (
+                <div className="text-sm text-foreground mb-2 leading-relaxed">
+                  <span className="text-muted-foreground">کد پستی: </span>
+                  <span className="font-medium" dir="ltr">
+                    {postalCode}
+                  </span>
                 </div>
               )}
               {note && (
